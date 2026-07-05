@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AC Audit Platform | VRT Admin Center</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --black:#111214; --graphite:#26282C; --graphite2:#33363B; --white:#FFFFFF;
+  --khaki:#A89272; --khaki-d:#8C7657; --linen:#F5F1E8; --line:#E5DFD2;
+  --ink:#22242A; --ink2:#6B6E76;
+  --ok:#4E7A5A; --warn:#C7962E; --danger:#B0492F; --info:#5A7A9A; --crit:#7A2E4A;
+  --card-r:10px;
+}
+[data-theme="dark"]{
+  --linen:#1A1C1F; --white:#26282C; --line:#3A3D42; --ink:#ECE8DE; --ink2:#9A9DA5;
+  --graphite:#111214; --graphite2:#26282C;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'Noto Sans TC','Noto Sans Khmer','Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--linen);color:var(--ink);font-size:14px;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:13.5px;color:var(--ink);background:var(--white);
+  border:1px solid var(--line);border-radius:7px;padding:8px 10px;outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--khaki);box-shadow:0 0 0 2px rgba(168,146,114,.18)}
+textarea{resize:vertical;min-height:70px}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:var(--khaki);border-radius:5px;opacity:.5}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ===== Layout ===== */
+#app{display:flex;flex-direction:column;height:100vh}
+header{background:var(--black);color:#fff;height:54px;display:flex;align-items:center;
+  padding:0 14px;gap:10px;border-bottom:2px solid var(--khaki);flex-shrink:0;z-index:50}
+#burger{background:none;border:none;color:#fff;font-size:20px;padding:6px 8px;display:none}
+.logo{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
+.logo b{font-size:16px;letter-spacing:.14em;color:#fff}
+.logo span{font-size:10.5px;letter-spacing:.22em;color:var(--khaki)}
+#hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.hpill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.14);color:#D8D4C8;font-size:11.5px;
+  padding:4px 10px;border-radius:20px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:#777;display:inline-block;flex-shrink:0}
+.dot.ok{background:#6FBF87}.dot.bad{background:#E06A4E}.dot.wait{background:#D9B25C}
+.hbtn{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);color:#fff;
+  border-radius:7px;padding:6px 11px;font-size:12.5px}
+.hbtn:hover{background:var(--khaki);border-color:var(--khaki);color:#111}
+select.hsel{width:auto;background:rgba(255,255,255,.09);color:#fff;border:1px solid rgba(255,255,255,.16);
+  padding:5px 8px;font-size:12.5px;border-radius:7px}
+select.hsel option{color:#111}
+
+#body{display:flex;flex:1;overflow:hidden}
+nav{width:222px;background:var(--graphite);color:#C9CBD1;overflow-y:auto;flex-shrink:0;
+  display:flex;flex-direction:column;transition:transform .2s}
+nav .ngroup{font-size:10px;letter-spacing:.2em;color:#7E828B;padding:16px 18px 6px;text-transform:uppercase}
+nav a{display:flex;align-items:center;gap:10px;padding:9px 18px;color:#C9CBD1;text-decoration:none;
+  font-size:13.5px;border-left:3px solid transparent;white-space:nowrap}
+nav a:hover{background:var(--graphite2);color:#fff}
+nav a.active{background:var(--graphite2);color:#fff;border-left-color:var(--khaki)}
+nav a .cnt{margin-left:auto;font-size:10.5px;background:rgba(168,146,114,.25);color:var(--khaki);
+  padding:1px 7px;border-radius:10px;font-variant-numeric:tabular-nums}
+nav .nfoot{margin-top:auto;padding:14px 18px;font-size:10px;color:#6B6E76;letter-spacing:.08em;line-height:1.7}
+main{flex:1;overflow-y:auto;padding:20px 22px}
+
+/* ===== Cards / dashboard ===== */
+.pgtitle{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.pgtitle h2{font-size:19px;font-weight:700;letter-spacing:.02em}
+.pgtitle .sub{color:var(--ink2);font-size:12.5px}
+.grid{display:grid;gap:12px}
+.g-kpi{grid-template-columns:repeat(auto-fill,minmax(158px,1fr))}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--card-r);padding:14px 16px;position:relative;overflow:hidden}
+.kpi{cursor:pointer}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kc,var(--khaki))}
+.kpi .kv{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+.kpi .kl{font-size:11.5px;color:var(--ink2);margin-top:3px;line-height:1.35}
+.kpi .kico{position:absolute;right:12px;top:10px;font-size:17px;opacity:.5}
+.panel{background:var(--white);border:1px solid var(--line);border-radius:var(--card-r);padding:16px}
+.panel h3{font-size:13px;letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.panel h3 .rule{flex:1;height:1px;background:var(--line)}
+
+/* ===== Toolbar / table ===== */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.toolbar input[type=search]{width:220px}
+.toolbar select{width:auto}
+.btn{border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:7px;
+  padding:8px 13px;font-size:13px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--khaki);color:var(--khaki-d)}
+.btn.pri{background:var(--black);color:#fff;border-color:var(--black)}
+.btn.pri:hover{background:var(--khaki);border-color:var(--khaki);color:#111}
+.btn.ghost{background:transparent}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn.dng{color:var(--danger);border-color:var(--danger)}
+.dd{position:relative;display:inline-block}
+.dd-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--white);
+  border:1px solid var(--line);border-radius:8px;min-width:170px;z-index:60;box-shadow:0 8px 24px rgba(17,18,20,.12);overflow:hidden}
+.dd.open .dd-menu{display:block}
+.dd-menu button{display:block;width:100%;text-align:left;background:none;border:none;
+  padding:9px 14px;font-size:13px;color:var(--ink)}
+.dd-menu button:hover{background:var(--linen);color:var(--khaki-d)}
+.tblwrap{background:var(--white);border:1px solid var(--line);border-radius:var(--card-r);overflow:auto}
+table.dt{width:100%;border-collapse:collapse;font-size:13px;min-width:640px}
+table.dt th{background:var(--graphite);color:#D8D4C8;text-align:left;padding:9px 12px;font-weight:600;
+  font-size:11.5px;letter-spacing:.05em;white-space:nowrap;position:sticky;top:0}
+table.dt td{padding:9px 12px;border-top:1px solid var(--line);vertical-align:top}
+table.dt tbody tr:hover{background:rgba(168,146,114,.07);cursor:pointer}
+.badge{display:inline-block;padding:2px 9px;border-radius:11px;font-size:11px;font-weight:600;
+  color:#fff;background:var(--ink2);white-space:nowrap}
+.b-ok{background:var(--ok)}.b-warn{background:var(--warn)}.b-danger{background:var(--danger)}
+.b-info{background:var(--info)}.b-crit{background:var(--crit)}.b-mute{background:#8A8D95}
+.empty{padding:40px;text-align:center;color:var(--ink2)}
+.empty .e1{font-size:30px;margin-bottom:8px;opacity:.5}
+
+/* ===== Modal ===== */
+.mask{display:none;position:fixed;inset:0;background:rgba(17,18,20,.55);z-index:100;
+  align-items:flex-start;justify-content:center;padding:4vh 14px;overflow-y:auto}
+.mask.show{display:flex}
+.modal{background:var(--white);border-radius:12px;width:100%;max-width:760px;
+  border-top:3px solid var(--khaki);animation:pop .16s ease}
+@keyframes pop{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+.m-head{display:flex;align-items:center;padding:15px 20px;border-bottom:1px solid var(--line)}
+.m-head h3{font-size:15.5px}
+.m-head .x{margin-left:auto;background:none;border:none;font-size:19px;color:var(--ink2);padding:2px 8px}
+.m-body{padding:18px 20px;max-height:66vh;overflow-y:auto}
+.m-foot{padding:13px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.f-full{grid-column:1/-1}
+.fld label{display:block;font-size:11.5px;color:var(--ink2);margin-bottom:4px;letter-spacing:.03em}
+.fld label .req{color:var(--danger)}
+.photos{display:flex;gap:8px;flex-wrap:wrap}
+.photos .ph{width:74px;height:74px;border-radius:8px;border:1px solid var(--line);position:relative;
+  background-size:cover;background-position:center}
+.photos .ph .rm{position:absolute;top:-6px;right:-6px;width:19px;height:19px;border-radius:50%;
+  background:var(--danger);color:#fff;border:none;font-size:11px;line-height:1}
+.photos .add{width:74px;height:74px;border:1.5px dashed var(--khaki);border-radius:8px;background:none;
+  color:var(--khaki);font-size:22px}
+
+/* ===== Misc ===== */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--white);border-radius:16px;padding:5px 13px;font-size:12.5px;color:var(--ink2)}
+.chip.on{background:var(--black);color:#fff;border-color:var(--black)}
+.actlist{list-style:none;max-height:330px;overflow-y:auto}
+.actlist li{padding:8px 2px;border-bottom:1px dashed var(--line);font-size:12.5px;display:flex;gap:8px}
+.actlist li time{color:var(--ink2);font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--black);color:#fff;
+  padding:10px 20px;border-radius:8px;font-size:13px;z-index:300;display:none;border-left:3px solid var(--khaki);
+  box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:86vw}
+.chartbox{position:relative;height:250px}
+.g-charts{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.subtabs{display:flex;gap:2px;border-bottom:2px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+.subtabs button{background:none;border:none;padding:9px 15px;font-size:13px;color:var(--ink2);
+  border-bottom:2px solid transparent;margin-bottom:-2px}
+.subtabs button.on{color:var(--ink);border-bottom-color:var(--khaki);font-weight:600}
+.hint{font-size:11.5px;color:var(--ink2);line-height:1.6}
+.kv-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.kv-row b{font-variant-numeric:tabular-nums}
+.setsec{margin-bottom:22px}
+.setsec h4{font-size:13px;margin-bottom:10px;color:var(--khaki-d);letter-spacing:.06em}
+.swrow{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px}
+.swrow input[type=checkbox]{width:auto;transform:scale(1.15)}
+.typechip{display:inline-flex;align-items:center;gap:7px;background:var(--linen);border:1px solid var(--line);
+  border-radius:16px;padding:5px 12px;font-size:12.5px;margin:0 6px 6px 0}
+.typechip button{background:none;border:none;color:var(--danger);font-size:13px;padding:0}
+@media print{
+  header,nav,.toolbar,.m-foot,#toast{display:none!important}
+  main{padding:0;overflow:visible}body{overflow:visible}
+  .tblwrap{border:none}table.dt th{position:static;background:#eee;color:#111}
+}
+@media(max-width:900px){
+  #burger{display:block}
+  nav{position:fixed;top:54px;bottom:0;left:0;z-index:80;transform:translateX(-100%);box-shadow:4px 0 18px rgba(0,0,0,.3)}
+  nav.open{transform:none}
+  .hpill .plabel{display:none}
+  main{padding:14px}
+  .fgrid{grid-template-columns:1fr}
+  .toolbar input[type=search]{width:100%}
+}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <button id="burger" onclick="toggleNav()">☰</button>
+  <div class="logo"><b>AC AUDIT</b><span>PLATFORM · VRT</span></div>
+  <div id="hdr-right">
+    <div class="hpill" id="pill-cloud" title="Cloud"><span class="dot" id="dot-cloud"></span><span class="plabel" id="lbl-cloud">Cloud</span></div>
+    <div class="hpill" id="pill-tg" title="Telegram"><span class="dot" id="dot-tg"></span><span class="plabel">TG</span></div>
+    <button class="hbtn" onclick="cloudUpload()" title="Upload">☁⬆</button>
+    <button class="hbtn" onclick="cloudDownload()" title="Download">☁⬇</button>
+    <button class="hbtn" onclick="cloudSync()" title="Sync">⟳</button>
+    <select class="hsel" id="langSel" onchange="setLang(this.value)">
+      <option value="zh">中文</option><option value="en">EN</option><option value="km">ខ្មែរ</option>
+    </select>
+    <button class="hbtn" id="themeBtn" onclick="toggleTheme()">◐</button>
+  </div>
+</header>
+<div id="body">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+</div>
+
+<div class="mask" id="modalMask"><div class="modal" id="modalBox"></div></div>
+<div id="toast"></div>
+<input type="file" id="xlsxFile" accept=".xlsx,.xls,.csv" style="display:none">
+<input type="file" id="jsonFile" accept=".json" style="display:none">
+<input type="file" id="photoFile" accept="image/*" multiple style="display:none">
+<input type="file" id="msgFile" accept=".msg,.eml,.txt" style="display:none">
+
+<script>
+/* =====================================================================
+   AC Audit Platform v1.0  ·  VRT Admin Center  ·  SAINTDOU
+   Single-file integrated platform:
+   Dashboard / Analytics / Audit / CAP-CAPA / GRS / DCC / Incident /
+   Policy / MSG Processor / Settings
+   Storage: localStorage ac_audit_db  ·  Cloud: GAS AC_AUDIT_PLATFORM
+   Bot: @ac_audit_bot  ·  Group: -5456651485
+===================================================================== */
+'use strict';
+
+/* ---------- i18n ---------- */
+const LANGS=['zh','en','km'];
+let LANG=localStorage.getItem('ac_audit_lang')||'zh';
+const T={
+ dashboard:{zh:'儀表板',en:'Dashboard',km:'ផ្ទាំងគ្រប់គ្រង'},
+ analytics:{zh:'分析圖表',en:'Analytics',km:'ការវិភាគ'},
+ audits:{zh:'稽核管理',en:'Audit Management',km:'គ្រប់គ្រងសវនកម្ម'},
+ caps:{zh:'CAP / CAPA 中心',en:'CAP / CAPA Center',km:'មជ្ឈមណ្ឌល CAP / CAPA'},
+ grs_certs:{zh:'GRS 證書',en:'GRS Certificates',km:'វិញ្ញាបនបត្រ GRS'},
+ grs_tc:{zh:'交易證書 TC',en:'Transaction Certificates',km:'វិញ្ញាបនបត្រប្រតិបត្តិការ'},
+ grs_suppliers:{zh:'GRS 供應商',en:'GRS Suppliers',km:'អ្នកផ្គត់ផ្គង់ GRS'},
+ grs_trace:{zh:'物料追溯',en:'Material Traceability',km:'តាមដានវត្ថុធាតុ'},
+ documents:{zh:'文件管制中心',en:'Document Control',km:'គ្រប់គ្រងឯកសារ'},
+ incidents:{zh:'事故中心',en:'Incident Center',km:'មជ្ឈមណ្ឌលឧប្បត្តិហេតុ'},
+ policies:{zh:'政策中心',en:'Policy Center',km:'មជ្ឈមណ្ឌលគោលការណ៍'},
+ msg:{zh:'MSG 處理器',en:'MSG Processor',km:'ដំណើរការ MSG'},
+ settings:{zh:'設定',en:'Settings',km:'ការកំណត់'},
+ grpMain:{zh:'總覽',en:'Overview',km:'ទិដ្ឋភាពរួម'},
+ grpAudit:{zh:'稽核作業',en:'Audit Operations',km:'ប្រតិបត្តិការសវនកម្ម'},
+ grpGRS:{zh:'GRS 中心',en:'GRS Center',km:'មជ្ឈមណ្ឌល GRS'},
+ grpDoc:{zh:'文件與政策',en:'Documents & Policy',km:'ឯកសារ និងគោលការណ៍'},
+ grpOther:{zh:'其他',en:'Others',km:'ផ្សេងៗ'},
+ add:{zh:'新增',en:'Add',km:'បន្ថែម'},
+ edit:{zh:'編輯',en:'Edit',km:'កែសម្រួល'},
+ del:{zh:'刪除',en:'Delete',km:'លុប'},
+ save:{zh:'儲存',en:'Save',km:'រក្សាទុក'},
+ cancel:{zh:'取消',en:'Cancel',km:'បោះបង់'},
+ search:{zh:'搜尋…',en:'Search…',km:'ស្វែងរក…'},
+ all:{zh:'全部',en:'All',km:'ទាំងអស់'},
+ import:{zh:'匯入',en:'Import',km:'នាំចូល'},
+ export:{zh:'匯出',en:'Export',km:'នាំចេញ'},
+ impExcel:{zh:'匯入 Excel',en:'Import Excel',km:'នាំចូល Excel'},
+ impJson:{zh:'還原 JSON 備份',en:'Restore JSON',km:'ស្ដារ JSON'},
+ expExcel:{zh:'匯出 Excel',en:'Export Excel',km:'នាំចេញ Excel'},
+ expCsv:{zh:'匯出 CSV',en:'Export CSV',km:'នាំចេញ CSV'},
+ expPdf:{zh:'匯出 PDF',en:'Export PDF',km:'នាំចេញ PDF'},
+ expJson:{zh:'備份 JSON',en:'Backup JSON',km:'បម្រុងទុក JSON'},
+ upload:{zh:'上傳雲端',en:'Upload',km:'ផ្ទុកឡើង'},
+ download:{zh:'下載雲端',en:'Download',km:'ទាញយក'},
+ sync:{zh:'同步',en:'Sync',km:'ធ្វើសមកាលកម្ម'},
+ confirmDel:{zh:'確定刪除此筆資料？',en:'Delete this record?',km:'លុបកំណត់ត្រានេះ?'},
+ noData:{zh:'尚無資料，點「新增」開始建立。',en:'No records yet. Click "Add" to create one.',km:'មិនទាន់មានទិន្នន័យ សូមចុច «បន្ថែម»'},
+ saved:{zh:'已儲存',en:'Saved',km:'បានរក្សាទុក'},
+ deleted:{zh:'已刪除',en:'Deleted',km:'បានលុប'},
+ reqMiss:{zh:'請填寫必填欄位：',en:'Required field missing: ',km:'សូមបំពេញ៖ '},
+ todayAudit:{zh:'今日稽核',en:"Today's Audits",km:'សវនកម្មថ្ងៃនេះ'},
+ upcoming:{zh:'近 7 日稽核',en:'Upcoming (7d)',km:'សវនកម្មខាងមុខ (7ថ្ងៃ)'},
+ capOpen:{zh:'CAP 未結案',en:'CAP Open',km:'CAP កំពុងបើក'},
+ capOverdue:{zh:'CAP 逾期',en:'CAP Overdue',km:'CAP ហួសកំណត់'},
+ certExp:{zh:'證書 60 日內到期',en:'Cert Expiry ≤60d',km:'វិញ្ញាបនបត្រជិតផុត'},
+ docExp:{zh:'文件 60 日內到期',en:'Doc Expiry ≤60d',km:'ឯកសារជិតផុត'},
+ findings:{zh:'Finding 總數',en:'Total Findings',km:'ចំនួន Finding'},
+ hiRisk:{zh:'高風險 Finding',en:'High Risk Findings',km:'Finding ហានិភ័យខ្ពស់'},
+ avgScore:{zh:'平均稽核分數',en:'Avg Audit Score',km:'ពិន្ទុមធ្យម'},
+ grsValid:{zh:'GRS 有效證書',en:'GRS Valid Certs',km:'GRS មានសុពលភាព'},
+ dccActive:{zh:'有效管制文件',en:'Active Documents',km:'ឯកសារសកម្ម'},
+ incOpen:{zh:'事故未結案',en:'Incidents Open',km:'ឧប្បត្តិហេតុបើក'},
+ recentAct:{zh:'最近活動',en:'Recent Activities',km:'សកម្មភាពថ្មីៗ'},
+ sysStatus:{zh:'系統狀態',en:'System Status',km:'ស្ថានភាពប្រព័ន្ធ'},
+ lastSync:{zh:'上次同步',en:'Last Sync',km:'សមកាលកម្មចុងក្រោយ'},
+ never:{zh:'尚未同步',en:'Never',km:'មិនទាន់'},
+ cloudOk:{zh:'雲端連線正常',en:'Cloud connected',km:'ភ្ជាប់ Cloud ជោគជ័យ'},
+ cloudBad:{zh:'雲端未連線（請於設定填入 GAS URL）',en:'Cloud offline (set GAS URL in Settings)',km:'Cloud មិនភ្ជាប់'},
+ upDone:{zh:'☁ 上傳完成',en:'☁ Upload complete',km:'☁ ផ្ទុកឡើងរួចរាល់'},
+ downDone:{zh:'☁ 下載完成，資料已更新',en:'☁ Download complete',km:'☁ ទាញយករួចរាល់'},
+ syncing:{zh:'同步中…',en:'Syncing…',km:'កំពុងធ្វើសមកាលកម្ម…'},
+ syncUp:{zh:'本機較新 → 已上傳',en:'Local newer → uploaded',km:'ក្នុងម៉ាស៊ីនថ្មីជាង → បានផ្ទុកឡើង'},
+ syncDown:{zh:'雲端較新 → 已下載',en:'Cloud newer → downloaded',km:'Cloud ថ្មីជាង → បានទាញយក'},
+ syncSame:{zh:'資料已是最新',en:'Already up to date',km:'ទិន្នន័យថ្មីបំផុតរួចហើយ'},
+ confirmDown:{zh:'雲端資料將覆蓋本機資料，確定下載？',en:'Cloud data will overwrite local. Continue?',km:'ទិន្នន័យ Cloud នឹងជំនួស ក្នុងម៉ាស៊ីន បន្តទេ?'},
+ photos:{zh:'照片 / 證據',en:'Photos / Evidence',km:'រូបភាព / ភស្តុតាង'},
+ toCAP:{zh:'轉為 CAP Finding',en:'Convert to CAP',km:'បម្លែងទៅ CAP'},
+ verify:{zh:'驗證結案',en:'Verify & Close',km:'ផ្ទៀងផ្ទាត់បិទ'},
+ parse:{zh:'解析',en:'Parse',km:'វិភាគ'},
+ msgHint:{zh:'選擇 .msg / .eml / .txt 郵件檔，或直接貼上郵件內容後解析，可一鍵轉為稽核證據或 CAP Finding。',en:'Load a .msg / .eml / .txt email file, or paste email content, then convert to audit evidence or a CAP finding.',km:'ជ្រើសឯកសារ .msg / .eml / .txt ឬបិទភ្ជាប់អត្ថបទ រួចបម្លែងជាភស្តុតាងសវនកម្ម'},
+ loadFile:{zh:'載入郵件檔',en:'Load Email File',km:'ផ្ទុកឯកសារ'},
+ saveAsEvidence:{zh:'存為證據紀錄',en:'Save as Evidence',km:'រក្សាជាភស្តុតាង'},
+ auditTypes:{zh:'稽核類型管理',en:'Audit Types',km:'ប្រភេទសវនកម្ម'},
+ addType:{zh:'新增類型',en:'Add Type',km:'បន្ថែមប្រភេទ'},
+ notif:{zh:'Telegram 通知開關',en:'Telegram Notifications',km:'ការជូនដំណឹង Telegram'},
+ cloudSet:{zh:'雲端連線設定',en:'Cloud Connection',km:'ការកំណត់ Cloud'},
+ dataSet:{zh:'資料備份 / 還原',en:'Data Backup / Restore',km:'បម្រុង / ស្ដារទិន្នន័យ'},
+ dangerZone:{zh:'清除全部本機資料',en:'Clear all local data',km:'លុបទិន្នន័យទាំងអស់'},
+ langAll:{zh:'介面語言',en:'Interface Language',km:'ភាសា'},
+ printedOn:{zh:'列印時間',en:'Printed on',km:'បោះពុម្ពនៅ'},
+ total:{zh:'共',en:'Total',km:'សរុប'},
+ records:{zh:'筆',en:'records',km:'កំណត់ត្រា'},
+ openPlatform:{zh:'於群組輸入 /audit 可顯示平台面板',en:'Type /audit in the group to show the platform panel',km:'វាយ /audit ក្នុងក្រុម'}
+};
+function t(k){const o=T[k];return o?(o[LANG]||o.zh):k}
+function L(o){return o?(o[LANG]||o.zh||o.en||''):''}
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+function pad(n){return n<10?'0'+n:''+n}
+function fmtDate(d){d=d instanceof Date?d:new Date(d);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function fmtDT(d){d=d instanceof Date?d:new Date(d);return fmtDate(d)+' '+pad(d.getHours())+':'+pad(d.getMinutes())}
+function todayStr(){return fmtDate(new Date())}
+function daysDiff(dateStr){if(!dateStr)return null;const a=new Date(dateStr+'T00:00:00'),b=new Date(todayStr()+'T00:00:00');return Math.round((a-b)/86400000)}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toast(msg,ms){const el=$('#toast');el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',ms||2600)}
+function uid(prefix){
+  const d=new Date(),ds=''+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
+  DB.meta.seq=DB.meta.seq||{};const key=prefix+'-'+ds;
+  DB.meta.seq[key]=(DB.meta.seq[key]||0)+1;
+  return key+'-'+String(DB.meta.seq[key]).padStart(4,'0');
+}
+
+/* ---------- config & DB ---------- */
+const CFG_KEY='ac_audit_config', DB_KEY='ac_audit_db';
+const DEFAULT_CFG={
+  gasUrl:'',
+  botToken:'8673812837:AAFJqA4rL4RIlAXAP2-ConrrPLCGt8rou8g',
+  chatId:'-5456651485',
+  notif:{upload:true,download:true,sync:true,hiRisk:true,capOverdue:true,certExpiry:true,docExpiry:true,auditRemind:true,newAudit:false,newIncident:true}
+};
+let CFG=Object.assign({},DEFAULT_CFG,JSON.parse(localStorage.getItem(CFG_KEY)||'{}'));
+CFG.notif=Object.assign({},DEFAULT_CFG.notif,CFG.notif||{});
+function saveCFG(){localStorage.setItem(CFG_KEY,JSON.stringify(CFG))}
+
+const DEFAULT_TYPES=['Internal','Customer','GRS','WRAP','SLCP','HIGG FEM','ISO 9001','ISO 14001','BSCI','SEDEX','Social','C-TPAT'];
+let DB=loadDB();
+function loadDB(){
+  try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d&&d.meta)return migrate(d)}catch(e){}
+  return {meta:{version:1,updatedAt:Date.now(),lastSync:0,seq:{}},
+    settings:{auditTypes:DEFAULT_TYPES.slice()},
+    audits:[],caps:[],grs_certs:[],grs_tc:[],grs_suppliers:[],grs_trace:[],
+    documents:[],incidents:[],policies:[],msg:[],activities:[]};
+}
+function migrate(d){
+  ['audits','caps','grs_certs','grs_tc','grs_suppliers','grs_trace','documents','incidents','policies','msg','activities'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
+  d.settings=d.settings||{};if(!Array.isArray(d.settings.auditTypes)||!d.settings.auditTypes.length)d.settings.auditTypes=DEFAULT_TYPES.slice();
+  d.meta.seq=d.meta.seq||{};return d;
+}
+function saveDB(touch){
+  if(touch!==false)DB.meta.updatedAt=Date.now();
+  localStorage.setItem(DB_KEY,JSON.stringify(DB));
+  renderNavCounts();
+}
+function logAct(text){
+  DB.activities.unshift({t:Date.now(),x:text});
+  if(DB.activities.length>200)DB.activities.length=200;
+}
+
+/* =====================================================================
+   MODULE REGISTRY — 新增模組（Chemical / EHS / Fire…）只需在此加一個
+   schema，Sidebar / CRUD / 匯入匯出 / 雲端 / 搜尋 全部自動生效。
+===================================================================== */
+const OPT={
+ auditStatus:[
+  {v:'planned',c:'b-info',L:{zh:'已排程',en:'Planned',km:'បានគ្រោង'}},
+  {v:'inprogress',c:'b-warn',L:{zh:'進行中',en:'In Progress',km:'កំពុងដំណើរការ'}},
+  {v:'completed',c:'b-ok',L:{zh:'已完成',en:'Completed',km:'បានបញ្ចប់'}},
+  {v:'closed',c:'b-mute',L:{zh:'已結案',en:'Closed',km:'បានបិទ'}}],
+ auditResult:[
+  {v:'pass',c:'b-ok',L:{zh:'通過',en:'Pass',km:'ជាប់'}},
+  {v:'conditional',c:'b-warn',L:{zh:'有條件通過',en:'Conditional',km:'ជាប់មានលក្ខខណ្ឌ'}},
+  {v:'fail',c:'b-danger',L:{zh:'未通過',en:'Fail',km:'ធ្លាក់'}},
+  {v:'pending',c:'b-mute',L:{zh:'待結果',en:'Pending',km:'រង់ចាំ'}}],
+ priority:[
+  {v:'low',c:'b-mute',L:{zh:'低',en:'Low',km:'ទាប'}},
+  {v:'medium',c:'b-info',L:{zh:'中',en:'Medium',km:'មធ្យម'}},
+  {v:'high',c:'b-warn',L:{zh:'高',en:'High',km:'ខ្ពស់'}},
+  {v:'critical',c:'b-crit',L:{zh:'嚴重',en:'Critical',km:'ធ្ងន់ធ្ងរ'}}],
+ risk:[
+  {v:'low',c:'b-ok',L:{zh:'低風險',en:'Low Risk',km:'ហានិភ័យទាប'}},
+  {v:'medium',c:'b-info',L:{zh:'中風險',en:'Medium Risk',km:'ហានិភ័យមធ្យម'}},
+  {v:'high',c:'b-warn',L:{zh:'高風險',en:'High Risk',km:'ហានិភ័យខ្ពស់'}},
+  {v:'critical',c:'b-crit',L:{zh:'極高風險',en:'Critical',km:'ធ្ងន់ធ្ងរបំផុត'}}],
+ capStatus:[
+  {v:'open',c:'b-danger',L:{zh:'開立',en:'Open',km:'បើក'}},
+  {v:'inprogress',c:'b-warn',L:{zh:'改善中',en:'In Progress',km:'កំពុងកែ'}},
+  {v:'pendingverify',c:'b-info',L:{zh:'待驗證',en:'Pending Verify',km:'រង់ចាំផ្ទៀងផ្ទាត់'}},
+  {v:'closed',c:'b-ok',L:{zh:'已結案',en:'Closed',km:'បានបិទ'}}],
+ dept:[
+  {v:'Sewing',L:{zh:'車縫 Sewing',en:'Sewing',km:'ដេរ'}},
+  {v:'Cutting',L:{zh:'裁剪 Cutting',en:'Cutting',km:'កាត់'}},
+  {v:'Finishing',L:{zh:'整燙包裝 Finishing',en:'Finishing',km:'អ៊ុត/វេចខ្ចប់'}},
+  {v:'Warehouse',L:{zh:'倉庫 Warehouse',en:'Warehouse',km:'ឃ្លាំង'}},
+  {v:'QC',L:{zh:'品管 QC',en:'QC',km:'QC'}},
+  {v:'Mechanic',L:{zh:'機修 Mechanic',en:'Mechanic',km:'ជាងម៉ាស៊ីន'}},
+  {v:'HRA',L:{zh:'人資 HRA',en:'HRA',km:'ធនធានមនុស្ស'}},
+  {v:'GA',L:{zh:'總務 GA',en:'GA',km:'រដ្ឋបាល'}},
+  {v:'Security',L:{zh:'保安 Security',en:'Security',km:'សន្តិសុខ'}},
+  {v:'Compliance',L:{zh:'合規 Compliance',en:'Compliance',km:'អនុលោមភាព'}},
+  {v:'Production',L:{zh:'生產 Production',en:'Production',km:'ផលិតកម្ម'}},
+  {v:'Office',L:{zh:'辦公室 Office',en:'Office',km:'ការិយាល័យ'}}],
+ certStatus:[
+  {v:'valid',c:'b-ok',L:{zh:'有效',en:'Valid',km:'មានសុពលភាព'}},
+  {v:'expiring',c:'b-warn',L:{zh:'即將到期',en:'Expiring',km:'ជិតផុតកំណត់'}},
+  {v:'expired',c:'b-danger',L:{zh:'已過期',en:'Expired',km:'ផុតកំណត់'}},
+  {v:'suspended',c:'b-crit',L:{zh:'暫停',en:'Suspended',km:'ផ្អាក'}}],
+ grsStd:[
+  {v:'GRS',L:{zh:'GRS',en:'GRS',km:'GRS'}},{v:'RCS',L:{zh:'RCS',en:'RCS',km:'RCS'}},
+  {v:'OCS',L:{zh:'OCS',en:'OCS',km:'OCS'}},{v:'GOTS',L:{zh:'GOTS',en:'GOTS',km:'GOTS'}},
+  {v:'OEKO-TEX',L:{zh:'OEKO-TEX',en:'OEKO-TEX',km:'OEKO-TEX'}},{v:'Other',L:{zh:'其他',en:'Other',km:'ផ្សេងៗ'}}],
+ docStatus:[
+  {v:'draft',c:'b-mute',L:{zh:'草稿',en:'Draft',km:'សេចក្តីព្រាង'}},
+  {v:'active',c:'b-ok',L:{zh:'有效',en:'Active',km:'សកម្ម'}},
+  {v:'review',c:'b-warn',L:{zh:'審核中',en:'Under Review',km:'កំពុងត្រួតពិនិត្យ'}},
+  {v:'obsolete',c:'b-danger',L:{zh:'作廢',en:'Obsolete',km:'បោះបង់'}}],
+ docCat:[
+  {v:'internal',L:{zh:'內部文件',en:'Internal',km:'ឯកសារខាងក្នុង'}},
+  {v:'external',L:{zh:'外來文件',en:'External',km:'ឯកសារខាងក្រៅ'}}],
+ docType:[
+  {v:'procedure',L:{zh:'程序書 Procedure',en:'Procedure',km:'នីតិវិធី'}},
+  {v:'sop',L:{zh:'SOP / 作業指導',en:'SOP / WI',km:'SOP'}},
+  {v:'form',L:{zh:'表單 Form',en:'Form',km:'ទម្រង់បែបបទ'}},
+  {v:'manual',L:{zh:'手冊 Manual',en:'Manual',km:'សៀវភៅណែនាំ'}},
+  {v:'legal',L:{zh:'法規 Legal',en:'Legal',km:'ច្បាប់'}},
+  {v:'customer',L:{zh:'客戶文件 Customer',en:'Customer',km:'ឯកសារអតិថិជន'}},
+  {v:'certificate',L:{zh:'證書 Certificate',en:'Certificate',km:'វិញ្ញាបនបត្រ'}},
+  {v:'other',L:{zh:'其他',en:'Other',km:'ផ្សេងៗ'}}],
+ incType:[
+  {v:'damage',L:{zh:'財損 Damage',en:'Damage',km:'ខូចខាតទ្រព្យ'}},
+  {v:'lost',L:{zh:'遺失 Lost Property',en:'Lost Property',km:'បាត់បង់ទ្រព្យ'}},
+  {v:'injury',L:{zh:'工傷 Injury',en:'Injury',km:'របួសការងារ'}},
+  {v:'fire',L:{zh:'消防 Fire',en:'Fire',km:'អគ្គិភ័យ'}},
+  {v:'security',L:{zh:'保安事件 Security',en:'Security',km:'សន្តិសុខ'}},
+  {v:'other',L:{zh:'其他',en:'Other',km:'ផ្សេងៗ'}}],
+ incStatus:[
+  {v:'open',c:'b-danger',L:{zh:'開立',en:'Open',km:'បើក'}},
+  {v:'investigating',c:'b-warn',L:{zh:'調查中',en:'Investigating',km:'កំពុងស៊ើបអង្កេត'}},
+  {v:'action',c:'b-info',L:{zh:'改善中',en:'Corrective Action',km:'កំពុងកែតម្រូវ'}},
+  {v:'closed',c:'b-ok',L:{zh:'已結案',en:'Closed',km:'បានបិទ'}}],
+ polCat:[
+  {v:'factoryRules',L:{zh:'廠規 Factory Rules',en:'Factory Rules',km:'បទបញ្ជារោងចក្រ'}},
+  {v:'companyPolicy',L:{zh:'公司政策 Company Policy',en:'Company Policy',km:'គោលការណ៍ក្រុមហ៊ុន'}},
+  {v:'customerPolicy',L:{zh:'客戶政策 Customer Policy',en:'Customer Policy',km:'គោលការណ៍អតិថិជន'}},
+  {v:'legal',L:{zh:'法規要求 Legal',en:'Legal Requirement',km:'តម្រូវការច្បាប់'}},
+  {v:'wi',L:{zh:'作業指導 WI',en:'Work Instruction',km:'ការណែនាំការងារ'}},
+  {v:'sop',L:{zh:'SOP',en:'SOP',km:'SOP'}},
+  {v:'form',L:{zh:'表單/範本 Form',en:'Form / Template',km:'ទម្រង់/គំរូ'}}],
+ msgType:[
+  {v:'email',L:{zh:'一般郵件',en:'Email',km:'អ៊ីមែល'}},
+  {v:'customerFinding',L:{zh:'客戶 Finding',en:'Customer Finding',km:'Finding អតិថិជន'}},
+  {v:'evidence',L:{zh:'稽核證據',en:'Audit Evidence',km:'ភស្តុតាងសវនកម្ម'}},
+  {v:'record',L:{zh:'稽核紀錄',en:'Audit Record',km:'កំណត់ត្រាសវនកម្ម'}}],
+ tcStatus:[
+  {v:'issued',c:'b-ok',L:{zh:'已核發',en:'Issued',km:'បានចេញ'}},
+  {v:'applying',c:'b-warn',L:{zh:'申請中',en:'Applying',km:'កំពុងស្នើ'}},
+  {v:'rejected',c:'b-danger',L:{zh:'退件',en:'Rejected',km:'បដិសេធ'}}]
+};
+
+/* field factory shortcuts */
+const F={
+ txt:(k,zh,en,km,req)=>({k,t:'text',L:{zh,en,km},req}),
+ ta:(k,zh,en,km,full)=>({k,t:'textarea',L:{zh,en,km},full:full!==false}),
+ date:(k,zh,en,km,req)=>({k,t:'date',L:{zh,en,km},req}),
+ num:(k,zh,en,km)=>({k,t:'number',L:{zh,en,km}}),
+ sel:(k,opts,zh,en,km,req)=>({k,t:'select',opts,L:{zh,en,km},req}),
+ dept:()=>({k:'department',t:'select',opts:'dept',L:{zh:'部門',en:'Department',km:'នាយកដ្ឋាន'}}),
+ photos:()=>({k:'photos',t:'photos',L:{zh:'照片 / 證據',en:'Photos / Evidence',km:'រូបភាព/ភស្តុតាង'},full:true})
+};
+
+const MODULES={
+ audits:{icon:'📋',prefix:'AUD',group:'grpAudit',
+  fields:[
+   {k:'auditType',t:'dynselect',L:{zh:'稽核類型',en:'Audit Type',km:'ប្រភេទសវនកម្ម'},req:1},
+   F.txt('auditName','稽核名稱','Audit Name','ឈ្មោះសវនកម្ម',1),
+   F.txt('auditor','稽核單位 / 稽核員','Audit Body / Auditor','ស្ថាប័ន/សវនករ'),
+   F.date('date','開始日期','Start Date','ថ្ងៃចាប់ផ្តើម',1),
+   F.date('endDate','結束日期','End Date','ថ្ងៃបញ្ចប់'),
+   F.sel('status','auditStatus','狀態','Status','ស្ថានភាព',1),
+   F.sel('result','auditResult','結果','Result','លទ្ធផល'),
+   F.num('score','分數','Score','ពិន្ទុ'),
+   F.dept(),
+   F.txt('scope','稽核範圍','Scope','វិសាលភាព'),
+   F.ta('notes','備註 / 摘要','Notes / Summary','កំណត់ចំណាំ'),
+   F.photos()],
+  cols:['id','auditType','auditName','date','status','result','score'],
+  filter:'status',
+  rowActions:[{ico:'⚠',tip:{zh:'開立 Finding',en:'Open Finding',km:'បើក Finding'},fn:'auditToFinding'}]
+ },
+ caps:{icon:'🛠',prefix:'CAP',group:'grpAudit',
+  fields:[
+   {k:'auditId',t:'refselect',ref:'audits',refLabel:'auditName',L:{zh:'關聯稽核',en:'Related Audit',km:'សវនកម្មពាក់ព័ន្ធ'}},
+   F.txt('source','來源（客戶/內部/GRS…）','Source','ប្រភព'),
+   F.ta('description','缺失描述 Finding','Finding Description','ការពិពណ៌នា Finding'),
+   F.sel('priority','priority','優先級','Priority','អាទិភាព',1),
+   F.sel('riskLevel','risk','風險等級','Risk Level','កម្រិតហានិភ័យ',1),
+   F.dept(),
+   F.txt('owner','負責人 Owner','Owner','អ្នកទទួលខុសត្រូវ',1),
+   F.ta('rootCause','根本原因 Root Cause','Root Cause','មូលហេតុដើម'),
+   F.ta('correctiveAction','矯正措施 CA','Corrective Action','វិធានការកែតម្រូវ'),
+   F.ta('preventiveAction','預防措施 PA','Preventive Action','វិធានការបង្ការ'),
+   F.date('dueDate','到期日','Due Date','ថ្ងៃផុតកំណត់',1),
+   F.sel('status','capStatus','狀態','Status','ស្ថានភាព',1),
+   F.txt('verifiedBy','驗證人','Verified By','អ្នកផ្ទៀងផ្ទាត់'),
+   F.date('verifyDate','驗證日期','Verify Date','ថ្ងៃផ្ទៀងផ្ទាត់'),
+   F.photos()],
+  cols:['id','description','priority','riskLevel','department','owner','dueDate','status'],
+  filter:'status',
+  rowActions:[{ico:'✔',tip:{zh:'驗證結案',en:'Verify & Close',km:'បិទ'},fn:'capVerify'}]
+ },
+ grs_certs:{icon:'🏅',prefix:'GRS',group:'grpGRS',
+  fields:[
+   F.txt('certNo','證書編號','Certificate No.','លេខវិញ្ញាបនបត្រ',1),
+   F.sel('standard','grsStd','標準','Standard','ស្តង់ដារ',1),
+   F.txt('holder','持證單位','Certificate Holder','អ្នកកាន់វិញ្ញាបនបត្រ',1),
+   F.txt('cb','發證機構 CB','Certification Body','ស្ថាប័នចេញ'),
+   F.date('issueDate','發證日期','Issue Date','ថ្ងៃចេញ'),
+   F.date('expiryDate','到期日期','Expiry Date','ថ្ងៃផុតកំណត់',1),
+   F.txt('scope','認證範圍 Scope','Scope','វិសាលភាព'),
+   F.txt('material','材料 Material','Material','វត្ថុធាតុ'),
+   F.sel('status','certStatus','狀態','Status','ស្ថានភាព',1),
+   F.ta('notes','備註','Notes','កំណត់ចំណាំ'),
+   F.photos()],
+  cols:['id','certNo','standard','holder','expiryDate','_expiry','status'],
+  filter:'status'
+ },
+ grs_tc:{icon:'🔖',prefix:'TC',group:'grpGRS',
+  fields:[
+   F.txt('tcNo','TC 編號','TC No.','លេខ TC',1),
+   F.sel('standard','grsStd','標準','Standard','ស្តង់ដារ',1),
+   F.txt('buyer','買方 / 客戶','Buyer / Customer','អ្នកទិញ',1),
+   F.txt('seller','賣方','Seller','អ្នកលក់'),
+   F.txt('po','關聯 PO / 訂單','Related PO','PO ពាក់ព័ន្ធ'),
+   F.txt('material','材料成分','Material Composition','សមាសធាតុ'),
+   F.num('qty','數量 (KG/PCS)','Quantity','បរិមាណ'),
+   F.date('issueDate','核發日期','Issue Date','ថ្ងៃចេញ'),
+   F.sel('status','tcStatus','狀態','Status','ស្ថានភាព',1),
+   F.ta('notes','備註','Notes','កំណត់ចំណាំ'),
+   F.photos()],
+  cols:['id','tcNo','buyer','po','material','qty','issueDate','status'],
+  filter:'status'
+ },
+ grs_suppliers:{icon:'🏭',prefix:'SUP',group:'grpGRS',
+  fields:[
+   F.txt('name','供應商名稱','Supplier Name','ឈ្មោះអ្នកផ្គត់ផ្គង់',1),
+   F.txt('material','供應材料','Materials Supplied','វត្ថុធាតុផ្គត់ផ្គង់'),
+   F.txt('certNo','GRS 證書編號','GRS Cert No.','លេខវិញ្ញាបនបត្រ'),
+   F.date('expiryDate','證書到期日','Cert Expiry','ថ្ងៃផុតកំណត់'),
+   F.sel('status','certStatus','證書狀態','Cert Status','ស្ថានភាព',1),
+   F.txt('contact','聯絡人 / 電話','Contact','ទំនាក់ទំនង'),
+   F.date('lastAudit','最近稽核日','Last Audit','សវនកម្មចុងក្រោយ'),
+   F.ta('notes','備註','Notes','កំណត់ចំណាំ'),
+   F.photos()],
+  cols:['id','name','material','certNo','expiryDate','_expiry','status'],
+  filter:'status'
+ },
+ grs_trace:{icon:'🧵',prefix:'TRC',group:'grpGRS',
+  fields:[
+   F.txt('lotNo','批號 Lot No.','Lot No.','លេខឡូត៍',1),
+   F.txt('material','材料','Material','វត្ថុធាតុ',1),
+   F.txt('supplier','供應商','Supplier','អ្នកផ្គត់ផ្គង់'),
+   F.txt('tcNo','TC 編號','TC No.','លេខ TC'),
+   F.txt('po','生產訂單 PO','Production PO','PO ផលិតកម្ម'),
+   F.txt('style','款號 Style','Style','ម៉ូដ'),
+   F.num('qtyIn','進料量','Qty In','បរិមាណចូល'),
+   F.num('qtyUsed','使用量','Qty Used','បរិមាណប្រើ'),
+   F.date('date','日期','Date','កាលបរិច្ឆេទ',1),
+   F.ta('notes','流向備註','Flow Notes','កំណត់ចំណាំ'),
+   F.photos()],
+  cols:['id','lotNo','material','supplier','po','style','qtyIn','date'],
+  filter:null
+ },
+ documents:{icon:'📁',prefix:'DOC',group:'grpDoc',
+  fields:[
+   F.txt('docNo','文件編號','Document No.','លេខឯកសារ',1),
+   F.txt('title','文件名稱','Title','ចំណងជើង',1),
+   F.sel('category','docCat','文件類別','Category','ប្រភេទ',1),
+   F.sel('docType','docType','文件類型','Type','ប្រភេទឯកសារ',1),
+   F.txt('version','版本 Rev.','Version / Rev.','កំណែ',1),
+   F.dept(),
+   F.txt('owner','文件負責人','Document Owner','ម្ចាស់ឯកសារ'),
+   F.txt('approvedBy','核准人','Approved By','អ្នកអនុម័ត'),
+   F.date('effectiveDate','生效日期','Effective Date','ថ្ងៃចូលជាធរមាន'),
+   F.date('expiryDate','到期 / 複審日','Expiry / Review Date','ថ្ងៃផុត/ត្រួតពិនិត្យ'),
+   F.num('copies','管制副本數','Controlled Copies','ច្បាប់ចម្លង'),
+   F.txt('distribution','分發單位','Distribution','ការចែកចាយ'),
+   F.txt('location','存放位置','Location','ទីតាំង'),
+   F.sel('status','docStatus','狀態','Status','ស្ថានភាព',1),
+   F.ta('history','版本歷史（自動附加）','Revision History','ប្រវត្តិកំណែ'),
+   F.photos()],
+  cols:['id','docNo','title','category','version','effectiveDate','expiryDate','_expiry','status'],
+  filter:'category',
+  onSave:(rec,isNew)=>{const stamp=fmtDT(new Date())+' Rev.'+(rec.version||'-')+(isNew?' (created)':' (updated)');rec.history=((rec.history||'')+'\n'+stamp).trim()}
+ },
+ incidents:{icon:'🚨',prefix:'INC',group:'grpOther',
+  fields:[
+   F.sel('type','incType','事件類型','Incident Type','ប្រភេទ',1),
+   F.date('date','發生日期','Date','កាលបរិច្ឆេទ',1),
+   F.txt('location','地點','Location','ទីតាំង'),
+   F.dept(),
+   F.ta('description','事件描述','Description','ការពិពណ៌នា'),
+   F.txt('responsible','責任人','Responsible Person','អ្នកទទួលខុសត្រូវ'),
+   F.num('cost','損失金額 (USD)','Cost (USD)','តម្លៃខូចខាត'),
+   F.ta('investigation','調查紀錄','Investigation','ការស៊ើបអង្កេត'),
+   F.ta('rootCause','根本原因','Root Cause','មូលហេតុដើម'),
+   F.ta('correctiveAction','矯正 / 預防措施','Corrective / Preventive Action','វិធានការកែតម្រូវ'),
+   F.sel('status','incStatus','狀態','Status','ស្ថានភាព',1),
+   F.photos()],
+  cols:['id','type','date','department','description','cost','status'],
+  filter:'status',
+  rowActions:[{ico:'⚠',tip:{zh:'轉為 CAP',en:'To CAP',km:'ទៅ CAP'},fn:'incToCAP'}]
+ },
+ policies:{icon:'📜',prefix:'POL',group:'grpDoc',
+  fields:[
+   F.sel('category','polCat','類別','Category','ប្រភេទ',1),
+   F.txt('title','標題','Title','ចំណងជើង',1),
+   F.txt('refNo','文件編號 / 參照','Ref No.','លេខយោង'),
+   F.txt('version','版本','Version','កំណែ'),
+   F.date('effectiveDate','生效日','Effective Date','ថ្ងៃចូលជាធរមាន'),
+   F.date('reviewDate','複審日','Review Date','ថ្ងៃត្រួតពិនិត្យ'),
+   F.dept(),
+   F.txt('lang','語言版本 (中/EN/KH)','Languages','ភាសា'),
+   F.sel('status','docStatus','狀態','Status','ស្ថានភាព',1),
+   F.ta('content','內容 / 條文','Content','ខ្លឹមសារ'),
+   F.photos()],
+  cols:['id','category','title','refNo','version','effectiveDate','status'],
+  filter:'category'
+ },
+ msg:{icon:'✉️',prefix:'MSG',group:'grpOther',custom:'renderMsg',
+  fields:[
+   F.date('date','郵件日期','Email Date','កាលបរិច្ឆេទ'),
+   F.txt('from','寄件人','From','អ្នកផ្ញើ'),
+   F.txt('subject','主旨','Subject','ប្រធានបទ',1),
+   F.sel('msgType','msgType','分類','Type','ប្រភេទ',1),
+   {k:'auditId',t:'refselect',ref:'audits',refLabel:'auditName',L:{zh:'關聯稽核',en:'Related Audit',km:'សវនកម្មពាក់ព័ន្ធ'}},
+   F.ta('content','內容','Content','ខ្លឹមសារ'),
+   F.txt('convertedTo','已轉出紀錄','Converted To','បានបម្លែងទៅ'),
+   F.photos()],
+  cols:['id','date','from','subject','msgType','convertedTo'],
+  filter:'msgType',
+  rowActions:[{ico:'⚠',tip:{zh:'轉為 CAP Finding',en:'To CAP',km:'ទៅ CAP'},fn:'msgToCAP'}]
+ }
+};
+const MODULE_KEYS=Object.keys(MODULES);
+
+/* =====================================================================
+   NAVIGATION & ROUTING
+===================================================================== */
+let CURRENT='dashboard';
+const NAV_ORDER=[
+ {g:'grpMain',items:['dashboard','analytics']},
+ {g:'grpAudit',items:['audits','caps']},
+ {g:'grpGRS',items:['grs_certs','grs_tc','grs_suppliers','grs_trace']},
+ {g:'grpDoc',items:['documents','policies']},
+ {g:'grpOther',items:['incidents','msg','settings']}
+];
+const PAGE_ICONS={dashboard:'◧',analytics:'📈',settings:'⚙'};
+function renderNav(){
+  let h='';
+  NAV_ORDER.forEach(gr=>{
+    h+='<div class="ngroup">'+esc(t(gr.g))+'</div>';
+    gr.items.forEach(k=>{
+      const ico=MODULES[k]?MODULES[k].icon:(PAGE_ICONS[k]||'•');
+      const cnt=MODULES[k]?'<span class="cnt" id="cnt-'+k+'"></span>':'';
+      h+='<a href="#'+k+'" data-k="'+k+'" class="'+(CURRENT===k?'active':'')+'" onclick="go(\''+k+'\');return false">'+
+         '<span>'+ico+'</span><span>'+esc(t(k))+'</span>'+cnt+'</a>';
+    });
+  });
+  h+='<div class="nfoot">SAINTDOU · Simply the Minimalist<br>AC AUDIT PLATFORM v1.0<br>'+esc(t('openPlatform'))+'</div>';
+  $('#nav').innerHTML=h;renderNavCounts();
+}
+function renderNavCounts(){
+  MODULE_KEYS.forEach(k=>{const el=$('#cnt-'+k);if(el)el.textContent=DB[k].length||''});
+}
+function toggleNav(){$('#nav').classList.toggle('open')}
+function go(k){
+  CURRENT=k;location.hash=k;$('#nav').classList.remove('open');
+  $$('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.k===k));
+  const m=$('#main');m.scrollTop=0;
+  if(k==='dashboard')return renderDashboard();
+  if(k==='analytics')return renderAnalytics();
+  if(k==='settings')return renderSettings();
+  if(MODULES[k])return renderModule(k);
+  renderDashboard();
+}
+
+/* =====================================================================
+   GENERIC MODULE ENGINE  (table / search / filter / CRUD / io / cloud)
+===================================================================== */
+let SEARCHQ='',FILTERV='';
+function optList(name){return typeof name==='string'?OPT[name]:name}
+function optLabel(name,v){const o=(optList(name)||[]).find(x=>x.v===v);return o?L(o.L):(v||'')}
+function optBadge(name,v){const o=(optList(name)||[]).find(x=>x.v===v);
+  return o?'<span class="badge '+(o.c||'b-mute')+'">'+esc(L(o.L))+'</span>':esc(v||'')}
+function expiryBadge(dateStr){
+  if(!dateStr)return '';const d=daysDiff(dateStr);
+  if(d<0)return '<span class="badge b-danger">'+(LANG==='zh'?'過期 ':'')+d+'d</span>';
+  if(d<=30)return '<span class="badge b-warn">'+d+'d</span>';
+  if(d<=60)return '<span class="badge b-info">'+d+'d</span>';
+  return '<span class="badge b-ok">'+d+'d</span>';
+}
+function fieldOf(mod,k){return MODULES[mod].fields.find(f=>f.k===k)}
+function cellVal(mod,rec,col){
+  if(col==='id')return '<b style="font-variant-numeric:tabular-nums">'+esc(rec.id)+'</b>';
+  if(col==='_expiry')return expiryBadge(rec.expiryDate);
+  const f=fieldOf(mod,col);if(!f)return esc(rec[col]);
+  if(f.t==='select')return optBadge(f.opts,rec[col]);
+  if(f.t==='dynselect')return esc(rec[col]||'');
+  if(f.t==='refselect'){const r=(DB[f.ref]||[]).find(x=>x.id===rec[col]);return esc(r?(r[f.refLabel]||r.id):(rec[col]||''))}
+  if(f.t==='textarea'){const s=String(rec[col]||'');return esc(s.length>60?s.slice(0,60)+'…':s)}
+  return esc(rec[col]==null?'':rec[col]);
+}
+function colHead(mod,col){
+  if(col==='id')return 'ID';
+  if(col==='_expiry')return LANG==='zh'?'剩餘天數':(LANG==='km'?'ថ្ងៃនៅសល់':'Days Left');
+  const f=fieldOf(mod,col);return f?L(f.L):col;
+}
+function moduleRows(k){
+  const M=MODULES[k];let rows=DB[k].slice();
+  if(FILTERV&&M.filter)rows=rows.filter(r=>r[M.filter]===FILTERV);
+  if(SEARCHQ){const q=SEARCHQ.toLowerCase();
+    rows=rows.filter(r=>Object.keys(r).some(kk=>kk!=='photos'&&String(r[kk]||'').toLowerCase().includes(q)))}
+  rows.sort((a,b)=>(b._updated||0)-(a._updated||0));return rows;
+}
+function renderModule(k){
+  SEARCHQ='';FILTERV='';
+  const M=MODULES[k];
+  let filterSel='';
+  if(M.filter){const f=fieldOf(k,M.filter);
+    filterSel='<select onchange="FILTERV=this.value;drawTable(\''+k+'\')"><option value="">'+esc(t('all'))+' - '+esc(L(f.L))+'</option>'+
+      (optList(f.opts)||[]).map(o=>'<option value="'+esc(o.v)+'">'+esc(L(o.L))+'</option>').join('')+'</select>';}
+  $('#main').innerHTML=
+   '<div class="pgtitle"><h2>'+M.icon+' '+esc(t(k))+'</h2><span class="sub" id="modCount"></span></div>'+
+   '<div class="toolbar">'+
+    '<button class="btn pri" onclick="openForm(\''+k+'\')">＋ '+esc(t('add'))+'</button>'+
+    '<input type="search" placeholder="'+esc(t('search'))+'" oninput="SEARCHQ=this.value;drawTable(\''+k+'\')">'+filterSel+
+    '<span style="flex:1"></span>'+
+    '<div class="dd"><button class="btn" onclick="toggleDD(this)">⬆ '+esc(t('import'))+' ▾</button><div class="dd-menu">'+
+      '<button onclick="importExcel(\''+k+'\')">📊 '+esc(t('impExcel'))+'</button>'+
+      '<button onclick="restoreJSON()">🗂 '+esc(t('impJson'))+'</button></div></div>'+
+    '<div class="dd"><button class="btn" onclick="toggleDD(this)">⬇ '+esc(t('export'))+' ▾</button><div class="dd-menu">'+
+      '<button onclick="exportExcel(\''+k+'\')">📊 '+esc(t('expExcel'))+'</button>'+
+      '<button onclick="exportCSV(\''+k+'\')">📄 '+esc(t('expCsv'))+'</button>'+
+      '<button onclick="exportPDF(\''+k+'\')">🖨 '+esc(t('expPdf'))+'</button>'+
+      '<button onclick="backupJSON()">🗂 '+esc(t('expJson'))+'</button></div></div>'+
+    '<button class="btn" onclick="cloudUpload()">☁⬆ '+esc(t('upload'))+'</button>'+
+    '<button class="btn" onclick="cloudDownload()">☁⬇ '+esc(t('download'))+'</button>'+
+    '<button class="btn" onclick="cloudSync()">⟳ '+esc(t('sync'))+'</button>'+
+   '</div>'+
+   (M.custom?window[M.custom+'Extra']():'')+
+   '<div class="tblwrap" id="tblwrap"></div>';
+  drawTable(k);
+}
+function drawTable(k){
+  const M=MODULES[k],rows=moduleRows(k);
+  const cnt=$('#modCount');if(cnt)cnt.textContent=t('total')+' '+rows.length+' '+t('records');
+  if(!rows.length){$('#tblwrap').innerHTML='<div class="empty"><div class="e1">'+M.icon+'</div>'+esc(t('noData'))+'</div>';return}
+  let h='<table class="dt"><thead><tr>'+M.cols.map(c=>'<th>'+esc(colHead(k,c))+'</th>').join('')+'<th></th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    h+='<tr onclick="openForm(\''+k+'\',\''+r.id+'\')">'+M.cols.map(c=>'<td>'+cellVal(k,r,c)+'</td>').join('');
+    h+='<td onclick="event.stopPropagation()" style="white-space:nowrap">';
+    (M.rowActions||[]).forEach(a=>{h+='<button class="btn sm ghost" title="'+esc(L(a.tip))+'" onclick="'+a.fn+'(\''+r.id+'\')">'+a.ico+'</button>'});
+    if(r.photos&&r.photos.length)h+='<span title="photos" style="font-size:11px;color:var(--ink2)">📷'+r.photos.length+'</span> ';
+    h+='<button class="btn sm ghost" style="color:var(--danger)" onclick="delRec(\''+k+'\',\''+r.id+'\')">✕</button></td></tr>';
+  });
+  $('#tblwrap').innerHTML=h+'</tbody></table>';
+}
+function toggleDD(btn){
+  const dd=btn.parentElement,was=dd.classList.contains('open');
+  $$('.dd').forEach(d=>d.classList.remove('open'));if(!was)dd.classList.add('open');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.dd'))$$('.dd').forEach(d=>d.classList.remove('open'))});
+
+/* ---------- form modal ---------- */
+let FORM_PHOTOS=[];
+function openForm(k,id){
+  const M=MODULES[k],rec=id?DB[k].find(r=>r.id===id):null;
+  FORM_PHOTOS=rec&&rec.photos?rec.photos.slice():[];
+  let h='<div class="m-head"><h3>'+M.icon+' '+(rec?esc(rec.id):esc(t('add'))+' · '+esc(t(k)))+'</h3>'+
+        '<button class="x" onclick="closeModal()">✕</button></div><div class="m-body"><div class="fgrid">';
+  M.fields.forEach(f=>{
+    const v=rec?(rec[f.k]==null?'':rec[f.k]):'';
+    const lab='<label>'+esc(L(f.L))+(f.req?' <span class="req">*</span>':'')+'</label>';
+    let inp='';
+    if(f.t==='textarea')inp='<textarea id="f_'+f.k+'">'+esc(v)+'</textarea>';
+    else if(f.t==='select')inp='<select id="f_'+f.k+'"><option value=""></option>'+
+      (optList(f.opts)||[]).map(o=>'<option value="'+esc(o.v)+'"'+(v===o.v?' selected':'')+'>'+esc(L(o.L))+'</option>').join('')+'</select>';
+    else if(f.t==='dynselect')inp='<select id="f_'+f.k+'"><option value=""></option>'+
+      DB.settings.auditTypes.map(x=>'<option'+(v===x?' selected':'')+'>'+esc(x)+'</option>').join('')+'</select>';
+    else if(f.t==='refselect')inp='<select id="f_'+f.k+'"><option value=""></option>'+
+      (DB[f.ref]||[]).map(r=>'<option value="'+esc(r.id)+'"'+(v===r.id?' selected':'')+'>'+esc(r.id+' · '+(r[f.refLabel]||''))+'</option>').join('')+'</select>';
+    else if(f.t==='photos'){
+      inp='<div class="photos" id="photoGrid"></div>';
+      h+='<div class="fld f-full">'+lab+inp+'</div>';return;
+    }
+    else inp='<input id="f_'+f.k+'" type="'+(f.t==='date'?'date':f.t==='number'?'number':'text')+'" value="'+esc(v)+'"'+(f.t==='number'?' step="any"':'')+'>';
+    h+='<div class="fld'+(f.full?' f-full':'')+'">'+lab+inp+'</div>';
+  });
+  h+='</div></div><div class="m-foot">'+
+     '<button class="btn" onclick="closeModal()">'+esc(t('cancel'))+'</button>'+
+     '<button class="btn pri" onclick="saveForm(\''+k+'\',\''+(id||'')+'\')">💾 '+esc(t('save'))+'</button></div>';
+  $('#modalBox').innerHTML=h;$('#modalMask').classList.add('show');drawPhotoGrid();
+}
+function drawPhotoGrid(){
+  const g=$('#photoGrid');if(!g)return;
+  g.innerHTML=FORM_PHOTOS.map((p,i)=>'<div class="ph" style="background-image:url('+p+')" onclick="viewPhoto('+i+')">'+
+    '<button class="rm" onclick="event.stopPropagation();FORM_PHOTOS.splice('+i+',1);drawPhotoGrid()">✕</button></div>').join('')+
+    '<button class="add" onclick="pickPhotos()">＋</button>';
+}
+function viewPhoto(i){const w=window.open('');w.document.write('<img src="'+FORM_PHOTOS[i]+'" style="max-width:100%">')}
+function pickPhotos(){$('#photoFile').onchange=async e=>{
+  for(const f of e.target.files){FORM_PHOTOS.push(await compressImage(f))}
+  e.target.value='';drawPhotoGrid();
+};$('#photoFile').click()}
+function compressImage(file){return new Promise(res=>{
+  const img=new Image(),fr=new FileReader();
+  fr.onload=()=>{img.onload=()=>{
+    const MAX=900,r=Math.min(1,MAX/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');c.width=img.width*r;c.height=img.height*r;
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    res(c.toDataURL('image/jpeg',0.62));
+  };img.src=fr.result};fr.readAsDataURL(file);
+})}
+function closeModal(){$('#modalMask').classList.remove('show')}
+$('#modalMask').addEventListener('click',e=>{if(e.target.id==='modalMask')closeModal()});
+
+function saveForm(k,id){
+  const M=MODULES[k];
+  const rec=id?DB[k].find(r=>r.id===id):{id:uid(M.prefix),_created:Date.now()};
+  for(const f of M.fields){
+    if(f.t==='photos'){rec.photos=FORM_PHOTOS.slice();continue}
+    const el=$('#f_'+f.k);if(!el)continue;
+    let v=el.value.trim();
+    if(f.req&&!v){toast(t('reqMiss')+L(f.L));el.focus();return}
+    rec[f.k]=f.t==='number'?(v===''?'':Number(v)):v;
+  }
+  rec._updated=Date.now();
+  if(M.onSave)M.onSave(rec,!id);
+  if(!id)DB[k].push(rec);
+  logAct((id?'✏️':'＋')+' '+t(k)+' · '+rec.id);
+  saveDB();closeModal();toast(t('saved')+' · '+rec.id);
+  if(CURRENT===k)MODULES[k].custom?go(k):drawTable(k);
+  if(!id&&k==='caps'&&(rec.riskLevel==='high'||rec.riskLevel==='critical')&&CFG.notif.hiRisk)
+    tgNotify('🔴 <b>High Risk Finding</b>\n'+esc(rec.id)+' · '+esc(rec.department||'')+'\n'+esc((rec.description||'').slice(0,180))+'\nDue: '+esc(rec.dueDate||'-'));
+  if(!id&&k==='audits'&&CFG.notif.newAudit)
+    tgNotify('📋 <b>New Audit</b>\n'+esc(rec.id)+' · '+esc(rec.auditType||'')+' · '+esc(rec.auditName||'')+'\nDate: '+esc(rec.date||'-'));
+  if(!id&&k==='incidents'&&CFG.notif.newIncident)
+    tgNotify('🚨 <b>New Incident</b>\n'+esc(rec.id)+' · '+esc(optLabel('incType',rec.type))+'\n'+esc((rec.description||'').slice(0,180)));
+}
+function delRec(k,id){
+  if(!confirm(t('confirmDel')+'\n'+id))return;
+  DB[k]=DB[k].filter(r=>r.id!==id);
+  logAct('🗑 '+t(k)+' · '+id);saveDB();toast(t('deleted'));drawTable(k);
+}
+
+/* ---------- cross-module actions ---------- */
+function capVerify(id){
+  const r=DB.caps.find(x=>x.id===id);if(!r)return;
+  r.status='closed';r.verifyDate=todayStr();r._updated=Date.now();
+  logAct('✔ CAP closed · '+id);saveDB();drawTable('caps');toast('✔ '+id+' Closed');
+}
+function auditToFinding(id){
+  const a=DB.audits.find(x=>x.id===id);if(!a)return;
+  const rec={id:uid('CAP'),_created:Date.now(),_updated:Date.now(),auditId:a.id,
+    source:a.auditType||'',description:'',priority:'medium',riskLevel:'medium',
+    department:a.department||'',owner:'',dueDate:'',status:'open',photos:[]};
+  DB.caps.push(rec);logAct('＋ CAP from audit · '+rec.id);saveDB();
+  go('caps');openForm('caps',rec.id);
+}
+function incToCAP(id){
+  const n=DB.incidents.find(x=>x.id===id);if(!n)return;
+  const rec={id:uid('CAP'),_created:Date.now(),_updated:Date.now(),auditId:'',source:'Incident '+n.id,
+    description:n.description||'',priority:'high',riskLevel:'high',department:n.department||'',
+    owner:n.responsible||'',rootCause:n.rootCause||'',correctiveAction:n.correctiveAction||'',
+    dueDate:'',status:'open',photos:(n.photos||[]).slice()};
+  DB.caps.push(rec);logAct('＋ CAP from incident · '+rec.id);saveDB();go('caps');openForm('caps',rec.id);
+}
+function msgToCAP(id){
+  const m=DB.msg.find(x=>x.id===id);if(!m)return;
+  const rec={id:uid('CAP'),_created:Date.now(),_updated:Date.now(),auditId:m.auditId||'',
+    source:'Email: '+(m.from||''),description:(m.subject?m.subject+'\n':'')+(m.content||'').slice(0,800),
+    priority:'medium',riskLevel:'medium',department:'',owner:'',dueDate:'',status:'open',photos:(m.photos||[]).slice()};
+  DB.caps.push(rec);m.convertedTo=rec.id;m._updated=Date.now();
+  logAct('＋ CAP from MSG · '+rec.id);saveDB();go('caps');openForm('caps',rec.id);
+}
+
+/* =====================================================================
+   IMPORT / EXPORT  (Excel / CSV / PDF / JSON — 全模組統一)
+===================================================================== */
+function ioCols(k){return MODULES[k].fields.filter(f=>f.t!=='photos').map(f=>f.k)}
+function exportRows(k){
+  return DB[k].map(r=>{const o={ID:r.id};
+    MODULES[k].fields.forEach(f=>{if(f.t!=='photos')o[f.L.en]=r[f.k]==null?'':r[f.k]});
+    return o});
+}
+function exportExcel(k){
+  const ws=XLSX.utils.json_to_sheet(exportRows(k));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,k.slice(0,30));
+  XLSX.writeFile(wb,'AC_AUDIT_'+k+'_'+todayStr()+'.xlsx');toast('📊 Excel ✓');
+}
+function exportCSV(k){
+  const ws=XLSX.utils.json_to_sheet(exportRows(k));
+  const csv='\ufeff'+XLSX.utils.sheet_to_csv(ws);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='AC_AUDIT_'+k+'_'+todayStr()+'.csv';a.click();toast('📄 CSV ✓');
+}
+function exportPDF(k){
+  const M=MODULES[k],rows=moduleRows(k);
+  const w=window.open('','_blank');
+  let h='<html><head><meta charset="utf-8"><title>AC Audit · '+esc(t(k))+'</title><style>'+
+   'body{font-family:"Noto Sans TC","Noto Sans Khmer",sans-serif;font-size:11px;margin:24px;color:#111}'+
+   'h1{font-size:16px;letter-spacing:.1em}h1 span{color:#A89272;font-size:11px;letter-spacing:.2em}'+
+   'table{width:100%;border-collapse:collapse;margin-top:10px}th{background:#26282C;color:#fff;padding:6px 8px;text-align:left;font-size:10px}'+
+   'td{border-bottom:1px solid #ddd;padding:5px 8px;vertical-align:top}.ft{margin-top:14px;color:#888;font-size:9.5px}'+
+   '</style></head><body><h1>AC AUDIT PLATFORM <span>· VRT · '+esc(t(k))+'</span></h1>'+
+   '<table><tr>'+M.cols.map(c=>'<th>'+esc(colHead(k,c))+'</th>').join('')+'</tr>';
+  rows.forEach(r=>{h+='<tr>'+M.cols.map(c=>'<td>'+cellVal(k,r,c)+'</td>').join('')+'</tr>'});
+  h+='</table><div class="ft">'+esc(t('printedOn'))+' '+fmtDT(new Date())+' · '+rows.length+' '+esc(t('records'))+' · SAINTDOU</div>'+
+     '<script>window.print()<\/script></body></html>';
+  w.document.write(h);w.document.close();
+}
+function importExcel(k){
+  $('#xlsxFile').onchange=e=>{
+    const f=e.target.files[0];if(!f)return;e.target.value='';
+    const fr=new FileReader();
+    fr.onload=ev=>{
+      try{
+        const wb=XLSX.read(ev.target.result,{type:'array',cellDates:false,raw:true});
+        const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+        if(!rows.length)return toast('⚠ Empty sheet');
+        const M=MODULES[k];let n=0;
+        rows.forEach(row=>{
+          const rec={id:'',_created:Date.now(),_updated:Date.now(),photos:[]};
+          const keys=Object.keys(row);
+          M.fields.forEach(fd=>{
+            if(fd.t==='photos')return;
+            const hit=keys.find(h=>{const hh=String(h).trim().toLowerCase();
+              return hh===fd.k.toLowerCase()||hh===fd.L.en.toLowerCase()||String(h).trim()===fd.L.zh});
+            if(hit!=null){let v=row[hit];
+              if(fd.t==='date'&&typeof v==='number')v=fmtDate(new Date(Math.round((v-25569)*86400000)));
+              rec[fd.k]=fd.t==='number'?(v===''?'':Number(v)):String(v).trim();}
+          });
+          const idKey=keys.find(h=>String(h).trim().toUpperCase()==='ID');
+          rec.id=(idKey&&String(row[idKey]).trim())||uid(M.prefix);
+          const ex=DB[k].findIndex(r=>r.id===rec.id);
+          if(ex>=0)DB[k][ex]=Object.assign(DB[k][ex],rec,{_updated:Date.now()});else DB[k].push(rec);
+          n++;
+        });
+        logAct('📊 Import Excel · '+t(k)+' × '+n);saveDB();drawTable(k);toast('📊 Import ✓ '+n+' rows');
+      }catch(err){toast('⚠ Import error: '+err.message)}
+    };
+    fr.readAsArrayBuffer(f);
+  };$('#xlsxFile').click();
+}
+function backupJSON(){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(DB,null,1)],{type:'application/json'}));
+  a.download='AC_AUDIT_BACKUP_'+todayStr()+'.json';a.click();toast('🗂 Backup ✓');
+}
+function restoreJSON(){
+  $('#jsonFile').onchange=e=>{
+    const f=e.target.files[0];if(!f)return;e.target.value='';
+    const fr=new FileReader();
+    fr.onload=ev=>{try{
+      const d=JSON.parse(ev.target.result);
+      if(!d.meta)throw new Error('Invalid backup');
+      DB=migrate(d);saveDB();logAct('🗂 Restore JSON backup');go(CURRENT);toast('🗂 Restore ✓');
+    }catch(err){toast('⚠ '+err.message)}};
+    fr.readAsText(f);
+  };$('#jsonFile').click();
+}
+
+/* =====================================================================
+   CLOUD SYNC  (GAS AC_AUDIT_PLATFORM · POST text/plain 避免 CORS preflight)
+===================================================================== */
+async function gasCall(payload){
+  if(!CFG.gasUrl)throw new Error(t('cloudBad'));
+  const res=await fetch(CFG.gasUrl,{method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify(payload)});
+  const j=await res.json();
+  if(!j.ok)throw new Error(j.error||'GAS error');
+  return j;
+}
+function setCloudDot(state){const d=$('#dot-cloud');d.className='dot '+(state||'');}
+async function pingCloud(){
+  if(!CFG.gasUrl){setCloudDot('bad');return}
+  setCloudDot('wait');
+  try{await gasCall({action:'ping'});setCloudDot('ok');$('#dot-tg').className='dot ok'}
+  catch(e){setCloudDot('bad')}
+}
+async function cloudUpload(){
+  try{
+    toast('☁⬆ …');setCloudDot('wait');
+    await gasCall({action:'upload',data:DB,updatedAt:DB.meta.updatedAt});
+    DB.meta.lastSync=Date.now();saveDB(false);setCloudDot('ok');
+    logAct('☁⬆ Upload');saveDB(false);toast(t('upDone'));
+    if(CFG.notif.upload)tgNotify('☁⬆ <b>AC Audit</b> upload complete · '+esc(fmtDT(new Date())));
+    if(CURRENT==='dashboard')renderDashboard();
+  }catch(e){setCloudDot('bad');toast('⚠ '+e.message)}
+}
+async function cloudDownload(quiet){
+  try{
+    if(!quiet&&!confirm(t('confirmDown')))return;
+    toast('☁⬇ …');setCloudDot('wait');
+    const j=await gasCall({action:'download'});
+    if(!j.data)throw new Error('No cloud data');
+    DB=migrate(j.data);DB.meta.lastSync=Date.now();
+    saveDB(false);setCloudDot('ok');logAct('☁⬇ Download');saveDB(false);
+    go(CURRENT);toast(t('downDone'));
+    if(CFG.notif.download)tgNotify('☁⬇ <b>AC Audit</b> download complete · '+esc(fmtDT(new Date())));
+  }catch(e){setCloudDot('bad');toast('⚠ '+e.message)}
+}
+async function cloudSync(){
+  try{
+    toast(t('syncing'));setCloudDot('wait');
+    const j=await gasCall({action:'meta'});
+    const remote=j.updatedAt||0;
+    if(DB.meta.updatedAt>remote){await cloudUpload();toast(t('syncUp'))}
+    else if(remote>DB.meta.updatedAt){await cloudDownload(true);toast(t('syncDown'))}
+    else{DB.meta.lastSync=Date.now();saveDB(false);setCloudDot('ok');toast(t('syncSame'))}
+    if(CFG.notif.sync)tgNotify('⟳ <b>AC Audit</b> sync complete · '+esc(fmtDT(new Date())));
+  }catch(e){setCloudDot('bad');toast('⚠ '+e.message)}
+}
+
+/* ---------- Telegram (經 GAS 轉送，parse_mode HTML) ---------- */
+async function tgNotify(html){
+  try{await gasCall({action:'tg',text:html})}catch(e){/* silent */}
+}
+
+/* =====================================================================
+   DASHBOARD
+===================================================================== */
+function dashStats(){
+  const td=todayStr();
+  const inDays=(ds,n)=>{const d=daysDiff(ds);return d!=null&&d>=0&&d<=n};
+  const capOpen=DB.caps.filter(r=>r.status!=='closed');
+  const capOver=capOpen.filter(r=>r.dueDate&&daysDiff(r.dueDate)<0);
+  const scores=DB.audits.map(a=>Number(a.score)).filter(n=>!isNaN(n)&&n>0);
+  return {
+   todayAudit:DB.audits.filter(a=>a.date===td||(a.date<=td&&a.endDate>=td)).length,
+   upcoming:DB.audits.filter(a=>inDays(a.date,7)).length,
+   capOpen:capOpen.length,capOverdue:capOver.length,
+   certExp:DB.grs_certs.filter(r=>inDays(r.expiryDate,60)).concat(DB.grs_suppliers.filter(r=>inDays(r.expiryDate,60))).length,
+   docExp:DB.documents.filter(r=>inDays(r.expiryDate,60)).length,
+   findings:DB.caps.length,
+   hiRisk:DB.caps.filter(r=>(r.riskLevel==='high'||r.riskLevel==='critical')&&r.status!=='closed').length,
+   avgScore:scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length*10)/10:'-',
+   grsValid:DB.grs_certs.filter(r=>r.status==='valid').length,
+   dccActive:DB.documents.filter(r=>r.status==='active').length,
+   incOpen:DB.incidents.filter(r=>r.status!=='closed').length
+  };
+}
+function renderDashboard(){
+  const s=dashStats();
+  const kpi=(key,val,ico,color,goK)=>'<div class="card kpi" style="--kc:'+color+'" onclick="go(\''+goK+'\')">'+
+    '<div class="kico">'+ico+'</div><div class="kv">'+val+'</div><div class="kl">'+esc(t(key))+'</div></div>';
+  const lastSync=DB.meta.lastSync?fmtDT(new Date(DB.meta.lastSync)):t('never');
+  $('#main').innerHTML=
+   '<div class="pgtitle"><h2>◧ '+esc(t('dashboard'))+'</h2><span class="sub">'+esc(fmtDate(new Date()))+' · VRT Admin Center</span></div>'+
+   '<div class="grid g-kpi">'+
+    kpi('todayAudit',s.todayAudit,'📋','var(--khaki)','audits')+
+    kpi('upcoming',s.upcoming,'🗓','var(--info)','audits')+
+    kpi('capOpen',s.capOpen,'🛠','var(--warn)','caps')+
+    kpi('capOverdue',s.capOverdue,'⏰',s.capOverdue?'var(--danger)':'var(--ok)','caps')+
+    kpi('hiRisk',s.hiRisk,'🔴',s.hiRisk?'var(--crit)':'var(--ok)','caps')+
+    kpi('findings',s.findings,'⚠','var(--graphite2)','caps')+
+    kpi('avgScore',s.avgScore,'🎯','var(--khaki)','analytics')+
+    kpi('certExp',s.certExp,'🏅',s.certExp?'var(--warn)':'var(--ok)','grs_certs')+
+    kpi('grsValid',s.grsValid,'✅','var(--ok)','grs_certs')+
+    kpi('docExp',s.docExp,'📁',s.docExp?'var(--warn)':'var(--ok)','documents')+
+    kpi('dccActive',s.dccActive,'🗄','var(--info)','documents')+
+    kpi('incOpen',s.incOpen,'🚨',s.incOpen?'var(--danger)':'var(--ok)','incidents')+
+   '</div>'+
+   '<div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:14px" id="dashLow">'+
+    '<div class="panel"><h3>🕘 '+esc(t('recentAct'))+'<span class="rule"></span></h3><ul class="actlist">'+
+      (DB.activities.length?DB.activities.slice(0,40).map(a=>'<li><time>'+esc(fmtDT(new Date(a.t)))+'</time><span>'+esc(a.x)+'</span></li>').join(''):'<li>'+esc(t('noData'))+'</li>')+
+    '</ul></div>'+
+    '<div class="panel"><h3>⚙ '+esc(t('sysStatus'))+'<span class="rule"></span></h3>'+
+      '<div class="kv-row"><span>☁ Cloud</span><b id="dashCloud">'+(CFG.gasUrl?'…':esc(t('cloudBad')))+'</b></div>'+
+      '<div class="kv-row"><span>✈ Telegram Bot</span><b>@ac_audit_bot</b></div>'+
+      '<div class="kv-row"><span>👥 Group</span><b>'+esc(CFG.chatId)+'</b></div>'+
+      '<div class="kv-row"><span>'+esc(t('lastSync'))+'</span><b>'+esc(lastSync)+'</b></div>'+
+      '<div class="kv-row"><span>💾 Local records</span><b>'+MODULE_KEYS.reduce((n,k)=>n+DB[k].length,0)+'</b></div>'+
+      '<div class="hint" style="margin-top:10px">'+esc(t('openPlatform'))+'</div>'+
+    '</div></div>';
+  if(window.innerWidth<900)$('#dashLow').style.gridTemplateColumns='1fr';
+  if(CFG.gasUrl)gasCall({action:'ping'}).then(()=>{const e=$('#dashCloud');if(e)e.textContent=t('cloudOk')}).catch(()=>{const e=$('#dashCloud');if(e)e.textContent=t('cloudBad')});
+}
+
+/* =====================================================================
+   ANALYTICS  (Chart.js)
+===================================================================== */
+let CHARTS=[];
+function monthKey(ds){return ds?String(ds).slice(0,7):''}
+function last12(){const a=[],d=new Date();d.setDate(1);
+  for(let i=11;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);a.push(x.getFullYear()+'-'+pad(x.getMonth()+1))}return a}
+function renderAnalytics(){
+  CHARTS.forEach(c=>c.destroy());CHARTS=[];
+  const months=last12();
+  const box=(id,title)=>'<div class="panel"><h3>'+title+'<span class="rule"></span></h3><div class="chartbox"><canvas id="'+id+'"></canvas></div></div>';
+  $('#main').innerHTML=
+   '<div class="pgtitle"><h2>📈 '+esc(t('analytics'))+'</h2></div>'+
+   '<div class="grid g-charts">'+
+    box('chAuditTrend',LANG==='zh'?'稽核趨勢（月）':'Audit Trend / Month')+
+    box('chScore',LANG==='zh'?'每月平均稽核分數':'Monthly Avg Audit Score')+
+    box('chCapTrend',LANG==='zh'?'CAP 開立 / 結案趨勢':'CAP Open vs Closed Trend')+
+    box('chClosure',LANG==='zh'?'CAP 結案率':'CAP Closure Rate')+
+    box('chDept',LANG==='zh'?'各部門 Finding 分布':'Findings by Department')+
+    box('chPriority',LANG==='zh'?'Finding 優先級分布':'Finding Priority Distribution')+
+    box('chRoot',LANG==='zh'?'根本原因分析 Pareto':'Root Cause Pareto')+
+    box('chCert',LANG==='zh'?'證書 / 文件狀態':'Certificate & Document Status')+
+   '</div>';
+  const KH='#A89272',GR='#26282C',palette=['#A89272','#5A7A9A','#4E7A5A','#C7962E','#B0492F','#7A2E4A','#8A8D95'];
+  const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,font:{size:10.5}}}}};
+  const cnt=(arr,fn)=>{const m={};arr.forEach(r=>{const k=fn(r);if(k)m[k]=(m[k]||0)+1});return m};
+  // audit trend
+  const at=cnt(DB.audits,a=>monthKey(a.date));
+  CHARTS.push(new Chart($('#chAuditTrend'),{type:'line',data:{labels:months,
+    datasets:[{label:'Audits',data:months.map(m=>at[m]||0),borderColor:KH,backgroundColor:'rgba(168,146,114,.15)',fill:true,tension:.3}]},options:base}));
+  // monthly score
+  const sm={},sc={};DB.audits.forEach(a=>{const m=monthKey(a.date),v=Number(a.score);
+    if(m&&!isNaN(v)&&v>0){sm[m]=(sm[m]||0)+v;sc[m]=(sc[m]||0)+1}});
+  CHARTS.push(new Chart($('#chScore'),{type:'line',data:{labels:months,
+    datasets:[{label:'Score',data:months.map(m=>sc[m]?Math.round(sm[m]/sc[m]*10)/10:null),borderColor:GR,tension:.3,spanGaps:true}]},options:base}));
+  // cap trend
+  const co=cnt(DB.caps,r=>monthKey(fmtDate(new Date(r._created)))),cc=cnt(DB.caps.filter(r=>r.status==='closed'),r=>monthKey(r.verifyDate||fmtDate(new Date(r._updated))));
+  CHARTS.push(new Chart($('#chCapTrend'),{type:'bar',data:{labels:months,datasets:[
+    {label:'Open',data:months.map(m=>co[m]||0),backgroundColor:'#C7962E'},
+    {label:'Closed',data:months.map(m=>cc[m]||0),backgroundColor:'#4E7A5A'}]},options:base}));
+  // closure rate
+  const tot=DB.caps.length,cl=DB.caps.filter(r=>r.status==='closed').length;
+  CHARTS.push(new Chart($('#chClosure'),{type:'doughnut',data:{labels:['Closed','Open'],
+    datasets:[{data:[cl,tot-cl],backgroundColor:['#4E7A5A','#B0492F']}]},options:base}));
+  // dept
+  const dp=cnt(DB.caps,r=>r.department);
+  CHARTS.push(new Chart($('#chDept'),{type:'bar',data:{labels:Object.keys(dp),
+    datasets:[{label:'Findings',data:Object.values(dp),backgroundColor:KH}]},options:Object.assign({indexAxis:'y'},base)}));
+  // priority
+  const pr=cnt(DB.caps,r=>optLabel('priority',r.priority));
+  CHARTS.push(new Chart($('#chPriority'),{type:'doughnut',data:{labels:Object.keys(pr),
+    datasets:[{data:Object.values(pr),backgroundColor:palette}]},options:base}));
+  // root cause pareto (first 12 chars grouping)
+  const rc={};DB.caps.forEach(r=>{const k=(r.rootCause||'').trim().split(/\n/)[0].slice(0,24);if(k)rc[k]=(rc[k]||0)+1});
+  const rcE=Object.entries(rc).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  CHARTS.push(new Chart($('#chRoot'),{type:'bar',data:{labels:rcE.map(e=>e[0]),
+    datasets:[{label:'Count',data:rcE.map(e=>e[1]),backgroundColor:'#5A7A9A'}]},options:base}));
+  // cert & doc status
+  const cs=cnt(DB.grs_certs,r=>optLabel('certStatus',r.status)),ds2=cnt(DB.documents,r=>optLabel('docStatus',r.status));
+  const labs=[...new Set([...Object.keys(cs),...Object.keys(ds2)])];
+  CHARTS.push(new Chart($('#chCert'),{type:'bar',data:{labels:labs,datasets:[
+    {label:'GRS Certs',data:labs.map(l=>cs[l]||0),backgroundColor:KH},
+    {label:'Documents',data:labs.map(l=>ds2[l]||0),backgroundColor:GR}]},options:base}));
+}
+
+/* =====================================================================
+   MSG PROCESSOR  (.msg / .eml / .txt → 證據 / CAP)
+===================================================================== */
+function renderMsgExtra(){
+  return '<div class="panel" style="margin-bottom:14px"><h3>✉️ '+esc(t('msg'))+' · Parser<span class="rule"></span></h3>'+
+   '<p class="hint" style="margin-bottom:10px">'+esc(t('msgHint'))+'</p>'+
+   '<div class="toolbar" style="margin-bottom:10px">'+
+    '<button class="btn pri" onclick="loadMsgFile()">📎 '+esc(t('loadFile'))+'</button>'+
+    '<button class="btn" onclick="parsePasted()">🔍 '+esc(t('parse'))+'</button>'+
+    '<button class="btn" onclick="saveParsed()">💾 '+esc(t('saveAsEvidence'))+'</button></div>'+
+   '<div class="fgrid">'+
+    '<div class="fld"><label>From</label><input id="mp_from"></div>'+
+    '<div class="fld"><label>Date</label><input id="mp_date" type="date"></div>'+
+    '<div class="fld f-full"><label>Subject</label><input id="mp_subject"></div>'+
+    '<div class="fld f-full"><label>Body / '+esc(t('parse'))+'</label><textarea id="mp_body" style="min-height:130px" placeholder="Paste email content here…"></textarea></div>'+
+   '</div></div>';
+}
+function loadMsgFile(){
+  $('#msgFile').onchange=e=>{
+    const f=e.target.files[0];if(!f)return;e.target.value='';
+    const ext=f.name.toLowerCase().split('.').pop();
+    const fr=new FileReader();
+    if(ext==='msg'){
+      fr.onload=ev=>{$('#mp_body').value=extractMsgText(new Uint8Array(ev.target.result));parseHeaders();toast('📎 .msg parsed (text layer)')};
+      fr.readAsArrayBuffer(f);
+    }else{
+      fr.onload=ev=>{$('#mp_body').value=ev.target.result;parseHeaders();toast('📎 loaded')};
+      fr.readAsText(f);
+    }
+  };$('#msgFile').click();
+}
+/* Outlook .msg：掃描 CFB 內 UTF-16LE 可讀字串（輕量抽取，不依賴外部庫） */
+function extractMsgText(u8){
+  let out=[],cur=[];
+  for(let i=0;i+1<u8.length;i+=2){
+    const code=u8[i]|(u8[i+1]<<8);
+    const ok=(code>=32&&code<0xD800)||code===10||code===13||code===9;
+    if(ok){cur.push(code);if(cur.length>60000){out.push(String.fromCharCode.apply(null,cur));cur=[]}}
+    else{if(cur.length>=8)out.push(String.fromCharCode.apply(null,cur));cur=[]}
+  }
+  if(cur.length>=8)out.push(String.fromCharCode.apply(null,cur));
+  return out.filter(s=>/[A-Za-z\u4e00-\u9fff\u1780-\u17ff]/.test(s))
+            .filter(s=>!/^(__substg|__properties|Root Entry|\x05)/.test(s))
+            .join('\n').replace(/\n{3,}/g,'\n\n').slice(0,20000);
+}
+function parseHeaders(){
+  const b=$('#mp_body').value;
+  const grab=re=>{const m=b.match(re);return m?m[1].trim():''};
+  const from=grab(/^From:\s*(.+)$/mi)||grab(/寄件者[:：]\s*(.+)$/mi);
+  const subj=grab(/^Subject:\s*(.+)$/mi)||grab(/主旨[:：]\s*(.+)$/mi);
+  const dt=grab(/^Date:\s*(.+)$/mi)||grab(/日期[:：]\s*(.+)$/mi);
+  if(from)$('#mp_from').value=from;
+  if(subj)$('#mp_subject').value=subj;
+  if(dt){const d=new Date(dt);if(!isNaN(d))$('#mp_date').value=fmtDate(d)}
+  if(!$('#mp_date').value)$('#mp_date').value=todayStr();
+}
+function parsePasted(){parseHeaders();toast('🔍 '+t('parse')+' ✓')}
+function saveParsed(){
+  const subj=$('#mp_subject').value.trim();
+  if(!subj)return toast(t('reqMiss')+'Subject');
+  const rec={id:uid('MSG'),_created:Date.now(),_updated:Date.now(),
+    date:$('#mp_date').value||todayStr(),from:$('#mp_from').value.trim(),subject:subj,
+    msgType:'evidence',auditId:'',content:$('#mp_body').value,convertedTo:'',photos:[]};
+  DB.msg.push(rec);logAct('＋ MSG evidence · '+rec.id);saveDB();
+  toast(t('saved')+' · '+rec.id);drawTable('msg');
+}
+
+/* =====================================================================
+   SETTINGS
+===================================================================== */
+const NOTIF_LABELS={
+ upload:{zh:'上傳完成通知',en:'Upload complete',km:'ជូនដំណឹងផ្ទុកឡើង'},
+ download:{zh:'下載完成通知',en:'Download complete',km:'ជូនដំណឹងទាញយក'},
+ sync:{zh:'同步完成通知',en:'Sync complete',km:'ជូនដំណឹងសមកាលកម្ម'},
+ hiRisk:{zh:'高風險 Finding 通知',en:'High risk finding',km:'Finding ហានិភ័យខ្ពស់'},
+ capOverdue:{zh:'CAP 逾期提醒（每日 GAS）',en:'CAP overdue (daily GAS)',km:'CAP ហួសកំណត់'},
+ certExpiry:{zh:'證書到期提醒（每日 GAS）',en:'Certificate expiry (daily GAS)',km:'វិញ្ញាបនបត្រជិតផុត'},
+ docExpiry:{zh:'文件到期提醒（每日 GAS）',en:'Document expiry (daily GAS)',km:'ឯកសារជិតផុត'},
+ auditRemind:{zh:'稽核行程提醒（每日 GAS）',en:'Audit schedule (daily GAS)',km:'កាលវិភាគសវនកម្ម'},
+ newAudit:{zh:'新增稽核通知',en:'New audit created',km:'សវនកម្មថ្មី'},
+ newIncident:{zh:'新增事故通知',en:'New incident created',km:'ឧប្បត្តិហេតុថ្មី'}
+};
+function renderSettings(){
+  $('#main').innerHTML=
+   '<div class="pgtitle"><h2>⚙ '+esc(t('settings'))+'</h2></div>'+
+   '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(330px,1fr))">'+
+   '<div class="panel setsec"><h4>☁ '+esc(t('cloudSet'))+'</h4>'+
+     '<div class="fld"><label>GAS Web App URL（/exec）</label><input id="set_gas" value="'+esc(CFG.gasUrl)+'" placeholder="https://script.google.com/macros/s/…/exec"></div>'+
+     '<div class="fld" style="margin-top:8px"><label>Telegram Group Chat ID</label><input id="set_chat" value="'+esc(CFG.chatId)+'"></div>'+
+     '<div style="margin-top:10px;display:flex;gap:8px">'+
+     '<button class="btn pri" onclick="saveCloudSet()">💾 '+esc(t('save'))+'</button>'+
+     '<button class="btn" onclick="pingCloud().then(()=>toast(t(\'cloudOk\')))">🔌 Test</button></div>'+
+     '<p class="hint" style="margin-top:8px">Bot：@ac_audit_bot · GAS：AC_AUDIT_PLATFORM · Repo：ac-audit</p></div>'+
+   '<div class="panel setsec"><h4>✈ '+esc(t('notif'))+'</h4>'+
+     Object.keys(NOTIF_LABELS).map(k=>'<div class="swrow"><input type="checkbox" id="nt_'+k+'" '+(CFG.notif[k]?'checked':'')+
+       ' onchange="CFG.notif.'+k+'=this.checked;saveCFG();syncNotifToDB()"><label for="nt_'+k+'">'+esc(L(NOTIF_LABELS[k]))+'</label></div>').join('')+'</div>'+
+   '<div class="panel setsec"><h4>📋 '+esc(t('auditTypes'))+'</h4><div id="typeChips">'+
+     DB.settings.auditTypes.map((x,i)=>'<span class="typechip">'+esc(x)+'<button onclick="rmType('+i+')">✕</button></span>').join('')+'</div>'+
+     '<div style="display:flex;gap:8px;margin-top:10px"><input id="newType" placeholder="WRAP / Chemical / EHS…"><button class="btn" onclick="addType()">＋ '+esc(t('addType'))+'</button></div>'+
+     '<p class="hint" style="margin-top:8px">'+(LANG==='zh'?'未來新驗廠類型直接在此新增，稽核管理即可選用，平台無需改版。':'Add future audit types here; no redesign needed.')+'</p></div>'+
+   '<div class="panel setsec"><h4>🗂 '+esc(t('dataSet'))+'</h4>'+
+     '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+     '<button class="btn" onclick="backupJSON()">💾 '+esc(t('expJson'))+'</button>'+
+     '<button class="btn" onclick="restoreJSON()">📂 '+esc(t('impJson'))+'</button>'+
+     '<button class="btn dng" onclick="clearAll()">🗑 '+esc(t('dangerZone'))+'</button></div>'+
+     '<div class="kv-row" style="margin-top:12px"><span>'+esc(t('lastSync'))+'</span><b>'+(DB.meta.lastSync?esc(fmtDT(new Date(DB.meta.lastSync))):esc(t('never')))+'</b></div>'+
+     '<div class="kv-row"><span>localStorage</span><b>ac_audit_db</b></div></div>'+
+   '</div>';
+}
+function saveCloudSet(){
+  CFG.gasUrl=$('#set_gas').value.trim();CFG.chatId=$('#set_chat').value.trim();
+  saveCFG();toast(t('saved'));pingCloud();
+}
+function syncNotifToDB(){DB.settings.notif=Object.assign({},CFG.notif);saveDB()}
+function addType(){
+  const v=$('#newType').value.trim();if(!v)return;
+  if(!DB.settings.auditTypes.includes(v))DB.settings.auditTypes.push(v);
+  saveDB();renderSettings();toast('＋ '+v);
+}
+function rmType(i){DB.settings.auditTypes.splice(i,1);saveDB();renderSettings()}
+function clearAll(){
+  if(!confirm(t('dangerZone')+'?\n(local only, cloud unaffected)'))return;
+  localStorage.removeItem(DB_KEY);DB=loadDB();saveDB();go('dashboard');toast('🗑 ✓');
+}
+
+/* =====================================================================
+   THEME / LANG / INIT
+===================================================================== */
+function toggleTheme(){
+  const cur=document.documentElement.dataset.theme==='dark'?'':'dark';
+  document.documentElement.dataset.theme=cur;localStorage.setItem('ac_audit_theme',cur);
+}
+function setLang(v){LANG=v;localStorage.setItem('ac_audit_lang',v);renderNav();go(CURRENT)}
+window.addEventListener('hashchange',()=>{const k=location.hash.slice(1);
+  if(k&&k!==CURRENT&&(MODULES[k]||['dashboard','analytics','settings'].includes(k)))go(k)});
+(function init(){
+  document.documentElement.dataset.theme=localStorage.getItem('ac_audit_theme')||'';
+  $('#langSel').value=LANG;
+  DB.settings.notif=Object.assign({},CFG.notif,DB.settings.notif||{});
+  renderNav();
+  const k=location.hash.slice(1);
+  go((MODULES[k]||['dashboard','analytics','settings'].includes(k))?k:'dashboard');
+  pingCloud();
+})();
+</script>
+</body>
+</html>
