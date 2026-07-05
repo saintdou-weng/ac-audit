@@ -33,36 +33,43 @@ textarea{resize:vertical;min-height:70px}
 
 /* ===== Layout ===== */
 #app{display:flex;flex-direction:column;height:100vh}
-header{background:var(--black);color:#fff;height:54px;display:flex;align-items:center;
-  padding:0 14px;gap:10px;border-bottom:2px solid var(--khaki);flex-shrink:0;z-index:50}
-#burger{background:none;border:none;color:#fff;font-size:20px;padding:6px 8px;display:none}
+header{background:var(--white);color:var(--ink);height:54px;display:flex;align-items:center;
+  padding:0 16px;gap:10px;border-bottom:1px solid var(--line);flex-shrink:0;z-index:50}
+#burger{display:none}
 .logo{display:flex;align-items:baseline;gap:8px;white-space:nowrap}
-.logo b{font-size:16px;letter-spacing:.14em;color:#fff}
-.logo span{font-size:10.5px;letter-spacing:.22em;color:var(--khaki)}
+.logo b{font-size:16px;letter-spacing:.14em;color:var(--ink)}
+.logo span{font-size:10.5px;letter-spacing:.22em;color:var(--khaki-d)}
 #hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px}
-.hpill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.14);color:#D8D4C8;font-size:11.5px;
+.hpill{display:flex;align-items:center;gap:6px;background:var(--linen);
+  border:1px solid var(--line);color:var(--ink2);font-size:11.5px;
   padding:4px 10px;border-radius:20px;white-space:nowrap}
-.dot{width:8px;height:8px;border-radius:50%;background:#777;display:inline-block;flex-shrink:0}
+.dot{width:8px;height:8px;border-radius:50%;background:#B9BCC2;display:inline-block;flex-shrink:0}
 .dot.ok{background:#6FBF87}.dot.bad{background:#E06A4E}.dot.wait{background:#D9B25C}
-.hbtn{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);color:#fff;
+.hbtn{background:var(--white);border:1px solid var(--line);color:var(--ink);
   border-radius:7px;padding:6px 11px;font-size:12.5px}
-.hbtn:hover{background:var(--khaki);border-color:var(--khaki);color:#111}
-select.hsel{width:auto;background:rgba(255,255,255,.09);color:#fff;border:1px solid rgba(255,255,255,.16);
+.hbtn:hover{background:var(--khaki);border-color:var(--khaki);color:#fff}
+select.hsel{width:auto;background:var(--white);color:var(--ink);border:1px solid var(--line);
   padding:5px 8px;font-size:12.5px;border-radius:7px}
 select.hsel option{color:#111}
 
-#body{display:flex;flex:1;overflow:hidden}
-nav{width:222px;background:var(--graphite);color:#C9CBD1;overflow-y:auto;flex-shrink:0;
-  display:flex;flex-direction:column;transition:transform .2s}
-nav .ngroup{font-size:10px;letter-spacing:.2em;color:#7E828B;padding:16px 18px 6px;text-transform:uppercase}
-nav a{display:flex;align-items:center;gap:10px;padding:9px 18px;color:#C9CBD1;text-decoration:none;
-  font-size:13.5px;border-left:3px solid transparent;white-space:nowrap}
-nav a:hover{background:var(--graphite2);color:#fff}
-nav a.active{background:var(--graphite2);color:#fff;border-left-color:var(--khaki)}
-nav a .cnt{margin-left:auto;font-size:10.5px;background:rgba(168,146,114,.25);color:var(--khaki);
+#body{display:flex;flex-direction:column;flex:1;overflow:hidden}
+#tabs{display:flex;gap:2px;background:var(--white);border-bottom:1px solid var(--line);
+  padding:0 10px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+#tabs::-webkit-scrollbar{height:0}
+.tab{display:flex;align-items:center;gap:7px;padding:11px 15px 9px;color:var(--ink2);
+  text-decoration:none;font-size:13.5px;white-space:nowrap;border-bottom:2.5px solid transparent;cursor:pointer;user-select:none}
+.tab:hover{color:var(--ink)}
+.tab.active{color:var(--ink);border-bottom-color:var(--khaki);font-weight:600}
+.tab .cnt{font-size:10.5px;background:var(--linen);color:var(--khaki-d);
   padding:1px 7px;border-radius:10px;font-variant-numeric:tabular-nums}
-nav .nfoot{margin-top:auto;padding:14px 18px;font-size:10px;color:#6B6E76;letter-spacing:.08em;line-height:1.7}
+#subtabs{display:flex;gap:4px;background:var(--linen);border-bottom:1px solid var(--line);
+  padding:0 14px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+#subtabs.hide{display:none}
+#subtabs::-webkit-scrollbar{height:0}
+.subtab{padding:8px 14px;font-size:12.5px;color:var(--ink2);cursor:pointer;white-space:nowrap;
+  border-bottom:2px solid transparent;user-select:none}
+.subtab:hover{color:var(--ink)}
+.subtab.active{color:var(--khaki-d);border-bottom-color:var(--khaki);font-weight:600}
 main{flex:1;overflow-y:auto;padding:20px 22px}
 
 /* ===== Cards / dashboard ===== */
@@ -169,9 +176,7 @@ table.dt tbody tr:hover{background:rgba(168,146,114,.07);cursor:pointer}
   .tblwrap{border:none}table.dt th{position:static;background:#eee;color:#111}
 }
 @media(max-width:900px){
-  #burger{display:block}
-  nav{position:fixed;top:54px;bottom:0;left:0;z-index:80;transform:translateX(-100%);box-shadow:4px 0 18px rgba(0,0,0,.3)}
-  nav.open{transform:none}
+  .tab{padding:10px 12px 8px;font-size:13px}
   .hpill .plabel{display:none}
   main{padding:14px}
   .fgrid{grid-template-columns:1fr}
@@ -182,7 +187,6 @@ table.dt tbody tr:hover{background:rgba(168,146,114,.07);cursor:pointer}
 <body>
 <div id="app">
 <header>
-  <button id="burger" onclick="toggleNav()">☰</button>
   <div class="logo"><b>AC AUDIT</b><span>PLATFORM · VRT</span></div>
   <div id="hdr-right">
     <div class="hpill" id="pill-cloud" title="Cloud"><span class="dot" id="dot-cloud"></span><span class="plabel" id="lbl-cloud">Cloud</span></div>
@@ -197,7 +201,8 @@ table.dt tbody tr:hover{background:rgba(168,146,114,.07);cursor:pointer}
   </div>
 </header>
 <div id="body">
-  <nav id="nav"></nav>
+  <div id="tabs"></div>
+  <div id="subtabs" class="hide"></div>
   <main id="main"></main>
 </div>
 </div>
@@ -655,50 +660,71 @@ const MODULE_KEYS=Object.keys(MODULES);
 /* =====================================================================
    NAVIGATION & ROUTING
 ===================================================================== */
-let CURRENT='dashboard';
-const NAV_ORDER=[
- {g:'grpMain',items:['dashboard','analytics']},
- {g:'grpAudit',items:['audits','caps']},
- {g:'grpGRS',items:['grs_certs','grs_tc','grs_suppliers','grs_trace']},
- {g:'grpDoc',items:['documents','policies']},
- {g:'grpOther',items:['incidents','msg','settings']}
-];
-const PAGE_ICONS={dashboard:'◧',analytics:'📈',settings:'⚙'};
-function renderNav(){
+let CURRENT='dashboard', GRS_CUR='grs_certs';
+const GRS_SUBS=['grs_certs','grs_tc','grs_suppliers','grs_trace'];
+const TAB_ORDER=['dashboard','analytics','audits','caps','grs','documents','incidents','policies','msg','subsys','settings'];
+const PAGE_ICONS={dashboard:'◧',analytics:'📈',settings:'⚙',grs:'🏅',subsys:'📚'};
+const SUBSYS_LINKS=[
+ {u:'vrt_training_v1.html',i:'🎓',zh:'培訓計劃系統',en:'Training System'},
+ {u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment'},
+ {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules'},
+ {u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law'},
+ {u:'vrt_damage_report.html',i:'📝',zh:'損壞/遺失報告表',en:'Damage Report Form'},
+ {u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 舊版（資料可遷移）',en:'DCC Legacy'},
+ {u:'MSG_Processor.html',i:'📨',zh:'外來文件管制（舊版）',en:'Ext. Doc Legacy'}];
+function tabLabel(k){
+  if(k==='grs')return 'GRS';
+  if(k==='subsys')return LANG==='zh'?'子系統':(LANG==='km'?'ប្រព័ន្ធរង':'Subsystems');
+  return t(k);
+}
+function renderNav(){   // 上方 Tabs
   let h='';
-  NAV_ORDER.forEach(gr=>{
-    h+='<div class="ngroup">'+esc(t(gr.g))+'</div>';
-    gr.items.forEach(k=>{
-      const ico=MODULES[k]?MODULES[k].icon:(PAGE_ICONS[k]||'•');
-      const cnt=MODULES[k]?'<span class="cnt" id="cnt-'+k+'"></span>':'';
-      h+='<a href="#'+k+'" data-k="'+k+'" class="'+(CURRENT===k?'active':'')+'" onclick="go(\''+k+'\');return false">'+
-         '<span>'+ico+'</span><span>'+esc(t(k))+'</span>'+cnt+'</a>';
-    });
+  TAB_ORDER.forEach(k=>{
+    const ico=MODULES[k]?MODULES[k].icon:(PAGE_ICONS[k]||'•');
+    const on=(CURRENT===k)||(k==='grs'&&GRS_SUBS.includes(CURRENT));
+    const cnt=(k!=='grs'&&MODULES[k])?'<span class="cnt" id="cnt-'+k+'"></span>':'';
+    h+='<div class="tab '+(on?'active':'')+'" data-k="'+k+'" onclick="go(\''+k+'\')">'+
+       '<span>'+ico+'</span><span>'+esc(tabLabel(k))+'</span>'+cnt+'</div>';
   });
-  const SUBSYS=[
-   {u:'vrt_training_v1.html',i:'🎓',zh:'培訓計劃系統',en:'Training System'},
-   {u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment'},
-   {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules'},
-   {u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law'},
-   {u:'vrt_damage_report.html',i:'📝',zh:'損壞/遺失報告表',en:'Damage Report Form'},
-   {u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 舊版（資料可遷移）',en:'DCC Legacy'},
-   {u:'MSG_Processor.html',i:'📨',zh:'外來文件管制（舊版）',en:'Ext. Doc Legacy'}];
-  h+='<div class="ngroup">📚 '+(LANG==='zh'?'子系統 / 參考':(LANG==='km'?'ប្រព័ន្ធរង':'Subsystems / Reference'))+'</div>';
-  SUBSYS.forEach(s=>{h+='<a href="'+s.u+'" target="_blank" rel="noopener"><span>'+s.i+'</span><span>'+esc(LANG==='zh'?s.zh:s.en)+'</span><span class="cnt">↗</span></a>'});
-  h+='<div class="nfoot">SAINTDOU · Simply the Minimalist<br>AC AUDIT PLATFORM v1.0<br>'+esc(t('openPlatform'))+'</div>';
-  $('#nav').innerHTML=h;renderNavCounts();
+  $('#tabs').innerHTML=h;renderNavCounts();
 }
 function renderNavCounts(){
-  MODULE_KEYS.forEach(k=>{const el=$('#cnt-'+k);if(el)el.textContent=DB[k].length||''});
+  MODULE_KEYS.forEach(k=>{const el=$('#cnt-'+k);if(el)el.textContent=DB[k]&&DB[k].length||''});
 }
-function toggleNav(){$('#nav').classList.toggle('open')}
+function markTabs(){
+  $$('#tabs .tab').forEach(a=>{const k=a.dataset.k;
+    a.classList.toggle('active',(CURRENT===k)||(k==='grs'&&GRS_SUBS.includes(CURRENT)))});
+}
+function renderGrsSubtabs(){
+  const st=$('#subtabs');st.classList.remove('hide');
+  st.innerHTML=GRS_SUBS.map(s=>'<div class="subtab '+(GRS_CUR===s?'active':'')+
+    '" onclick="goGrs(\''+s+'\')">'+esc(MODULES[s].icon+' '+t(s))+'</div>').join('');
+}
+function goGrs(sub){
+  GRS_CUR=sub;CURRENT=sub;location.hash=sub;
+  renderGrsSubtabs();markTabs();
+  const m=$('#main');if(m)m.scrollTop=0;
+  renderModule(sub);
+}
+function renderSubsys(){
+  $('#main').innerHTML='<div class="pgtitle"><h2>📚 '+(LANG==='zh'?'子系統 / 參考':(LANG==='km'?'ប្រព័ន្ធរង':'Subsystems / Reference'))+'</h2>'+
+    '<div class="sub">'+(LANG==='zh'?'獨立頁面，於新分頁開啟':'Opens in a new tab')+'</div></div>'+
+    '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr))">'+
+    SUBSYS_LINKS.map(s=>'<a class="card" href="'+s.u+'" target="_blank" rel="noopener" style="text-decoration:none;display:flex;gap:12px;align-items:center">'+
+      '<span style="font-size:26px;flex-shrink:0">'+s.i+'</span><div style="min-width:0"><div style="font-weight:600;color:var(--ink)">'+esc(LANG==='zh'?s.zh:s.en)+'</div>'+
+      '<div style="font-size:11px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(s.u)+' ↗</div></div></a>').join('')+'</div>';
+}
 function go(k){
-  CURRENT=k;location.hash=k;$('#nav').classList.remove('open');
-  $$('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.k===k));
-  const m=$('#main');m.scrollTop=0;
+  if(k==='grs')return goGrs(GRS_CUR);
+  if(GRS_SUBS.includes(k))return goGrs(k);
+  CURRENT=k;location.hash=k;
+  $('#subtabs').classList.add('hide');
+  markTabs();
+  const m=$('#main');if(m)m.scrollTop=0;
   if(k==='dashboard')return renderDashboard();
   if(k==='analytics')return renderAnalytics();
   if(k==='settings')return renderSettings();
+  if(k==='subsys')return renderSubsys();
   if(MODULES[k])return renderModule(k);
   renderDashboard();
 }
@@ -1359,15 +1385,16 @@ function toggleTheme(){
   document.documentElement.dataset.theme=cur;localStorage.setItem('ac_audit_theme',cur);
 }
 function setLang(v){LANG=v;localStorage.setItem('ac_audit_lang',v);renderNav();go(CURRENT)}
+const ROUTE_OK=k=>MODULES[k]||['dashboard','analytics','settings','subsys','grs'].includes(k);
 window.addEventListener('hashchange',()=>{const k=location.hash.slice(1);
-  if(k&&k!==CURRENT&&(MODULES[k]||['dashboard','analytics','settings'].includes(k)))go(k)});
+  if(k&&k!==CURRENT&&ROUTE_OK(k))go(k)});
 (function init(){
   document.documentElement.dataset.theme=localStorage.getItem('ac_audit_theme')||'';
   $('#langSel').value=LANG;
   DB.settings.notif=Object.assign({},CFG.notif,DB.settings.notif||{});
   renderNav();
   const k=location.hash.slice(1);
-  go((MODULES[k]||['dashboard','analytics','settings'].includes(k))?k:'dashboard');
+  go(ROUTE_OK(k)?k:'dashboard');
   pingCloud();
 })();
 </script>
