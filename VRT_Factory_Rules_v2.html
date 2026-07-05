@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRT 廠規手冊 2026 | Factory Internal Regulations | បទបញ្ជាផ្ទៃក្នុងរោងចក្រ</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Source+Serif+4:wght@300;400;600;700&family=Noto+Sans+Khmer:wght@300;400;600;700&display=swap');
+
+:root {
+  --blue: #0a2051;
+  --red: #c0272d;
+  --gold: #b8963e;
+  --light: #f7f6f2;
+  --border: #c8c2b0;
+  --text: #1a1a1a;
+  --muted: #666;
+  --sidebar: 230px;
+  --header: 60px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Serif TC', 'Source Serif 4', serif;
+  background: #ede9e0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.9;
+}
+body.lang-en { font-family: 'Source Serif 4', serif; }
+body.lang-km { font-family: 'Noto Sans Khmer', sans-serif; font-size: 13px; line-height: 2.1; }
+
+/* ── HEADER ── */
+#header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: var(--header);
+  background: var(--blue);
+  display: flex; align-items: center; padding: 0 18px;
+  gap: 16px;
+}
+.hd-brand { flex: 1; display: flex; align-items: center; gap: 12px; }
+.hd-logo {
+  width: 38px; height: 38px; background: white; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 900; color: var(--blue); font-family: serif;
+}
+.hd-name { color: white; font-size: 14px; font-weight: 700; line-height: 1.3; }
+.hd-name small { display: block; color: rgba(255,255,255,.55); font-size: 10px; font-weight: 400; letter-spacing: .8px; }
+.hd-btns { display: flex; gap: 8px; align-items: center; }
+.lb { padding: 4px 10px; border-radius: 3px; border: 1px solid rgba(255,255,255,.25);
+  color: rgba(255,255,255,.65); background: none; cursor: pointer; font-size: 11.5px; font-weight: 600; transition: all .15s; }
+.lb.on { background: var(--gold); border-color: var(--gold); color: var(--blue); }
+.hd-action { padding: 5px 12px; border-radius: 3px; border: 1px solid rgba(255,255,255,.2);
+  background: none; color: rgba(255,255,255,.75); cursor: pointer; font-size: 12px; transition: all .15s; }
+.hd-action:hover { background: rgba(255,255,255,.12); color: white; }
+
+/* ── SIDEBAR ── */
+#toc {
+  position: fixed; top: var(--header); left: 0; bottom: 0;
+  width: var(--sidebar); background: var(--blue);
+  overflow-y: auto; z-index: 900;
+  padding-bottom: 20px;
+}
+#toc::-webkit-scrollbar { width: 3px; }
+#toc::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); }
+
+.toc-label {
+  padding: 14px 14px 5px;
+  font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold); font-weight: 700; font-family: sans-serif;
+}
+.toc-item {
+  padding: 6px 14px 6px 14px; cursor: pointer;
+  color: rgba(255,255,255,.55); font-size: 12px; line-height: 1.4;
+  transition: all .15s; border-left: 2px solid transparent;
+  display: flex; gap: 6px;
+}
+.toc-item:hover { color: rgba(255,255,255,.85); background: rgba(255,255,255,.05); }
+.toc-item.on { color: var(--gold); border-left-color: var(--gold); background: rgba(184,150,62,.1); }
+.toc-num { color: var(--gold); font-weight: 700; font-size: 11px; min-width: 24px; font-family: sans-serif; }
+.toc-sub { padding-left: 34px; font-size: 11px; }
+
+/* ── MAIN DOC ── */
+#doc {
+  margin-left: var(--sidebar);
+  margin-top: var(--header);
+  background: #ede9e0;
+  min-height: calc(100vh - var(--header));
+  padding: 40px 60px 80px;
+}
+
+/* ── PAGE ── */
+.doc-page {
+  max-width: 820px;
+  margin: 0 auto;
+  background: white;
+  box-shadow: 0 2px 20px rgba(0,0,0,.12);
+}
+
+/* ── COVER ── */
+.cover {
+  padding: 60px 60px 50px;
+  text-align: center;
+  border-bottom: 3px double var(--blue);
+  position: relative;
+}
+.cover::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 6px;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--red) 50%, var(--gold) 100%);
+}
+.cover-logo {
+  width: 72px; height: 72px; border: 3px solid var(--blue); border-radius: 8px;
+  margin: 0 auto 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 42px; font-weight: 900; color: var(--blue); font-family: serif;
+}
+.cover h1 { font-size: 22px; color: var(--blue); font-weight: 700; letter-spacing: 3px; margin-bottom: 4px; }
+.cover h2 { font-size: 15px; color: var(--muted); font-weight: 400; letter-spacing: 1px; margin-bottom: 4px; }
+.cover h3 { font-size: 13px; color: var(--muted); font-weight: 400; margin-bottom: 30px; }
+.cover-meta {
+  display: inline-block; border: 1px solid var(--border);
+  padding: 12px 30px; font-size: 12.5px; color: var(--muted); line-height: 2;
+  text-align: left;
+}
+.cover-meta strong { color: var(--blue); }
+.cover-ver { margin-top: 20px; font-size: 11px; color: var(--muted); letter-spacing: .5px; }
+
+/* ── SECTION ANCHORS ── */
+.doc-section { padding: 0 60px 30px; }
+.doc-section:first-of-type { padding-top: 40px; }
+
+/* ── CHAPTER HEADING ── */
+.chapter-head {
+  margin: 42px 0 20px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--blue);
+}
+.chapter-label {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--gold); font-family: sans-serif; font-weight: 700; margin-bottom: 3px;
+}
+.chapter-title {
+  font-size: 17px; font-weight: 700; color: var(--blue); letter-spacing: 1px;
+}
+.chapter-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ── ARTICLE ── */
+.article {
+  margin: 14px 0;
+  display: flex; gap: 0;
+}
+.art-num {
+  min-width: 88px; font-weight: 700; color: var(--blue);
+  font-size: 13.5px; padding-top: 1px; flex-shrink: 0;
+  font-family: 'Source Serif 4', serif;
+}
+.art-body { flex: 1; font-size: 13.5px; line-height: 1.95; }
+.art-body p { margin-bottom: 6px; }
+
+/* ── CLAUSE ── */
+.clause {
+  margin: 6px 0 6px 0;
+  display: flex; gap: 8px; font-size: 13px; line-height: 1.85;
+}
+.cl-num { min-width: 28px; color: var(--muted); flex-shrink: 0; font-family: sans-serif; }
+.cl-body { flex: 1; }
+
+/* ── ITEM ── */
+.item {
+  margin: 4px 0 4px 28px;
+  display: flex; gap: 8px; font-size: 13px; line-height: 1.85;
+}
+.item-mark { min-width: 22px; color: var(--muted); flex-shrink: 0; }
+
+/* ── TABLE ── */
+.doc-table {
+  width: 100%; border-collapse: collapse;
+  margin: 12px 0; font-size: 12.5px;
+}
+.doc-table th {
+  background: var(--blue); color: white;
+  padding: 7px 10px; text-align: center; font-weight: 600; font-size: 11.5px;
+  border: 1px solid var(--blue);
+}
+.doc-table td {
+  padding: 6px 10px; border: 1px solid #c8c2b0;
+  vertical-align: top; line-height: 1.6;
+}
+.doc-table tr:nth-child(even) td { background: #f9f8f5; }
+
+/* ── NOTE ── */
+.note {
+  margin: 12px 0; padding: 10px 14px;
+  border-left: 3px solid var(--gold);
+  background: #fdfbf5; font-size: 12.5px; color: #555;
+}
+.note-red { border-left-color: var(--red); background: #fdf5f5; }
+.note-blue { border-left-color: var(--blue); background: #f5f7fd; }
+
+/* ── RULE NUM ── */
+.rn { color: var(--blue); font-weight: 700; }
+
+/* ── PAGE DIVIDER ── */
+.page-div {
+  border: none; border-top: 1px dashed var(--border);
+  margin: 40px 0;
+}
+
+/* ── SIGNATURE BLOCK ── */
+.sig-block {
+  margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; font-size: 12.5px;
+  color: var(--muted);
+}
+.sig-line { text-align: center; }
+.sig-line .line { border-top: 1px solid #999; width: 160px; margin: 24px auto 6px; }
+
+/* ── CALC WIDGET ── */
+.calc-area {
+  background: #f5f7fa; border: 1px solid var(--border);
+  padding: 18px 22px; margin: 12px 0;
+}
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+.calc-label { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; display: block; }
+.calc-input {
+  width: 100%; padding: 6px 10px; border: 1px solid #c0bbb0;
+  background: white; font-size: 13px; font-family: inherit;
+}
+.calc-btn {
+  margin-top: 12px; padding: 8px 20px; background: var(--blue); color: white;
+  border: none; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 700;
+}
+.calc-result-table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: 12.5px; }
+.calc-result-table td { padding: 5px 10px; border: 1px solid var(--border); }
+.calc-result-table td:last-child { text-align: right; font-weight: 600; }
+.calc-result-table .total-row td { background: var(--blue); color: white; font-weight: 700; }
+
+/* ── TOC PAGE ── */
+.toc-page { padding: 40px 60px; border-bottom: 1px solid var(--border); }
+.toc-page h2 { font-size: 18px; font-weight: 700; color: var(--blue); letter-spacing: 2px; margin-bottom: 24px; text-align: center; }
+.toc-entry {
+  display: flex; align-items: baseline; gap: 4px;
+  padding: 4px 0; font-size: 13px; border-bottom: 1px dotted #d0ccc0;
+  cursor: pointer; transition: color .15s;
+}
+.toc-entry:hover { color: var(--blue); }
+.toc-entry .te-num { color: var(--blue); font-weight: 700; min-width: 120px; }
+.toc-entry .te-dots { flex: 1; border-bottom: 1px dotted #bbb; margin: 0 8px; position: relative; top: -4px; }
+.toc-entry .te-pg { color: var(--muted); font-size: 12px; min-width: 20px; text-align: right; }
+.toc-sub-entry { padding-left: 24px; font-size: 12.5px; color: var(--muted); }
+
+/* ── PREFACE ── */
+.preface { padding: 40px 60px 30px; }
+.preface p { text-indent: 2em; margin-bottom: 14px; font-size: 13.5px; line-height: 2; }
+.preface .sign { text-align: right; margin-top: 30px; font-size: 13px; color: var(--muted); }
+
+/* ── WRAP ── */
+.wrap-list { counter-reset: wc; }
+.wrap-list li {
+  counter-increment: wc; list-style: none;
+  padding: 5px 0 5px 0; font-size: 13px; line-height: 1.85;
+  border-bottom: 1px solid #eee; display: flex; gap: 10px;
+}
+.wrap-list li::before {
+  content: 'P' counter(wc);
+  min-width: 28px; font-weight: 700; color: var(--blue); font-family: sans-serif; font-size: 11px;
+  padding-top: 2px;
+}
+
+/* ── PRINT ── */
+@media print {
+  #header, #toc { display: none !important; }
+  #doc { margin: 0; padding: 0; background: white; }
+  .doc-page { box-shadow: none; }
+  body { font-size: 12px; }
+  .chapter-head { page-break-before: always; }
+  .chapter-head:first-of-type { page-break-before: auto; }
+  .cover { page-break-after: always; }
+  .toc-page { page-break-after: always; }
+  .preface { page-break-after: always; }
+  .no-print { display: none !important; }
+  .note, .calc-area { border: 1px solid #ccc; }
+}
+
+/* ── HIGHLIGHT ── */
+em.law { font-style: normal; color: var(--red); font-size: 12px; }
+strong.def { color: var(--blue); }
+.indent { margin-left: 28px; }
+
+/* STATUS */
+#statusBar {
+  position: fixed; bottom: 16px; right: 20px; z-index: 2000;
+  background: var(--blue); color: white; padding: 8px 16px;
+  font-size: 12.5px; display: none;
+}
+#statusBar.on { display: block; }
+</style>
+</head>
+<body class="lang-zh">
+
+<!-- ── HEADER ── -->
+<header id="header">
+  <div class="hd-brand">
+    <div class="hd-logo" style="background:white;padding:2px;">
+    <img src="data:image/png;base64,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" style="width:34px;height:34px;object-fit:contain;" alt="VRT">
+  </div>
+    <div class="hd-name">
+      VANTAGE RIVER TEXTILES CO., LTD
+      <small id="hd-sub">員工手冊暨廠規 · 2026年版</small>
+    </div>
+  </div>
+  <div class="hd-btns">
+    <button class="lb on" onclick="setLang('zh')" id="lb-zh">中文</button>
+    <button class="lb" onclick="setLang('en')" id="lb-en">EN</button>
+    <button class="lb" onclick="setLang('km')" id="lb-km">ខ្មែរ</button>
+    <button class="hd-action no-print" onclick="window.print()">🖨 <span data-zh="列印" data-en="Print" data-km="បោះ">列印</span></button>
+  </div>
+</header>
+
+<!-- ── TOC SIDEBAR ── -->
+<nav id="toc">
+  <div class="toc-label" data-zh="目錄" data-en="CONTENTS" data-km="មាតិកា">目錄</div>
+  <div class="toc-item on" onclick="go('cover')"><span class="toc-num">—</span><span data-zh="封面" data-en="Cover" data-km="គម្រប">封面</span></div>
+  <div class="toc-item" onclick="go('toc-pg')"><span class="toc-num">—</span><span data-zh="目錄" data-en="Contents" data-km="មាតិកា">目錄</span></div>
+  <div class="toc-item" onclick="go('preface')"><span class="toc-num">—</span><span data-zh="序言" data-en="Preface" data-km="អារម្ភកថា">序言</span></div>
+  <div class="toc-label" data-zh="廠規章節" data-en="CHAPTERS" data-km="ជំពូក">廠規章節</div>
+  <div class="toc-item" onclick="go('ch1')"><span class="toc-num">第一章</span><span data-zh="總則" data-en="General" data-km="បញ្ញត្តិ">總則</span></div>
+  <div class="toc-item" onclick="go('ch2')"><span class="toc-num">第二章</span><span data-zh="試用期" data-en="Probation" data-km="ការសាកល្បង">試用期</span></div>
+  <div class="toc-item" onclick="go('ch3')"><span class="toc-num">第三章</span><span data-zh="工作時間" data-en="Work Hours" data-km="ម៉ោង">工作時間</span></div>
+  <div class="toc-item" onclick="go('ch4')"><span class="toc-num">第四章</span><span data-zh="考勤管理" data-en="Attendance" data-km="វត្តមាន">考勤管理</span></div>
+  <div class="toc-item" onclick="go('ch5')"><span class="toc-num">第五章</span><span data-zh="員工識別" data-en="ID Card" data-km="កាត">員工識別</span></div>
+  <div class="toc-item" onclick="go('ch6')"><span class="toc-num">第六章</span><span data-zh="薪資待遇" data-en="Salary" data-km="ប្រាក់ខែ">薪資待遇</span></div>
+  <div class="toc-item toc-sub" onclick="go('ch6-nssf')"><span class="toc-num">§</span><span data-zh="NSSF社保" data-en="NSSF" data-km="NSSF">NSSF社保</span></div>
+  <div class="toc-item toc-sub" onclick="go('ch6-pit')"><span class="toc-num">§</span><span data-zh="個人所得稅" data-en="PIT" data-km="ពន្ធ">個人所得稅</span></div>
+  <div class="toc-item toc-sub" onclick="go('ch6-calc')"><span class="toc-num">§</span><span data-zh="薪酬計算器" data-en="Calculator" data-km="ម៉ាស៊ីន">薪酬計算器</span></div>
+  <div class="toc-item" onclick="go('ch7')"><span class="toc-num">第七章</span><span data-zh="休假制度" data-en="Leave" data-km="ការឈប់">休假制度</span></div>
+  <div class="toc-item" onclick="go('ch8')"><span class="toc-num">第八章</span><span data-zh="產假制度" data-en="Maternity" data-km="ML">產假制度</span></div>
+  <div class="toc-item" onclick="go('ch9')"><span class="toc-num">第九章</span><span data-zh="員工福利" data-en="Benefits" data-km="ផល">員工福利</span></div>
+  <div class="toc-item" onclick="go('ch10')"><span class="toc-num">第十章</span><span data-zh="獎懲制度" data-en="Discipline" data-km="ទណ្ឌ">獎懲制度</span></div>
+  <div class="toc-item" onclick="go('ch11')"><span class="toc-num">第十一章</span><span data-zh="安全衛生" data-en="Safety" data-km="សុវ">安全衛生</span></div>
+  <div class="toc-item" onclick="go('ch12')"><span class="toc-num">第十二章</span><span data-zh="培訓發展" data-en="Training" data-km="TRN">培訓發展</span></div>
+  <div class="toc-item" onclick="go('ch13')"><span class="toc-num">第十三章</span><span data-zh="WRAP合規" data-en="WRAP" data-km="WRAP">WRAP合規</span></div>
+  <div class="toc-item" onclick="go('ch14')"><span class="toc-num">第十四章</span><span data-zh="離職管理" data-en="Separation" data-km="LS">離職管理</span></div>
+  <div class="toc-item" onclick="go('ch15')"><span class="toc-num">第十五章</span><span data-zh="廠規修訂" data-en="Amendment" data-km="Amend">廠規修訂</span></div>
+</nav>
+
+<!-- ── DOCUMENT ── -->
+<main id="doc">
+<div class="doc-page">
+
+<!-- ════════════ COVER ════════════ -->
+<div class="cover" id="cover">
+  <div class="cover-logo" style="background:none;border:none;padding:0;width:160px;height:60px;">
+    <img src="data:image/png;base64,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" style="width:160px;height:60px;object-fit:contain;" alt="VRT Logo">
+  </div>
+  <h1 data-zh="員工手冊暨廠規" data-en="EMPLOYEE HANDBOOK AND FACTORY REGULATIONS" data-km="សៀវភៅបុគ្គលិក និង បទបញ្ជាក្នុងរោងចក្រ">員工手冊暨廠規</h1>
+  <h2>VANTAGE RIVER TEXTILES CO., LTD</h2>
+  <h2 style="font-size:16px;margin-top:4px;color:#0a2051">萬泰紡織有限公司</h2>
+  <h3 data-zh="柬埔寨西哈努克省 · 服裝製造業 · 台美合資" data-en="Sihanoukville, Cambodia · Garment Manufacturing · Taiwan-US Joint Venture" data-km="ខេត្តព្រះសីហនុ · Taiwan-US Joint Venture">柬埔寨西哈努克省 · 服裝製造業 · 台美合資企業</h3>
+  <div class="cover-meta">
+    <table style="border-collapse:collapse;font-size:13px">
+      <tr><td style="padding:2px 20px 2px 0;color:#666">版本：</td><td><strong>2026 年第一版</strong></td></tr>
+      <tr><td style="padding:2px 20px 2px 0;color:#666" data-zh="生效日期：" data-en="Effective Date:" data-km="EffDate:">生效日期：</td><td><strong data-zh="2026年1月1日" data-en="January 1, 2026" data-km="01 មករា 2026">2026年1月1日</strong></td></tr>
+      <tr><td style="padding:2px 20px 2px 0;color:#666" data-zh="制定部門：" data-en="Prepared by:" data-km="Dept:">制定部門：</td><td><strong data-zh="行政管理部" data-en="Admin. Centre Management" data-km="ផ្នែករដ្ឋបាល">行政管理部</strong></td></tr>
+      <tr><td style="padding:2px 20px 2px 0;color:#666" data-zh="適用範圍：" data-en="Applicable to:" data-km="scope:">適用範圍：</td><td><strong data-zh="全體在職員工" data-en="All Employees" data-km="បុគ្គលិកទាំងអស់">全體在職員工</strong></td></tr>
+    </table>
+  </div>
+  <p class="cover-ver" data-zh="本手冊依據柬埔寨2021年勞動法及相關法規編制，如有修訂將另行公告。" data-en="This handbook is compiled pursuant to the Cambodia Labor Law 2021 and related regulations. Amendments will be announced separately." data-km="ស្របតាមច្បាប់ការងារ ២០២១ ។">本手冊依據柬埔寨2021年勞動法及相關法規編制，如有修訂將另行公告。</p>
+</div>
+
+<!-- ════════════ TOC PAGE ════════════ -->
+<div class="toc-page" id="toc-pg">
+  <h2 data-zh="目　　錄" data-en="TABLE OF CONTENTS" data-km="មាតិកា">目　　錄</h2>
+
+  <div class="toc-entry" onclick="go('preface')">
+    <span class="te-num" data-zh="序　言" data-en="Preface" data-km="អារម្ភ">序　言</span><span class="te-dots"></span><span class="te-pg">1</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch1')">
+    <span class="te-num" data-zh="第一章　總則" data-en="Chapter 1　General Provisions" data-km="ជំពូកទី ១　បញ្ញត្តិ">第一章　總則</span><span class="te-dots"></span><span class="te-pg">2</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch2')">
+    <span class="te-num" data-zh="第二章　試用期" data-en="Chapter 2　Probation Period" data-km="ជំពូកទី ២　ការសាកល្បង">第二章　試用期</span><span class="te-dots"></span><span class="te-pg">4</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch3')">
+    <span class="te-num" data-zh="第三章　工作時間" data-en="Chapter 3　Working Hours" data-km="ជំពូកទី ៣　ម៉ោងការ">第三章　工作時間</span><span class="te-dots"></span><span class="te-pg">5</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch4')">
+    <span class="te-num" data-zh="第四章　考勤管理" data-en="Chapter 4　Attendance Management" data-km="ជំពូកទី ៤　វត្តមាន">第四章　考勤管理</span><span class="te-dots"></span><span class="te-pg">7</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch5')">
+    <span class="te-num" data-zh="第五章　員工識別卡" data-en="Chapter 5　Employee ID Card" data-km="ជំពូកទី ៥　កាត">第五章　員工識別卡</span><span class="te-dots"></span><span class="te-pg">9</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch6')">
+    <span class="te-num" data-zh="第六章　薪資待遇" data-en="Chapter 6　Compensation &amp; Benefits" data-km="ជំពូកទី ៦　ប្រាក់ខែ">第六章　薪資待遇</span><span class="te-dots"></span><span class="te-pg">11</span>
+  </div>
+  <div class="toc-entry toc-sub-entry" onclick="go('ch6-nssf')">
+    <span class="te-num" data-zh="　第一節　NSSF社會保障" data-en="　Section 1　NSSF" data-km="　ជំពូករង ១　NSSF">　第一節　NSSF社會保障</span><span class="te-dots"></span><span class="te-pg">13</span>
+  </div>
+  <div class="toc-entry toc-sub-entry" onclick="go('ch6-pit')">
+    <span class="te-num" data-zh="　第二節　個人所得稅" data-en="　Section 2　Income Tax" data-km="　ជំពូករង ២　ពន្ធ">　第二節　個人所得稅</span><span class="te-dots"></span><span class="te-pg">15</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch7')">
+    <span class="te-num" data-zh="第七章　休假制度" data-en="Chapter 7　Leave Policy" data-km="ជំពូកទី ៧　ការឈប់">第七章　休假制度</span><span class="te-dots"></span><span class="te-pg">17</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch8')">
+    <span class="te-num" data-zh="第八章　產假制度" data-en="Chapter 8　Maternity Leave" data-km="ជំពូកទី ៨　ML">第八章　產假制度</span><span class="te-dots"></span><span class="te-pg">21</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch9')">
+    <span class="te-num" data-zh="第九章　員工福利" data-en="Chapter 9　Employee Benefits" data-km="ជំពូកទី ៩　ផល">第九章　員工福利</span><span class="te-dots"></span><span class="te-pg">23</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch10')">
+    <span class="te-num" data-zh="第十章　獎懲制度" data-en="Chapter 10　Discipline &amp; Rewards" data-km="ជំពូកទី ១០　ទណ្ឌ">第十章　獎懲制度</span><span class="te-dots"></span><span class="te-pg">25</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch11')">
+    <span class="te-num" data-zh="第十一章　職業安全衛生" data-en="Chapter 11　Occupational Safety &amp; Hygiene" data-km="ជំពូកទី ១១　សុវ">第十一章　職業安全衛生</span><span class="te-dots"></span><span class="te-pg">29</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch12')">
+    <span class="te-num" data-zh="第十二章　培訓與發展" data-en="Chapter 12　Training &amp; Development" data-km="ជំពូកទី ១២　TRN">第十二章　培訓與發展</span><span class="te-dots"></span><span class="te-pg">32</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch13')">
+    <span class="te-num" data-zh="第十三章　WRAP社會責任合規" data-en="Chapter 13　WRAP Compliance" data-km="ជំពូកទី ១៣　WRAP">第十三章　WRAP社會責任合規</span><span class="te-dots"></span><span class="te-pg">34</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch14')">
+    <span class="te-num" data-zh="第十四章　離職管理" data-en="Chapter 14　Separation Management" data-km="ជំពូកទី ១៤　LS">第十四章　離職管理</span><span class="te-dots"></span><span class="te-pg">36</span>
+  </div>
+  <div class="toc-entry" onclick="go('ch15')">
+    <span class="te-num" data-zh="第十五章　附則" data-en="Chapter 15　Supplementary Provisions" data-km="ជំពូកទី ១៥　Supp">第十五章　附則</span><span class="te-dots"></span><span class="te-pg">38</span>
+  </div>
+</div>
+
+<!-- ════════════ PREFACE ════════════ -->
+<div class="preface" id="preface">
+  <div class="chapter-head">
+    <div class="chapter-label" data-zh="PREFACE" data-en="PREFACE" data-km="PREFACE">PREFACE</div>
+    <div class="chapter-title" data-zh="序　　言" data-en="Preface" data-km="អារម្ភកថា">序　　言</div>
+  </div>
+
+  <p data-zh="萬泰紡織有限公司（Vantage River Textiles Co., Ltd，英文縮寫VRT，以下簡稱「本公司」）於二〇一三年十一月在柬埔寨正式開業，是一家台美合資的服裝製造企業。本公司在董事長Frank江及總經理Dillard D. Cheek III的帶領下，主要從事針織類服裝及紡織品的生產與出口，產品遠銷歐美等主要市場，致力為國際買家提供優質、負責任的製造服務。本廠廠協理Paul Weng主管行政中心（Administration Center），統籌總務、人事行政、保衛及合規等部門業務。" data-en="Vantage River Textiles Co., Ltd (hereinafter 'the Company' or 'VRT') was formally established in Cambodia in November 2013. The Company primarily engages in the manufacture and export of knitted garments and textile products, serving major markets in Europe and North America, and is committed to providing high-quality and responsibly manufactured products to international buyers." data-km="ក្រុមហ៊ុន Vantage River Textiles Co., Ltd (ហៅក្រោយថា 'ក្រុមហ៊ុន' ឬ 'VRT') ត្រូវបានបង្កើតជាផ្លូវការនៅប្រទេសកម្ពុជានៅខែវិច្ឆិកា ២០១៣។ ក្រុមហ៊ុនចូលរួមការផលិតនិងការនាំចេញសំលៀកបំពាក់ ផ្គត់ផ្គង់ទីផ្សារអឺរ៉ុបនិងអាមេរិក ហើយប្រឹងប្រែងផ្តល់នូវផលិតផលដែលមានគុណភាពខ្ពស់ ។">萬泰紡織有限公司（Vantage River Textiles Co., Ltd，英文縮寫VRT，以下簡稱「本公司」）於二〇一三年十一月在柬埔寨正式開業，是一家台美合資的服裝製造企業。本公司在董事長Frank江及總經理Dillard D. Cheek III的帶領下，主要從事針織類服裝及紡織品的生產與出口，產品遠銷歐美等主要市場，致力為國際買家提供優質、負責任的製造服務。本廠廠協理Paul Weng主管行政中心（Administration Center），統籌總務、人事行政、保衛及合規等部門業務。</p>
+
+  <p data-zh="二〇二〇年，本公司完成廠區搬遷，遷入現址於西哈努克省的全新廠房。新廠環境優美、空氣清新、廠房寬敞明亮、配套設施齊全，無論在生產條件、辦公環境還是員工生活品質方面，均較舊廠有顯著的提升與改善，為全體員工創造了更加舒適、安全的工作與生活空間。" data-en="In 2020, the Company completed its relocation to a brand-new factory in Sihanoukville Province. The new premises offer a beautiful natural environment, bright and spacious production halls, and comprehensive facilities, representing a significant improvement in production conditions, office environment, and employee quality of life compared to the previous facility." data-km="ក្នុងឆ្នាំ ២០២០ ក្រុមហ៊ុនបានបញ្ចប់ការផ្លាស់ប្ដូររោងចក្រទៅកន្លែងថ្មីនៅខេត្តព្រះសីហនុ ។ រោងចក្រថ្មីមានបរិស្ថានស្រស់ស្អាត ភ្លឺថ្លា ទូលាយ មានកន្លែងល្អ ជាការផ្ដល់ប្រសើរឡើងច្រើនសម្រាប់ជីវភាពរបស់បុគ្គលិកទাំងআss ។">二〇二〇年，本公司完成廠區搬遷，遷入現址於西哈努克省的全新廠房。新廠環境優美、空氣清新、廠房寬敞明亮、配套設施齊全，無論在生產條件、辦公環境還是員工生活品質方面，均較舊廠有顯著的提升與改善，為全體員工創造了更加舒適、安全的工作與生活空間。</p>
+
+  <p data-zh="本公司始終秉持「以人為本、合規經營」的核心理念，持續在環保永續、員工福利及社會責任等方面投入資源，不斷改善。本公司免費為員工提供接送通勤的公司車輛及宿舍住宿，並在員工午餐、喪親慰問金及護理補貼等方面給予具體實質的支持，讓每位員工切實感受到公司的關懷與重視。" data-en="The Company upholds the core philosophy of 'people first and compliant operation', continuously investing in environmental sustainability, employee welfare, and social responsibility. The Company provides free shuttle bus service and dormitory accommodation for employees, and offers practical support including subsidized lunch, bereavement allowances for employees who have lost family members, and nursing care subsidies." data-km="ក្រុមហ៊ុនប្ដូររំDocxើងគោលបំណង 'ផ្ដើមចេញពីមនុស្ស និង ប្រតិបត្តិការអនុលោម' ។ ក្រុមហ៊ុនផ្ដល់សេវា shuttle ឥតគិតថ្លៃ កន្លែងស្នាក់នៅ អាហារថ្ងៃ ប្រាក់ជំជ្រំស្លាប់ ហើយប្រាក់ nursing ។">本公司始終秉持「以人為本、合規經營」的核心理念，持續在環保永續、員工福利及社會責任等方面投入資源，不斷改善。本公司免費為員工提供接送通勤的公司車輛及宿舍住宿，並在員工午餐、喪親慰問金及護理補貼等方面給予具體實質的支持，讓每位員工切實感受到公司的關懷與重視。</p>
+
+  <p data-zh="本《員工手冊暨廠規》依據柬埔寨2021年勞動法、NSSF相關條例、最低工資令（2024年度）及WRAP社會責任準則編制，旨在明確雙方的權利與義務，維護良好的勞動關係，共建和諧穩定的工作環境。全體員工應認真閱讀本手冊，嚴格遵守各項規定，共同維護本公司的合法權益與良好形象。" data-en="This Employee Handbook and Factory Regulations is compiled pursuant to the Cambodia Labor Law 2021, NSSF Regulations, Minimum Wage Prakas (2024), and WRAP Social Responsibility Principles. It is intended to clarify the rights and obligations of both parties, maintain sound labor relations, and build a harmonious and stable working environment. All employees should read this handbook carefully and strictly comply with all provisions." data-km="ឯកសារ 'សៀវភៅបុគ្គលិក' នេះ ត្រូវបានរៀបចំ ស្របតាម ច្បាប់ការងារ ២០២១ NSSF ប្រកាស ប្រាក់ខែអប្បបរមា (២០២៤) ក្បួន WRAP ។ ធ្វើឡើងដើម្បីបញ្ជាក់ RIGHT & DUTY ។">本《員工手冊暨廠規》依據柬埔寨2021年勞動法、NSSF相關條例、最低工資令（2024年度）及WRAP社會責任準則編制，旨在明確雙方的權利與義務，維護良好的勞動關係，共建和諧穩定的工作環境。全體員工應認真閱讀本手冊，嚴格遵守各項規定，共同維護本公司的合法權益與良好形象。</p>
+
+  <div class="sign">
+    <p data-zh="萬泰紡織有限公司　行政管理部" data-en="Vantage River Textiles Co., Ltd — Admin. Centre Management" data-km="VRT — Admin">萬泰紡織有限公司　行政管理部</p>
+    <p data-zh="二〇二六年一月" data-en="January 2026" data-km="មករា ២០២៥">二〇二六年一月</p>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 1 ════════════ -->
+<div class="doc-section" id="ch1">
+  <div class="chapter-head">
+    <div class="chapter-label" data-zh="CHAPTER 1" data-en="CHAPTER 1" data-km="ជំពូកទី ១">CHAPTER 1</div>
+    <div class="chapter-title" data-zh="第一章　總則" data-en="Chapter 1　General Provisions" data-km="ជំពូកទី ១　បញ្ញត្តិទូទៅ">第一章　總則</div>
+    <div class="chapter-sub" data-zh="法律依據 · 適用範圍 · 定義" data-en="Legal Basis · Scope · Definitions" data-km="មូលដ្ឋានច្បាប់ · វិសាលភាព · និយមន័យ">法律依據 · 適用範圍 · 定義</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第一條" data-en="Article 1" data-km="មាត្រា ១">第一條</span>
+    <div class="art-body">
+      <p data-zh="【公司名稱及性質】本公司全名為萬泰紡織有限公司（Vantage River Textiles Co., Ltd，英文縮寫VRT），為台美合資企業，依柬埔寨法律合法登記成立，主要從事針織服裝及紡織品之生產、加工與出口業務。公司廠址位於柬埔寨西哈努克省。主要管理人員：董事長Frank江、總經理Dillard D. Cheek III、廠協理Paul Weng（行政中心主管）。" data-en="[Company Name &amp; Nature] The full name of the Company is Vantage River Textiles Co., Ltd, duly incorporated under Cambodian law, primarily engaged in the production, processing and export of knitted garments and textile products. The Company's factory is located in Sihanoukville Province, Cambodia." data-km="[ឈ្មោះ] ក្រុមហ៊ុន Vantage River Textiles Co., Ltd ចុះបញ្ជីស្របច្បាប់ក្នុងប្រទេសកម្ពុជា ត្រូវបានបង្កើតជាផ្លូវការ ។ ផ្ដោតលើ garment, textile ។">【公司名稱及性質】本公司全名為萬泰紡織有限公司（Vantage River Textiles Co., Ltd，英文縮寫VRT），為台美合資企業，依柬埔寨法律合法登記成立，主要從事針織服裝及紡織品之生產、加工與出口業務。公司廠址位於柬埔寨西哈努克省。主要管理人員：董事長Frank江、總經理Dillard D. Cheek III、廠協理Paul Weng（行政中心主管）。</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二條" data-en="Article 2" data-km="មាត្រា ២">第二條</span>
+    <div class="art-body">
+      <p data-zh="【法律依據】本廠規依據下列法律法規制定：" data-en="[Legal Basis] These regulations are formulated pursuant to the following laws and regulations:" data-km="[មូលដ្ឋានច្បាប់] ច្បាប់និងបទបញ្ជាខាងក្រោម:">【法律依據】本廠規依據下列法律法規制定：</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="柬埔寨2021年《勞動法》（Labour Law 2021）；" data-en="Cambodia Labour Law 2021;" data-km="ច្បាប់ការងារ ២០២១ ;">柬埔寨2021年《勞動法》；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="柬埔寨國家社會保障基金（NSSF）相關法規；" data-en="NSSF Regulations Cambodia;" data-km="NSSF ;">NSSF 相關法規；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="2024年度服裝業最低工資令；" data-en="2024 Minimum Wage Prakas (garment sector);" data-km="ប្រកាស ប្រាក់ខែ ២០២៤ ;">2024年最低工資令；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="柬埔寨《個人所得稅法》及稅務總局相關規定；" data-en="Cambodia Income Tax Law and GDT regulations;" data-km="ច្បាប់ពន្ធ ;">個人所得稅法；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="WRAP（全球負責任採購認證）12項社會責任原則；" data-en="WRAP 12 Social Responsibility Principles;" data-km="WRAP 12 ;">WRAP社會責任原則；</span></div>
+      <div class="clause"><span class="cl-num">（六）</span><span class="cl-body" data-zh="其他柬埔寨適用勞工法規及部令。" data-en="Other applicable Cambodian labor regulations and Prakas." data-km="CH HL RM ;">其他適用法規。</span></div>
+      <p style="margin-top:8px" data-zh="如本廠規之任何條款與上述法律法規相抵觸，以法律法規為準。" data-en="Where any provision of these regulations conflicts with the above laws and regulations, the laws and regulations shall prevail." data-km="ក្នុងករណីខ្វែងគ្នា ច្បាប់ ML ជាកំណត់ ។">如本廠規任何條款與上述法律法規相抵觸，以法律法規為準。</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第三條" data-en="Article 3" data-km="មាត្រា ៣">第三條</span>
+    <div class="art-body">
+      <p data-zh="【適用範圍】本廠規適用於本公司全體在職員工，包括正式員工、試用期員工及各類合約員工。外籍員工、臨時工及派遣人員，在相關規定範圍內參照適用。" data-en="[Scope of Application] These regulations apply to all employees of the Company, including permanent employees, probationary employees and all types of contract employees. Foreign employees, temporary workers and dispatched personnel shall apply these regulations by reference to the extent applicable." data-km="[វិសាលភាព] ច្បាប់ ML TS EE RL ។">【適用範圍】本廠規適用於本公司全體在職員工，包括正式員工、試用期員工及各類合約員工。</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第四條" data-en="Article 4" data-km="មាត្រា ៤">第四條</span>
+    <div class="art-body">
+      <p data-zh="【員工知情義務】員工自入職之日起，即應確認已閱讀、理解並同意遵守本廠規的全部內容。本廠規對員工具有約束力，如有違反，公司得依相關規定予以處理。" data-en="[Employee Acknowledgement] From the date of joining, employees shall confirm that they have read, understood and agreed to comply with all provisions of these regulations. These regulations are binding on employees, and violations shall be handled in accordance with the relevant provisions." data-km="[ការទទួលស្គាល់] ចាប់ពីថ្ងៃចូល EE ត្រូវបញ្ជាក់ AN HB ។">【員工知情義務】員工自入職之日起，即應確認已閱讀、理解並同意遵守本廠規全部內容。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 2 ════════════ -->
+<div class="doc-section" id="ch2">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 2</div>
+    <div class="chapter-title" data-zh="第二章　試用期" data-en="Chapter 2　Probation Period" data-km="ជំពូកទី ២　រយៈពេលសាកល្បង">第二章　試用期</div>
+    <div class="chapter-sub" data-zh="柬埔寨勞動法第65–68條" data-en="Labour Law Art. 65–68" data-km="ច្បាប់ការងារ មាត្រា ៦៥-៦៨">柬埔寨勞動法第65–68條</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第五條" data-en="Article 5" data-km="មាត្រា ៥">第五條</span>
+    <div class="art-body">
+      <p data-zh="【試用期限】試用期自員工報到日起計算，依職位類別設定如下：" data-en="[Probation Duration] Probation commences on the employee's joining date and is set as follows based on position type:" data-km="[ការសាកល្បង] ចាប់ LD HL:">【試用期限】試用期自員工報到日起計算，依職位類別設定如下：</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="一般生產工人：試用期為二（2）個月；" data-en="General production workers: probation period of two (2) months;" data-km="General: 2 ខែ ;">一般生產工人：二（2）個月；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="技術工及行政職員：試用期為三（3）個月；" data-en="Technical and administrative staff: probation period of three (3) months;" data-km="Tech/Admin: 3 ខែ ;">技術工及行政職員：三（3）個月；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="管理職員：試用期為三（3）個月（依柬埔寨勞動法規定之法定最長期限）。" data-en="Management personnel: probation period of three (3) months (statutory maximum under Cambodia Labour Law)." data-km="Management: 3 ខែ (MAX) ;">管理職員：三（3）個月（法定最長）。</span></div>
+      <p style="margin-top:8px" data-zh="試用期不得超過柬埔寨勞動法第65條所規定的三（3）個月。" data-en="The probation period shall not exceed three (3) months as prescribed under Article 65 of the Cambodia Labour Law." data-km="ML MAX 3 ខែ ។">試用期不超過三（3）個月。</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第六條" data-en="Article 6" data-km="មាត្រា ៦">第六條</span>
+    <div class="art-body">
+      <p data-zh="【試用期薪資】試用期間之薪資待遇如下：" data-en="[Probation Salary] Salary during the probation period is as follows:" data-km="[ប្រាក់ខែ TG]:">【試用期薪資】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="試用期基本工資為每月美元二百元（USD 208/月）；" data-en="Probation base salary is two hundred US dollars (USD 208) per month;" data-km="ប្រាក់ខែ TG: USD 208/ខែ ;">試用期基本工資：USD 208/月；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="試用期通過後，基本工資調整為USD 210/月（符合2024年最低工資令）；" data-en="Upon passing probation, base salary is adjusted to USD 210/month (2024 minimum wage);" data-km="LS TG: USD 210/ខែ ;">通過試用後調整為USD 210/月；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="試用期間，員工依法享有NSSF社會保障及相關基本福利保障。" data-en="During probation, employees are entitled to NSSF social security and other basic benefits as required by law." data-km="TG: NSSF + BN HL ;">試用期享有NSSF等基本保障。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第七條" data-en="Article 7" data-km="មាត្រា ៧">第七條</span>
+    <div class="art-body">
+      <p data-zh="【試用期管理】試用期間之管理事項如下：" data-en="[Probation Management] The following provisions apply during the probation period:" data-km="[TG Management]:">【試用期管理】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="試用期間，公司將為員工發放臨時工作識別卡，試用通過後換發正式識別卡；" data-en="During probation, a temporary ID card is issued; a permanent card is issued upon passing probation;" data-km="TG: Temp ID; LS: Perm ID ;">試用期間發放臨時識別卡。</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="試用期間表現未符合公司要求者，公司得提前一（1）天通知後予以解除勞動合約；" data-en="If an employee fails to meet company requirements during probation, the Company may terminate the contract with one (1) day's advance notice;" data-km="LS TG BI: DN 1 Day ;">試用期間表現不符要求，提前一天通知解除。</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="試用期滿，公司將依員工工作績效及崗位需求，決定轉為有限期合約或無限期合約。" data-en="Upon completion of probation, the Company will determine contract type (fixed-term or indefinite) based on performance and position requirements." data-km="LS TG: TS FT or IT ;">試用期滿依績效決定合約類型。</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 3 ════════════ -->
+<div class="doc-section" id="ch3">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 3</div>
+    <div class="chapter-title" data-zh="第三章　工作時間" data-en="Chapter 3　Working Hours" data-km="ជំពូកទី ៣　ម៉ោងធ្វើការ">第三章　工作時間</div>
+    <div class="chapter-sub" data-zh="柬埔寨勞動法第137–144條" data-en="Labour Law Art. 137–144" data-km="ច្បាប់ការងារ មាត្រា ១៣៧-១៤៤">柬埔寨勞動法第137–144條</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第八條" data-en="Article 8" data-km="មាត្រា ៨">第八條</span>
+    <div class="art-body">
+      <p data-zh="【正常工時】本公司正常工作時間規定如下：" data-en="[Normal Working Hours] Normal working hours are as follows:" data-km="[ម៉ោងធ្វើការ]:">【正常工時】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="每日正常工作時間為八（8）小時；" data-en="Normal daily working hours: eight (8) hours;" data-km="ប្រចាំថ្ងៃ: ៨ ម៉ោង ;">每日正常工作時間：8小時；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="每週正常工作時間為四十八（48）小時；" data-en="Normal weekly working hours: forty-eight (48) hours;" data-km="ប្រចាំសប្តាហ៍: ៤៨ ម៉ោង ;">每週正常工作時間：48小時；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="工作時間為週一至週六，07:30開始至16:30結束；" data-en="Working days: Monday to Saturday, 07:30 to 16:30;" data-km="ច-ស: ០៧:៣០ - ១៦:៣០ ;">週一至週六，07:30—16:30；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="每日午休時間為11:30至12:30，共一（1）小時；" data-en="Daily lunch break: 11:30 to 12:30, totalling one (1) hour;" data-km="WT: ១១:៣០ - ១២:៣០ (១ ម៉)  ;">午休：11:30—12:30，共1小時；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="每週至少設有一（1）天休息日，通常為週日。" data-en="Minimum one (1) rest day per week, normally Sunday." data-km="យ៉ាងហោចណាស់ ១ ថ្ងៃ/សប្ (ជាធម្មតា ថ្ងៃអាទ) ;">每週至少一天休息日（週日）。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第九條" data-en="Article 9" data-km="មាត្រា ៩">第九條</span>
+    <div class="art-body">
+      <p data-zh="【加班規定】加班按照柬埔寨勞動法規定執行，具體如下：" data-en="[Overtime] Overtime shall be conducted in accordance with the Cambodia Labour Law as follows:" data-km="[OT] HL:">【加班規定】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="加班須提前告知員工，並取得員工書面同意；" data-en="Overtime requires advance notice to employees and their written consent;" data-km="OT: DN + WC ;">加班須提前通知並取得書面同意；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="每月加班時數不得超過四十（40）小時（依柬勞法第140條）；" data-en="Monthly overtime shall not exceed forty (40) hours (Labour Law Art. 140);" data-km="OT/ខែ ≤ ៤០ ម៉ (Art.140) ;">每月加班不超過40小時；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="週一至週六加班時段（16:30至18:30），加班費率為正常時薪之一百五十（150）%；" data-en="Overtime Mon–Sat (16:30–18:30) at 150% of normal hourly rate;" data-km="OT ច-ស: 150% ;">週一至週六加班費率：150%；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="週日或公定假日上班，加班費率為正常時薪之兩百（200）%；" data-en="Working on Sunday or public holiday: 200% of normal hourly rate;" data-km="OT ភ / ថ្ងៃ: 200% ;">週日及公定假日加班費率：200%；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="夜班（22:00以後）加給為正常時薪之一百三十（130）%。" data-en="Night shift (after 22:00): 130% of normal hourly rate." data-km="Night (>22:00): 130% ;">夜班（22:00後）：130%。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第十條" data-en="Article 10" data-km="មាត្រា ១០">第十條</span>
+    <div class="art-body">
+      <p data-zh="【工時變更通知】如因生產需要調整工作時間，公司將提前通知員工，並依法進行相應調整。" data-en="[Change of Hours Notification] If working hours are adjusted due to production needs, the Company will notify employees in advance and make corresponding adjustments in accordance with the law." data-km="[ការផ្លាស់ប្ដូរ] ប្រសិនបើ WH LS DN RL HL ។">【工時變更通知】如因生產需要調整工作時間，公司將提前通知員工。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 4 ════════════ -->
+<div class="doc-section" id="ch4">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 4</div>
+    <div class="chapter-title" data-zh="第四章　考勤管理" data-en="Chapter 4　Attendance Management" data-km="ជំពូកទី ៤　ការគ្រប់គ្រងវត្តមាន">第四章　考勤管理</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第十一條" data-en="Article 11" data-km="មាត្រា ១១">第十一條</span>
+    <div class="art-body">
+      <p data-zh="【指紋打卡制度】本公司採用指紋機進行員工出勤記錄，具體規定如下：" data-en="[Fingerprint Attendance System] The Company uses fingerprint machines for employee attendance records as follows:" data-km="[ស្កែម្រាមដៃ]:">【指紋打卡制度】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="所有員工每日上班及下班均須以指紋機進行打卡記錄；" data-en="All employees must fingerprint in and out daily;" data-km="EE: FS IO Daily ;">全體員工每日上下班均須指紋打卡；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="因忘記打卡者，須於次日上午十點（10:00）前填寫「考勤確認申請表」，並取得部門主管及HR簽核，否則視為曠工；" data-en="Missed scan must be reported by 10:00 AM the next day via the Attendance Verification Form, signed by the dept supervisor and HR, otherwise treated as absent;" data-km="FS Forget: Form LS 10:00 +Sig HL;">忘記打卡須於次日10:00前提交申請表；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="新進員工入職第一天由HR/Admin人員代為簽核出勤記錄；" data-en="First day new employees: HR/Admin handles attendance record;" data-km="Day 1 EE New: HR FS ;">新進員工第一天由HR代為辦理；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="打卡機故障時，員工須立即向HR/Admin報告，並以手動方式登記當日出勤；" data-en="Machine failure: report to HR immediately and fill manual attendance record;" data-km="Machine Error: HR + MR ;">機器故障須立即報告HR並手動登記；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="員工須親自完成指紋打卡，嚴禁由他人代打或代刷，違者依紀律規定處理。" data-en="Employees must personally fingerprint; strictly prohibited from having others punch in on their behalf." data-km="No Proxy FS; TP ;">嚴禁代為打卡，違者依紀律處理。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第十二條" data-en="Article 12" data-km="មាត្រា ១២">第十二條</span>
+    <div class="art-body">
+      <p data-zh="【外出管制】工作時間內需要離廠者，須依下列規定辦理：" data-en="[Gate Pass / Exit Control] Employees wishing to exit the factory during working hours must comply with the following:" data-km="[Gate Pass]:">【外出管制】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="工作時間內外出，須填寫出廠單（Gate Pass），並取得部門主管及HR / Admin人員簽核；" data-en="Exiting during work hours requires a Gate Pass signed by dept supervisor and HR/Admin;" data-km="Exit WH: GP + Sig ;">外出須填寫Gate Pass並取得簽核；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="一般接受外出申請時段為：每日07:30–09:00及12:30–14:00；其餘時段僅接受緊急情況；" data-en="Approved exit times: 07:30–09:00 and 12:30–14:00 daily; other times for emergency only;" data-km="Exit Time: ០៧:៣០-០៩:០០, ១២:៣០-១４:00 ;">接受申請時段：07:30-09:00及12:30-14:00；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="保衛人員負責記錄員工出入時間，並於隔日將出廠單移交Admin/HR部門核驗。" data-en="Security records in/out times; Gate Pass submitted to Admin/HR for verification next day." data-km="Security: Record IO; GP LS HR Next Day ;">保衛記錄出入時間並隔日交HR核驗。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第十三條" data-en="Article 13" data-km="មាត្រា ១៣">第十三條</span>
+    <div class="art-body">
+      <p data-zh="【遲到通報流程】員工遲到時，保衛人員須通知HR/Admin當班人員；HR/Admin人員接獲通知後，應即時通知相關部門主管，由部門主管前往處理。" data-en="[Late Arrival Notification] Upon employee late arrival, security notifies HR/Admin; HR/Admin then notifies the department head who goes to handle the matter." data-km="[LT]: Security LS HR LS DH ;">遲到通報流程：保衛→HR→部門主管。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 5 ════════════ -->
+<div class="doc-section" id="ch5">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 5</div>
+    <div class="chapter-title" data-zh="第五章　員工識別卡" data-en="Chapter 5　Employee Identification Card" data-km="ជំពូកទី ៥　កាតសម្គាល់បុគ្គលិក">第五章　員工識別卡</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第十四條" data-en="Article 14" data-km="មាត្រា ១៤">第十四條</span>
+    <div class="art-body">
+      <p data-zh="【識別卡制度】本公司實行員工識別卡制度，具體規定如下：" data-en="[ID Card System] The Company implements an employee ID card system as follows:" data-km="[ID Card]:">【識別卡制度】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="所有員工在工作時間內必須佩戴識別卡及頭巾（Scarf），識別卡是員工身份的標誌；" data-en="All employees must wear their ID card and scarf during all working hours; the ID card is the mark of employee identity;" data-km="EE: Wear ID + Scarf WH ;">工作時間必須佩戴識別卡及頭巾；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="試用期間，公司發放臨時識別卡；試用通過後，換發正式識別卡（含姓名、工號、部門及照片等資訊）；" data-en="Temporary card issued during probation; permanent card issued upon passing (with name, ID, dept, photo);" data-km="TG: Temp; LS: Perm (name, ID, dept, photo) ;">試用期使用臨時識別卡，通過後換正式卡；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="頭巾顏色依崗位類別區分如下：縫紉部工人為藍色；裁剪、包裝、熨烫、倉庫及清潔人員為黃色；品質管控（QC）人員為橙色；孕婦員工使用橙底特殊孕婦識別卡；身心障礙員工使用綠底識別卡；產假後返回員工使用粉紅底識別卡；" data-en="Scarf colors by position: Sewing = Blue; Cutting/Packing/Ironing/Warehouse/Cleaning = Yellow; QC = Orange. Special cards: pregnant workers = orange card; PWD = green card; post-maternity = pink card;" data-km="Scarf: Sewing=Blue; Cut/Pack=Yellow; QC=Orange; Pregnant=Orange Card; PWD=Green; Post-ML=Pink ;">頭巾顏色：縫紉藍、裁剪/包裝/燙/倉庫/清潔黃、QC橙；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="使用識別卡超過一（1）年者，可向HR申請更換新頭巾；" data-en="After one (1) year of use, employee may request a new scarf from HR;" data-km="Scarf >1 Year: New LS HR ;">使用超過一年可向HR申請新頭巾；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="嚴禁將識別卡借予他人代為進出廠區；嚴禁將識別卡用於廠外任何商業用途；嚴禁攜帶他人識別卡入廠；" data-en="Strictly prohibited: lending ID card to others; using ID card outside factory; carrying others' ID cards;" data-km="ហាម: Lend ID; ID Out; Other ID ;">嚴禁借卡、廠外使用及攜帶他人識別卡；</span></div>
+      <div class="clause"><span class="cl-num">（六）</span><span class="cl-body" data-zh="識別卡遺失或損壞時：第一次口頭警告；第二次書面警告。" data-en="Lost or damaged ID card: 1st = verbal warning; 2nd = written warning." data-km="ID Lost: 1st Verbal; 2nd Written ;">識別卡遺失：首次口頭警告，再次書面警告。</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 6 ════════════ -->
+<div class="doc-section" id="ch6">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 6</div>
+    <div class="chapter-title" data-zh="第六章　薪資待遇" data-en="Chapter 6　Compensation &amp; Benefits" data-km="ជំពូកទី ៦　ប្រាក់ខែ និង ផលប្រយោជន៍">第六章　薪資待遇</div>
+    <div class="chapter-sub" data-zh="2024年最低工資令 | 柬埔寨勞動法第104–114條" data-en="2024 Minimum Wage Prakas | Labour Law Art. 104–114" data-km="ប្រាក់ខែ ២០២៤ | ច្បាប់ HL ១០៤-១១៤">2024年最低工資令 | 勞動法第104–114條</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第十五條" data-en="Article 15" data-km="មាត្រា ១៥">第十五條</span>
+    <div class="art-body">
+      <p data-zh="【薪資組成】員工月薪由下列各項組成：" data-en="[Salary Components] Employee monthly salary comprises the following:" data-km="[ផ្នែក]:">【薪資組成】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="基本工資：每月美元二百零四元（USD 210/月），符合2024年度服裝業最低工資令。試用期間基本工資為USD 208/月；" data-en="Base salary: USD 210/month (2024 minimum wage). Probation period: USD 208/month;" data-km="Base: USD 210/ខែ; ការសាកល្បង: USD 208/ខែ ;">基本工資：USD 210/月（試用期USD 208）；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="全勤獎金：當月無遲到、早退及曠工記錄者，發放全勤獎金每月美元十元（USD 10/月）；" data-en="Full attendance bonus: USD 10/month for employees with no late arrival, early departure, or absence;" data-km="Att+: USD 10/ខែ (No LT/DP/AB) ;">全勤獎金：USD 10/月（無遲到曠工）；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="交通及住房補貼：每月固定補貼美元七元（USD 7/月）；" data-en="Transport and housing allowance: fixed USD 7/month;" data-km="Transport/Housing: USD 7/ខែ ;">交通/住房補貼：USD 7/月；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="午餐補貼：正常工作日每餐補貼三千瑞爾（KHR 3,000）；加班時段每次補貼兩千瑞爾（KHR 2,000）；午餐費每月分兩次發放，分別於每月十五日及三十日；" data-en="Lunch subsidy: KHR 3,000 per lunch on work days; KHR 2,000 during overtime. Paid on the 15th and 30th of each month;" data-km="Lunch: KHR 3,000/meal; OT: KHR 2,000; Paid: 15th + 30th ;">午餐補貼：工作日KHR 3,000/餐，加班KHR 2,000；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="加班費：依第九條規定，按150%或200%計算。" data-en="Overtime pay: per Article 9, at 150% or 200% as applicable." data-km="OT: Art.9 (150% or 200%) ;">加班費：依第九條規定計算。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第十六條" data-en="Article 16" data-km="មាត្រា ១៦">第十六條</span>
+    <div class="art-body">
+      <p data-zh="【發薪日期】薪資支付安排如下：" data-en="[Payday] Salary payment schedule is as follows:" data-km="[Payday]:">【發薪日期】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="預付款（Advance）：每月二十五日（25日）發放當月薪資預付款；" data-en="Advance: paid on the 25th of the current month;" data-km="Advance: 25th ;">預付款：每月25日；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="薪資餘額（Balance）：次月十日（10日）發放上月薪資餘額（結算全部工時及獎金）；" data-en="Balance: paid on the 10th of the following month, covering all hours and bonuses;" data-km="Balance: Next Month 10th ;">薪資餘額：次月10日；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="如發薪日逢休假日，則提前一（1）天發放；" data-en="If payday falls on a rest day, salary is paid one (1) day earlier;" data-km="Payday = Rest Day: -1 Day ;">發薪日逢休假日提前一天；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="薪資以現金形式發放給員工；如員工同意，亦可透過銀行轉帳方式支付。" data-en="Salary paid in cash; bank transfer also accepted with employee consent." data-km="Cash or Bank (EE Consent) ;">以現金發放，亦可銀行轉帳。</span></div>
+    </div>
+  </div>
+
+  <!-- NSSF SECTION -->
+  <div id="ch6-nssf" style="margin-top:30px">
+    <div style="border-top:1px solid var(--border);padding-top:20px;margin-bottom:12px">
+      <div style="font-size:10px;letter-spacing:2px;color:var(--gold);font-family:sans-serif;font-weight:700">第六章 第一節</div>
+      <div style="font-size:15px;font-weight:700;color:var(--blue)" data-zh="國家社會保障基金（NSSF）" data-en="National Social Security Fund (NSSF)" data-km="NSSF">國家社會保障基金（NSSF）</div>
+      <div style="font-size:12px;color:var(--muted)" data-zh="依2019年社會保障法及NSSF條例" data-en="Per Social Security Law 2019 and NSSF Regulations" data-km="ច្បាប់ ២០១៩">依2019年社會保障法及NSSF條例</div>
+    </div>
+
+    <div class="article">
+      <span class="art-num" data-zh="第十七條" data-en="Article 17" data-km="មាត្រា ១៧">第十七條</span>
+      <div class="art-body">
+        <p data-zh="【NSSF計劃及繳費比率】本公司依法為全體員工繳納NSSF，涵蓋以下計劃：" data-en="[NSSF Schemes &amp; Contribution Rates] The Company contributes to NSSF for all employees covering the following schemes:" data-km="[NSSF]:">【NSSF計劃及繳費比率】</p>
+        <table class="doc-table" style="margin:10px 0">
+          <tr>
+            <th data-zh="計劃" data-en="Scheme" data-km="ផែន">計劃</th>
+            <th data-zh="雇主" data-en="Employer" data-km="雇主">雇主</th>
+            <th data-zh="員工" data-en="Employee" data-km="EE">員工</th>
+            <th data-zh="合計" data-en="Total" data-km="Total">合計</th>
+          </tr>
+          <tr>
+            <td data-zh="職業風險保險（工傷）" data-en="Occupational Risk" data-km="ហានិភ័យ">職業風險（工傷）</td>
+            <td>0.8%</td><td>0%</td><td>0.8%</td>
+          </tr>
+          <tr>
+            <td data-zh="養老/退休金（前5年）" data-en="Pension (First 5 Years)" data-km="សោធន (5 ឆ)">養老/退休金（前5年）</td>
+            <td>2%</td><td>2%</td><td>4%</td>
+          </tr>
+          <tr>
+            <td data-zh="健康保險" data-en="Health Insurance" data-km="ធានារ៉ាប់">健康保險</td>
+            <td>1.3%</td><td>0%</td><td>1.3%</td>
+          </tr>
+        </table>
+        <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="員工應負擔之退休金繳費率為基本工資之百分之二（2%），由公司代為扣繳；" data-en="Employee pension contribution: 2% of base salary, deducted by the Company;" data-km="EE: 2% Base; Deducted ;">員工負擔退休金：基本工資×2%；</span></div>
+        <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="雇主應負擔之退休金、職業風險及健康保險費率，由公司全額支付，不由員工負擔；" data-en="Employer contributions for pension (2%), occupational risk (0.8%) and health insurance (1.3%) are fully borne by the Company;" data-km="Employer: Pension 2% + OccRisk 0.8% + Health 1.3% by Company ;">雇主負擔部分（退休2%＋工傷0.8%＋健康1.3%）全由公司支付；</span></div>
+        <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="公司須於員工入職三十（30）天內完成NSSF登記手續；" data-en="NSSF registration must be completed within 30 days of the employee joining;" data-km="NSSF Reg: ≤30 Days ;">員工入職30天內完成NSSF登記；</span></div>
+        <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="NSSF福利包括：工傷全額醫療報銷、工傷臨時失能給付（薪資80%）、門診及住院醫療、養老退休金（滿60歲且繳費滿20年）、遺屬給付等。" data-en="NSSF benefits include: full medical for work injuries; temporary disability (80% salary); outpatient/inpatient care; pension (age 60+ with 20+ years); survivor benefit." data-km="NSSF Benefits: Medical WI; TD 80%; OPD/IPD; Pension 60+20yr; Survivor ;">NSSF福利含：工傷醫療、失能給付、門診住院、退休金、遺屬給付。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIT SECTION -->
+  <div id="ch6-pit" style="margin-top:30px">
+    <div style="border-top:1px solid var(--border);padding-top:20px;margin-bottom:12px">
+      <div style="font-size:10px;letter-spacing:2px;color:var(--gold);font-family:sans-serif;font-weight:700">第六章 第二節</div>
+      <div style="font-size:15px;font-weight:700;color:var(--blue)" data-zh="個人所得稅（工薪稅）" data-en="Personal Income Tax (Employment Income)" data-km="ពន្ធប្រាក់ខែ">個人所得稅（工薪稅）</div>
+    </div>
+
+    <div class="article">
+      <span class="art-num" data-zh="第十八條" data-en="Article 18" data-km="មាត្រា ១៨">第十八條</span>
+      <div class="art-body">
+        <p data-zh="【個人所得稅代扣代繳】本公司依柬埔寨稅務總局（GDT）規定，按月計算並代扣代繳員工個人所得稅，稅率如下：" data-en="[PIT Withholding] The Company calculates and withholds personal income tax (PIT) monthly per GDT regulations at the following rates:" data-km="[ពន្ធ PIT]: Company WT Monthly HL GDT:">【個人所得稅代扣代繳】</p>
+        <table class="doc-table" style="margin:10px 0">
+          <tr>
+            <th data-zh="月應稅薪資（USD）" data-en="Monthly Taxable Income (USD)" data-km="ប្រាក់ (USD/ខែ)">月應稅薪資（USD）</th>
+            <th data-zh="適用稅率" data-en="Tax Rate" data-km="អត្រា">稅率</th>
+          </tr>
+          <tr><td>USD 0 – USD 150</td><td data-zh="0%（免稅）" data-en="0% (Exempt)" data-km="0% (Exempt)">0%（免稅）</td></tr>
+          <tr><td>USD 151 – USD 500</td><td>5%</td></tr>
+          <tr><td>USD 501 – USD 1,250</td><td>10%</td></tr>
+          <tr><td>USD 1,251 – USD 3,000</td><td>15%</td></tr>
+          <tr><td>USD 3,001 以上</td><td>20%</td></tr>
+        </table>
+        <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="應稅薪資指員工月度現金收入總額，包括基本工資、獎金、補貼及加班費等；" data-en="Taxable income means the total monthly cash income, including base salary, bonuses, allowances and overtime;" data-km="Taxable: Base + Bonus + Allowance + OT ;">應稅薪資含基本工資、獎金、補貼及加班費；</span></div>
+        <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="個人所得稅採累進稅率計算，每一級距僅就超過部分之金額課稅；" data-en="PIT uses progressive rates; each bracket applies only to the portion of income within that range;" data-km="PIT: Progressive Rate; Each Bracket ;">採累進稅率，各級距僅就超過部分課稅；</span></div>
+        <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="公司向員工提供月度薪資明細，詳列各項扣款（含NSSF及個人所得稅）。" data-en="The Company provides monthly salary slips showing all deductions (including NSSF and PIT)." data-km="Payslip: NSSF + PIT Breakdown ;">公司提供月度薪資明細單。</span></div>
+      </div>
+    </div>
+
+    <!-- CALCULATOR -->
+    <div id="ch6-calc" style="margin-top:20px">
+      <div class="note note-blue" data-zh="【薪酬試算工具】以下試算工具供參考，不構成正式薪資計算依據。正式薪資以公司核發之薪資明細為準。" data-en="[Salary Calculator] For reference only. Official payroll is based on the Company's payroll system." data-km="[Calculator] Ref only ।">【薪酬試算工具】以下試算工具供參考，不構成正式薪資計算依據。</div>
+      <div class="calc-area no-print">
+        <div style="font-size:12.5px;font-weight:700;color:var(--blue);margin-bottom:12px" data-zh="薪酬計算器（互動式）" data-en="Salary Calculator (Interactive)" data-km="Calculator">薪酬計算器（互動式）</div>
+        <div class="calc-grid">
+          <div>
+            <label class="calc-label" data-zh="基本工資 (USD)" data-en="Base Salary (USD)" data-km="Base (USD)">基本工資 (USD)</label>
+            <input class="calc-input" type="number" id="c_base" value="210" step="0.01">
+          </div>
+          <div>
+            <label class="calc-label" data-zh="全勤獎金 (USD)" data-en="Attendance Bonus (USD)" data-km="Att+ (USD)">全勤獎金 (USD)</label>
+            <input class="calc-input" type="number" id="c_att" value="10" step="0.01">
+          </div>
+          <div>
+            <label class="calc-label" data-zh="交通/住房補貼 (USD)" data-en="Transport/Housing (USD)" data-km="Transport (USD)">交通/住房補貼 (USD)</label>
+            <input class="calc-input" type="number" id="c_inc" value="7" step="0.01">
+          </div>
+          <div>
+            <label class="calc-label" data-zh="加班費 (USD)" data-en="Overtime Pay (USD)" data-km="OT (USD)">加班費 (USD)</label>
+            <input class="calc-input" type="number" id="c_ot" value="0" step="0.01">
+          </div>
+          <div>
+            <label class="calc-label" data-zh="其他扣款 (USD)" data-en="Other Deductions (USD)" data-km="Deduct (USD)">其他扣款 (USD)</label>
+            <input class="calc-input" type="number" id="c_dd" value="0" step="0.01">
+          </div>
+        </div>
+        <button class="calc-btn" onclick="doCalc()">
+          <span data-zh="立即試算" data-en="Calculate" data-km="គណនា">立即試算</span>
+        </button>
+        <div id="calcOut" style="display:none;margin-top:14px">
+          <table class="calc-result-table">
+            <tr><td data-zh="應稅薪資總額" data-en="Gross Taxable Income" data-km="Gross">應稅薪資總額</td><td id="r_gross"></td></tr>
+            <tr><td data-zh="個人所得稅（PIT）" data-en="PIT" data-km="PIT">個人所得稅</td><td id="r_pit"></td></tr>
+            <tr><td data-zh="NSSF（員工2%）" data-en="NSSF (Employee 2%)" data-km="NSSF 2%">NSSF員工負擔</td><td id="r_nssf"></td></tr>
+            <tr><td data-zh="其他扣款" data-en="Other Deductions" data-km="Deduct">其他扣款</td><td id="r_dd"></td></tr>
+            <tr class="total-row"><td data-zh="★ 員工實得薪資" data-en="★ Net Take-Home Pay" data-km="★ Net">★ 員工實得薪資</td><td id="r_net"></td></tr>
+            <tr><td colspan="2" style="padding-top:8px;font-size:11.5px;color:#888;font-weight:400" data-zh="（雇主另行負擔：退休金2% + 工傷0.8% + 健康保險1.3%，合計4.1%）" data-en="(Employer additionally pays: Pension 2% + OccRisk 0.8% + Health 1.3% = 4.1%)" data-km="(Employer + 4.1% on top)">(雇主另行負擔：退休2%＋工傷0.8%＋健保1.3%＝4.1%)</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 7 ════════════ -->
+<div class="doc-section" id="ch7">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 7</div>
+    <div class="chapter-title" data-zh="第七章　休假制度" data-en="Chapter 7　Leave Policy" data-km="ជំពូកទី ៧　គោលនយោបាយឈប់">第七章　休假制度</div>
+    <div class="chapter-sub" data-zh="柬埔寨勞動法第166–175條" data-en="Labour Law Art. 166–175" data-km="ច្បាប់ ML ១៦៦-១៧៥">勞動法第166–175條</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第十九條" data-en="Article 19" data-km="មាត្រា ១៩">第十九條</span>
+    <div class="art-body">
+      <p data-zh="【年假（AL）】年假之規定如下：" data-en="[Annual Leave (AL)] Annual leave provisions are as follows:" data-km="[AL]:">【年假（AL）】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="無限期合約員工每月累積有薪年假一點五（1.5）天，全年共計十八（18）天；" data-en="Indefinite contract employees accrue 1.5 paid annual leave days per month, totalling 18 days per year;" data-km="Indef: 1.5 day/ខែ = 18 days/year ;">無限期合約員工：1.5天/月，共18天/年；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="入職當月不計年假，自次月起開始累積；" data-en="No annual leave accrues in the joining month; accrual starts from the following month;" data-km="Month 1: No AL; Start Next Month ;">入職當月不計年假，次月起累積；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="年假申請須提前一（1）天書面提出，並取得部門主管及HR核准；" data-en="Annual leave must be applied for in writing one (1) day in advance, with dept supervisor and HR approval;" data-km="AL: Apply L1 Day Written + Sig ;">年假申請須提前一天書面申請；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="年假以半（0.5）小時為計算單位；" data-en="Annual leave is calculated in units of half (0.5) hours;" data-km="AL: 0.5hr Unit ;">年假以0.5小時為計算單位；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="年假餘額不得累積至次年（每年十二月三十一日結清）；" data-en="Annual leave balance expires on December 31; no carryover to next year;" data-km="AL Expires: 31 Dec ;">年假不得累積至次年，每年12月31日結清；</span></div>
+      <div class="clause"><span class="cl-num">（六）</span><span class="cl-body" data-zh="勞動合約終止時，未使用年假依照實際天數一次結算；" data-en="Upon contract termination, unused annual leave is settled based on actual days;" data-km="Contract End: AL Cash Out ;">合約終止時未使用年假一次結清；</span></div>
+      <div class="clause"><span class="cl-num">（七）</span><span class="cl-body" data-zh="生產部門可依生產排程安排員工集中休年假，相關安排提前公告。" data-en="Production dept may arrange group annual leave per schedule; advance notice given." data-km="Prod: Group AL per schedule ;">生產部門可安排集中休年假。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十條" data-en="Article 20" data-km="មាត្រា ២០">第二十條</span>
+    <div class="art-body">
+      <p data-zh="【病假（SL）】病假之規定如下：" data-en="[Sick Leave (SL)] Sick leave provisions are as follows:" data-km="[SL]:">【病假（SL）】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="請病假一（1）天，須於當日上午以電話或口頭方式通知部門主管，並於返回上班後兩（2）天內提交醫院證明及病假申請表；" data-en="1-day sick leave: notify supervisor by phone/verbal the same morning; submit hospital certificate and leave form within 2 days of return;" data-km="SL 1 Day: Call DH AM; Cert LS 2 Days RL ;">病假1天：當日通知主管，2天內補交醫院證明；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="請病假超過兩（2）天者，須填寫病假申請表並附醫院診斷書，交部門主管及HR核准；" data-en="Sick leave exceeding 2 days: submit form and hospital certificate to dept supervisor and HR for approval;" data-km="SL >2 Days: Form + Cert + DH + HR ;">病假2天以上須附診斷書並由主管HR核准；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="病假期間薪資依下列標準支付：第一個月全薪（100%）；第二及第三個月各支付百分之六十（60%）；" data-en="Sick leave pay: 1st month 100%; 2nd and 3rd months 60% each;" data-km="SL Pay: M1=100%; M2+M3=60% ;">病假薪資：首月100%，二三月各60%；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="未提交醫院證明或未獲主管及HR批准者，視為曠工，予以警告處理；" data-en="No certificate or unapproved: treated as absent, warning issued;" data-km="No Cert or Not Approved: AB + Warning ;">無證明或未批准者視為曠工。</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="每次五（5）天以上之病假，累計達四（4）次以上者，可予以降職或解雇之考量。" data-en="Sick leave of 5+ days per occurrence, 4+ times cumulatively, may result in demotion or dismissal." data-km="SL ≥5 Days × ≥4 Times: Demotion/Dismissal ;">病假每次5天以上累計4次，可考慮降職或解雇。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十一條" data-en="Article 21" data-km="មាត្រា ២១">第二十一條</span>
+    <div class="art-body">
+      <p data-zh="【事假（PL）】事假之規定如下：" data-en="[Personal Leave (PL)] Personal leave provisions:" data-km="[PL]:">【事假（PL）】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="事假須提前一（1）天以書面方式提出申請，並取得部門主管及HR批准；" data-en="Personal leave must be applied for in writing one day in advance, with dept supervisor and HR approval;" data-km="PL: L1 Day Written + Sig ;">事假須提前一天書面申請；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="緊急事假，員工須於兩（2）天內提供相關證明；" data-en="Emergency personal leave: certificate required within 2 days;" data-km="Emergency PL: Cert LS 2 Days ;">緊急事假2天內補交證明；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="事假期間，薪資依實際缺勤時數扣除；全勤獎金依缺勤天數扣除。" data-en="During personal leave, salary deducted based on actual absent hours; attendance bonus deducted by days absent." data-km="PL Pay: Deduct by Hours; Att+ by Days ;">事假依實際時數扣薪，全勤獎金依天數扣除。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十二條" data-en="Article 22" data-km="មាត្រា ២២">第二十二條</span>
+    <div class="art-body">
+      <p data-zh="【特殊假（FL）】員工因下列情形，可申請特殊假（有薪），每次最多七（7）天：" data-en="[Special Leave (FL)] Employees may apply for special leave (paid) of up to seven (7) days in the following circumstances:" data-km="[FL]: Paid up to 7 Days:">【特殊假（FL）】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="本人結婚：七（7）天（須提前一週申請，並於返回上班後五（5）天內提交結婚證書）；" data-en="Own wedding: 7 days (apply 1 week advance; submit marriage certificate within 5 days of return);" data-km="Wedding: 7 Days; L1 Week; Cert L5 Days RL ;">本人結婚：7天；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="配偶分娩：七（7）天；" data-en="Spouse's childbirth: 7 days;" data-km="Wife Birth: 7 Days ;">配偶分娩：7天；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="子女結婚：七（7）天；" data-en="Child's wedding: 7 days;" data-km="Child Wedding: 7 Days ;">子女結婚：7天；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="本人或配偶之父母、配偶或子女病危或去世：七（7）天（需提前兩（2）天通知主管，並於返回上班後五（5）天內提交死亡證明或相關證明文件）。" data-en="Parent/spouse/child critical illness or death: 7 days (notify supervisor 2 days advance; submit death certificate within 5 days of return)." data-km="Death/Sick: 7 Days; DN L2 Days; Cert L5 Days RL ;">家屬重病或去世：7天。</span></div>
+      <p style="margin-top:8px" data-zh="特殊假期間全薪給付，全勤獎金依缺勤天數扣除。無故缺勤且事後未補交相關證明者，視為事假處理。" data-en="Special leave is fully paid; attendance bonus deducted by days absent. Absence without certificate treated as personal leave." data-km="FL: Full Pay; Att+ Deducted; No Cert = PL ;">特殊假全薪給付；無證明者改作事假。</p>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十三條" data-en="Article 23" data-km="មាត្រា ២៣">第二十三條</span>
+    <div class="art-body">
+      <p data-zh="【曠工處理】無故缺勤（曠工）之處理如下：" data-en="[Unauthorised Absence] Unauthorised absence (absenteeism) is handled as follows:" data-km="[Absent]:">【曠工處理】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="曠工薪資依實際缺勤天數扣除；" data-en="Salary deducted based on actual absent days;" data-km="AB Pay: Deduct by Days ;">曠工依實際天數扣薪；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="曠工一至三（1–3）天：口頭警告；" data-en="Absent 1–3 days: verbal warning;" data-km="AB 1-3: Verbal Warning ;">曠工1–3天：口頭警告；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="連續曠工七（7）天（含週日），視為自動放棄工作，公司得視為自動離職處理。" data-en="Seven (7) consecutive absent days (including Sunday) is treated as voluntary resignation/termination." data-km="AB 7 Consecutive (incl. Sun): Auto Termination ;">連續曠工7天視為自動離職。</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 8 ════════════ -->
+<div class="doc-section" id="ch8">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 8</div>
+    <div class="chapter-title" data-zh="第八章　產假制度" data-en="Chapter 8　Maternity Leave" data-km="ជំពូកទី ៨　ការឈប់សម្រាលកូន">第八章　產假制度</div>
+    <div class="chapter-sub" data-zh="柬埔寨勞動法第182–186條" data-en="Labour Law Art. 182–186" data-km="ច្បាប់ HL ១៨២-១៨៦">勞動法第182–186條</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十四條" data-en="Article 24" data-km="មាត្រា ២៤">第二十四條</span>
+    <div class="art-body">
+      <p data-zh="【產假規定】懷孕女性員工依法享有下列保障：" data-en="[Maternity Leave] Pregnant female employees are entitled to the following protections:" data-km="[ML]: Pregnant EE HL:">【產假規定】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="懷孕滿三（3）個月起，每日可縮短十五（15）分鐘工作時間，薪資不予扣減；" data-en="From the 3rd month of pregnancy: 15 minutes reduction in daily work hours with no salary deduction;" data-km="Month 3+: -15min/Day; No Deduct ;">懷孕3個月起每日縮短15分鐘，薪資不減；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="子女未滿一（1）週歲者，員工可提前一（1）小時下班，薪資不予扣減；" data-en="Employee with child under 1 year may leave 1 hour early with no salary deduction;" data-km="Child <1yr: Leave 1hr Early; No Deduct ;">子女未滿1歲可提前1小時下班；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="產假期間為九十（90）天（依柬埔寨勞動法規定）；" data-en="Maternity leave period: ninety (90) days (per Cambodia Labour Law);" data-km="ML: 90 Days HL ;">產假共90天；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="在職滿一（1）年之女性員工，產假期間由公司支付薪資的百分之五十（50%）；" data-en="Female employees with 1+ year of service: Company pays 50% salary during maternity leave;" data-km="≥1yr: Company 50% Salary ML ;">在職滿1年員工，產假期間公司給付50%薪資；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="孕婦識別卡（橙色）：公司為懷孕員工發放孕婦識別卡，確保其不被派至有職業危害或安全風險之崗位；" data-en="Pregnancy ID card (orange): issued to pregnant workers to ensure no assignment to hazardous roles;" data-km="Pregnant Card (Orange): No Hazardous Role ;">孕婦識別卡保障不派至危險崗位；</span></div>
+      <div class="clause"><span class="cl-num">（六）</span><span class="cl-body" data-zh="嚴禁因懷孕或在產假期間對員工予以解雇（依柬勞法規定）；" data-en="Strictly prohibited: dismissal due to pregnancy or during maternity leave (Cambodia Labour Law);" data-km="ហាម: Fire due to Pregnancy or during ML ;">嚴禁因懷孕或在產假期間解雇員工；</span></div>
+      <div class="clause"><span class="cl-num">（七）</span><span class="cl-body" data-zh="產假後返回工作之員工，享有返回原崗位或同等崗位之權利。" data-en="Employees returning from maternity leave are entitled to the same or equivalent position." data-km="ML Return: Same or Equiv. Position ;">產假後享有復職同等崗位之權利。</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 9 ════════════ -->
+<div class="doc-section" id="ch9">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 9</div>
+    <div class="chapter-title" data-zh="第九章　員工福利" data-en="Chapter 9　Employee Benefits" data-km="ជំពូកទី ៩　ផលប្រយោជន៍បុគ្គលិក">第九章　員工福利</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十五條" data-en="Article 25" data-km="មាត្រា ២៥">第二十五條</span>
+    <div class="art-body">
+      <p data-zh="【員工福利項目】本公司為員工提供下列福利，以體現公司對員工的關懷：" data-en="[Employee Benefits] The Company provides the following benefits to demonstrate its care for employees:" data-km="[Benefits]:">【員工福利項目】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="免費通勤交通服務：公司提供員工免費通勤接送車輛（公司車），負責員工上下班之接送；" data-en="Free commute transport: the Company provides free shuttle bus service for employees' daily commute to and from work;" data-km="Free Shuttle: Employee Commute ;">免費通勤車輛（公司車）接送員工上下班；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="免費宿舍住宿：公司為有需要之員工提供免費宿舍住宿，宿舍位於廠區附近，方便員工就近居住；" data-en="Free dormitory accommodation: the Company provides free dormitory for employees who need it, located near the factory;" data-km="Free Dormitory: Near Factory ;">免費宿舍住宿（廠區附近）；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="午餐補貼：公司提供員工廠內用餐設施，並給予每餐KHR 3,000之午餐補貼；" data-en="Lunch subsidy: the Company provides canteen facilities and KHR 3,000 lunch subsidy per meal;" data-km="Canteen + KHR 3,000/meal ;">廠內用餐設施及午餐補貼；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="喪親慰問金及特殊補貼：員工或其直系親屬（配偶、子女、父母）不幸離世時，公司將給予喪親慰問金及相關特殊補助，以示公司之關懷；" data-en="Bereavement allowance and special subsidy: when an employee or their immediate family member (spouse, child, parent) passes away, the Company provides a bereavement allowance and special assistance as a gesture of care;" data-km="Bereavement: Employee or Family (Spouse/Child/Parent) Death LS Special Allowance ;">員工或直系親屬去世給予喪親慰問金及特殊補助；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="護理補貼：員工因特殊情況需長期照護家人時，公司得依實際情況給予護理費補貼，具體金額由管理部門評估決定；" data-en="Nursing care subsidy: where an employee needs to care for a family member under special circumstances, the Company may provide nursing care subsidy, assessed by management on a case-by-case basis;" data-km="Nursing Subsidy: Case-by-case HL Management ;">特殊情況護理補貼（由管理部門評估）；</span></div>
+      <div class="clause"><span class="cl-num">（六）</span><span class="cl-body" data-zh="年終及節慶活動：公司定期舉辦員工年終聚餐、歌唱/舞蹈比賽、體育活動等，豐富員工業餘生活；" data-en="Year-end and festive activities: the Company holds year-end dinners, singing/dancing competitions, and sports events periodically;" data-km="Year-end Dinner, Contest, Sports Event ;">年終聚餐、歌唱舞蹈比賽、體育活動；</span></div>
+      <div class="clause"><span class="cl-num">（七）</span><span class="cl-body" data-zh="高棉新年返鄉補助：對於家鄉偏遠或生活較為困難之員工，公司將於高棉新年期間給予白米或速食麵等實物補助，協助員工返鄉；" data-en="Khmer New Year return assistance: the Company provides rice or instant noodles to remote-area or financially challenged employees for their return home during Khmer New Year;" data-km="Khmer NY: Rice/Noodles for Remote Workers ;">高棉新年為偏遠員工提供白米或速食麵等返鄉補助；</span></div>
+      <div class="clause"><span class="cl-num">（八）</span><span class="cl-body" data-zh="NSSF醫療保障：公司依法為所有員工辦理NSSF工傷保險及健康保險（詳見第六章第一節）；" data-en="NSSF medical protection: all employees enrolled in NSSF occupational risk and health insurance by the Company (see Chapter 6 Section 1);" data-km="NSSF: OccRisk + Health (Chapter 6) ;">NSSF工傷及健康保險（見第六章）；</span></div>
+      <div class="clause"><span class="cl-num">（九）</span><span class="cl-body" data-zh="升遷機會：所有員工依能力、績效及服務年資享有公平的升遷機會；" data-en="Promotion opportunities: all employees have equal opportunity for promotion based on performance, skills and seniority;" data-km="Promotion: Equal, PE, SK, SY ;">所有員工享有公平升遷機會；</span></div>
+      <div class="clause"><span class="cl-num">（十）</span><span class="cl-body" data-zh="其他福利：公司保留依業務發展情況適時調整員工福利項目之權利，如有增減將另行公告。" data-en="Other benefits: the Company reserves the right to adjust benefits based on business development; changes will be announced accordingly." data-km="Other Benefits: Adjusted per Business; Announced ;">其他福利依業務發展情況調整，另行公告。</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTER 10 ════════════ -->
+<div class="doc-section" id="ch10">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 10</div>
+    <div class="chapter-title" data-zh="第十章　獎懲制度" data-en="Chapter 10　Discipline &amp; Rewards" data-km="ជំពូកទី ១០　ទណ្ឌ និង រង្វាន់">第十章　獎懲制度</div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十六條" data-en="Article 26" data-km="មាត្រា ២៦">第二十六條</span>
+    <div class="art-body">
+      <p data-zh="【遲到早退扣薪標準】遲到早退之薪資扣除標準如下：" data-en="[Late/Early Deduction Standards] Salary deductions for lateness/early departure:" data-km="[LT/EL Deduct]:">【遲到早退扣薪標準】</p>
+      <table class="doc-table" style="margin:10px 0">
+        <tr>
+          <th data-zh="情形" data-en="Situation" data-km="ស្ថានភាព">情形</th>
+          <th data-zh="薪資扣除" data-en="Salary Deduction" data-km="Deduct">薪資扣除</th>
+          <th data-zh="出勤獎金" data-en="Att. Bonus" data-km="Att+">出勤獎金</th>
+          <th data-zh="警告觸發條件" data-en="Warning Trigger" data-km="Warning">警告觸發</th>
+        </tr>
+        <tr>
+          <td data-zh="遲到1–10分鐘" data-en="Late 1–10 min" data-km="LT 1-10min">遲到1–10分鐘</td>
+          <td data-zh="超過3次：每次扣30分鐘" data-en=">3 times: deduct 30 min each" data-km=">3: -30min">超3次：每次扣30分鐘</td>
+          <td data-zh="同薪資標準" data-en="Same as salary" data-km="Same">同薪資</td>
+          <td data-zh="當月超3次：須說明原因" data-en=">3/month: explain reason" data-km=">3/ខែ: Explain">月超3次須說明</td>
+        </tr>
+        <tr>
+          <td data-zh="遲到11–30分鐘" data-en="Late 11–30 min" data-km="LT 11-30min">遲到11–30分鐘</td>
+          <td data-zh="每次扣30分鐘" data-en="Deduct 30 min each" data-km="-30min">每次扣30分鐘</td>
+          <td data-zh="每次扣30分鐘" data-en="-30 min" data-km="-30min">每次扣30分鐘</td>
+          <td data-zh="月超3次：書面警告" data-en=">3/month: written warning" data-km=">3/ខែ: Written">月超3次書面警告</td>
+        </tr>
+        <tr>
+          <td data-zh="遲到30分鐘以上" data-en="Late 30+ min" data-km="LT 30+min">遲到30分鐘以上</td>
+          <td data-zh="每次扣30分鐘" data-en="Deduct 30 min each" data-km="-30min">每次扣30分鐘</td>
+          <td data-zh="每次扣30分鐘" data-en="-30 min" data-km="-30min">每次扣30分鐘</td>
+          <td data-zh="月超1次：第2次起書面警告" data-en="2nd+ per month: written" data-km="2nd/ខែ: Written">月超1次，第2次書面警告</td>
+        </tr>
+        <tr>
+          <td data-zh="提前離開（1–30分鐘）" data-en="Early leave (1–30 min)" data-km="EL 1-30min">提前離開（1–30分鐘）</td>
+          <td data-zh="扣0.5小時" data-en="Deduct 0.5 hr" data-km="-0.5hr">扣0.5小時</td>
+          <td data-zh="依天數扣" data-en="By days" data-km="By days">依天數扣</td>
+          <td data-zh="依遲到標準" data-en="Per late rules" data-km="Per late">依遲到標準</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十七條" data-en="Article 27" data-km="មាត្រា ២៧">第二十七條</span>
+    <div class="art-body">
+      <p data-zh="【紀律警告程序】紀律警告分為三個層級，依情節輕重適用：" data-en="[Disciplinary Warning Procedure] Disciplinary warnings are in three levels applied according to severity:" data-km="[Warning]: 3 Levels:">【紀律警告程序】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="口頭警告（第一次）：適用於輕微違規首次；" data-en="Verbal warning (1st): for first minor violation;" data-km="Verbal: 1st Minor ;">口頭警告：輕微違規首次；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="書面警告（第二次）：適用於輕微違規再犯或首次較嚴重違規；" data-en="Written warning (2nd): for repeated minor or first serious violation;" data-km="Written: Repeat Minor or 1st Serious ;">書面警告：輕微違規再犯或首次嚴重違規；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="嚴重書面警告（第三次）：一年內累計三（3）次書面警告，可考慮降職或解雇。" data-en="Serious written warning (3rd): 3 written warnings within 1 year may lead to demotion or dismissal." data-km="Serious Written: 3/yr = Demotion/Dismissal ;">嚴重書面警告：年內累計3次可降職或解雇。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十八條" data-en="Article 28" data-km="មាត្រា ២៨">第二十八條</span>
+    <div class="art-body">
+      <p data-zh="【即時解雇事由】下列行為屬於重大違規，公司得不經預告即時解雇（依柬勞法第83條）：" data-en="[Grounds for Immediate Termination] The following constitute serious misconduct, allowing immediate termination without notice (Labour Law Art. 83):" data-km="[Instant Termination] Art.83:">【即時解雇事由】依柬勞法第83條，下列行為得即時解雇：</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="竊盜、吸毒、賭博，或洩露公司商業機密；" data-en="Theft, drug abuse, gambling, or disclosure of business secrets;" data-km="Theft, Drug, Gambling, Secrets ;">竊盜、吸毒、賭博、洩露機密；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="連續曠工七（7）天（含週日）；" data-en="Seven (7) consecutive absent days (incl. Sunday);" data-km="AB 7 Consecutive (incl. Sun) ;">連續曠工7天；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="一年內累計三（3）次嚴重書面警告；" data-en="3 serious written warnings within 1 year;" data-km="3 Serious Written/yr ;">年內累計3次嚴重書面警告；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="聚眾鬥毆或組織非法罷工；" data-en="Fighting, inciting unrest, or organizing illegal strikes;" data-km="Fight, Illegal Strike ;">聚眾鬥毆或非法罷工；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="對同事或管理人員實施性騷擾；" data-en="Sexual harassment of colleagues or management;" data-km="SX Harassment ;">性騷擾；</span></div>
+      <div class="clause"><span class="cl-num">（六）</span><span class="cl-body" data-zh="故意破壞公司財產；" data-en="Intentional destruction of company property;" data-km="Intentional Damage Property ;">故意破壞公司財產；</span></div>
+      <div class="clause"><span class="cl-num">（七）</span><span class="cl-body" data-zh="偽造文件或惡意阻擾公司正常運作；" data-en="Falsification of documents or malicious obstruction of company operations;" data-km="Falsify Docs, Obstruct Company ;">偽造文件或阻擾公司運作；</span></div>
+      <div class="clause"><span class="cl-num">（八）</span><span class="cl-body" data-zh="違反法律或其他嚴重違規行為。" data-en="Violation of law or other serious breach of regulations." data-km="Violations of Law ;">違法或其他嚴重違規。</span></div>
+    </div>
+  </div>
+
+  <div class="article">
+    <span class="art-num" data-zh="第二十九條" data-en="Article 29" data-km="មាត្រា ២៩">第二十九條</span>
+    <div class="art-body">
+      <p data-zh="【獎勵制度】公司對表現優異之員工給予下列獎勵：" data-en="[Rewards] The Company provides the following rewards to outstanding employees:" data-km="[Rewards]:">【獎勵制度】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="全勤獎金：當月全勤者發放USD 10全勤獎；" data-en="Full attendance bonus: USD 10 for perfect attendance;" data-km="Att+: USD 10 ;">全勤獎金：月全勤USD 10；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="年終獎金：依公司業績及個人年度表現，另行公告；" data-en="Annual bonus: per company performance and individual results; announced separately;" data-km="Annual Bonus: Announced Separately ;">年終獎金：依業績另行公告；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="優秀員工表揚：定期評選並公開表揚績效優異之員工；" data-en="Employee recognition: periodic public commendation of top performers;" data-km="Recognition: Periodic ;">定期表揚績效優異員工；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="升遷機會：所有員工享有公平升遷機會，依能力、績效及年資晉升。" data-en="Promotion: equal opportunities based on skills, performance and seniority." data-km="Promotion: Equal, PE, SK, SY ;">所有員工有公平升遷機會。</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ CHAPTERS 11-15 ════════════ -->
+<div class="doc-section" id="ch11">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 11</div>
+    <div class="chapter-title" data-zh="第十一章　職業安全衛生" data-en="Chapter 11　Occupational Safety &amp; Hygiene" data-km="ជំពូកទី ១១　សុវត្ថិភាព">第十一章　職業安全衛生</div>
+  </div>
+  <div class="article">
+    <span class="art-num" data-zh="第三十條" data-en="Article 30" data-km="មាត្រា ៣០">第三十條</span>
+    <div class="art-body">
+      <p data-zh="【安全衛生規定】職業安全衛生規定如下：" data-en="[Safety &amp; Hygiene Rules]:" data-km="[Safety]:">【安全衛生規定】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="公司為員工提供安全、和諧、衛生的工作及生活環境；" data-en="The Company provides a safe, harmonious and hygienic work and living environment;" data-km="Safe, Harmonious, Hygienic WE ;">提供安全和諧衛生的工作環境；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="員工須保持個人及工作崗位整潔，每日上班前清潔機器及工具；" data-en="Employees must keep personal space and workstation clean; clean machines daily before work;" data-km="Clean: Personal + WS + MA/Day ;">員工須保持個人及崗位整潔；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="廠區所有出口通道須保持暢通，嚴禁堆放任何物品；" data-en="All exit routes must remain clear at all times;" data-km="Exit: Clear Always ;">出口通道必須保持暢通；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="公司定期組織防火演習及急救培訓；" data-en="The Company conducts regular fire drills and first aid training;" data-km="Fire Drills + FA Training Regularly ;">定期防火演習及急救培訓；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="危險區域必須張貼安全警示標誌；" data-en="Warning signs required in all hazardous areas;" data-km="Hazard: Warning Signs ;">危險區域張貼警示標誌；</span></div>
+      <div class="clause"><span class="cl-num">（六）</span><span class="cl-body" data-zh="非專業人員嚴禁操作或接觸危險設備；" data-en="Non-professional personnel strictly prohibited from operating dangerous equipment;" data-km="Non-Prof: No Dangerous Equip ;">非專業人員嚴禁操作危險設備；</span></div>
+      <div class="clause"><span class="cl-num">（七）</span><span class="cl-body" data-zh="廠內嚴禁赤腳行走及在工廠牆壁上塗鴉或損毀設施；" data-en="No bare feet in factory; no graffiti or damage to facilities;" data-km="No Bare Feet; No Graffiti ;">嚴禁赤腳行走及塗鴉損壞設施；</span></div>
+      <div class="clause"><span class="cl-num">（八）</span><span class="cl-body" data-zh="員工須依崗位要求配戴相應勞動保護裝備（PPE），包括聽力保護、眼部保護、防塵口罩、手套、安全鞋等。" data-en="Employees must wear appropriate PPE per job requirements, including hearing protection, eye protection, dust mask, gloves, safety footwear, etc." data-km="PPE: Per Job (Ear/Eye/Mask/Glove/Shoe) ;">依崗位配戴相應PPE。</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="doc-section" id="ch12">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 12</div>
+    <div class="chapter-title" data-zh="第十二章　培訓與發展" data-en="Chapter 12　Training &amp; Development" data-km="ជំពូកទី ១២　ការបណ្ដុះបណ្ដាល">第十二章　培訓與發展</div>
+  </div>
+  <div class="article">
+    <span class="art-num" data-zh="第三十一條" data-en="Article 31" data-km="មាត្រា ៣១">第三十一條</span>
+    <div class="art-body">
+      <p data-zh="【培訓制度】公司為員工提供下列培訓及發展機會：" data-en="[Training Policy] The Company provides the following training and development opportunities:" data-km="[Training]:">【培訓制度】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="新進員工入職培訓：公司為所有新進員工提供一至兩（1–2）個月之技能培訓，使員工熟悉工作流程及公司規定；" data-en="Onboarding training: 1–2 months skills training for all new employees;" data-km="Onboarding: 1-2 months ;">新進員工入職1–2個月技能培訓；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="防火及緊急疏散演習：每年至少舉行一（1）次，全體員工均須參加；" data-en="Fire drill and emergency evacuation: at least once per year; all employees required to attend;" data-km="Fire Drill: ≥1/yr; All EE ;">防火演習每年至少一次；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="急救培訓：定期為指定員工安排急救培訓課程；" data-en="First aid training: periodically arranged for designated employees;" data-km="First Aid: Periodic, Designated ;">急救培訓：定期安排；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="WRAP合規培訓：每半年為主管及HR人員安排WRAP社會責任合規培訓；" data-en="WRAP compliance training: semi-annual for supervisors and HR;" data-km="WRAP Training: Semi-annual, SP+HR ;">WRAP合規培訓半年一次；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="高棉語及中文語言培訓：公司不定期為有意願之員工安排語言培訓課程；" data-en="Khmer/Chinese language training: periodically for interested employees;" data-km="Language Training: KH/ZH; Periodic ;">高棉語及中文語言培訓；</span></div>
+      <div class="clause"><span class="cl-num">（六）</span><span class="cl-body" data-zh="所有培訓出勤記錄須妥善保存，以備WRAP稽核之用；" data-en="All training attendance records must be maintained for WRAP audit purposes;" data-km="TR Training: WRAP Audit ;">培訓記錄妥善保存備WRAP稽核；</span></div>
+      <div class="clause"><span class="cl-num">（七）</span><span class="cl-body" data-zh="無故缺席培訓者，依曠工規定處理；完成培訓者可獲相應之獎勵（依具體培訓計劃公告）。" data-en="Unexcused absence from training treated as absenteeism; incentives given upon completion per specific plan." data-km="AB Training = AB WK; Completion = Incentive ;">無故缺席培訓視同曠工；完成培訓給予獎勵。</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="doc-section" id="ch13">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 13</div>
+    <div class="chapter-title" data-zh="第十三章　WRAP社會責任合規" data-en="Chapter 13　WRAP Social Responsibility Compliance" data-km="ជំពូកទី ១៣　WRAP">第十三章　WRAP社會責任合規</div>
+    <div class="chapter-sub" data-zh="Worldwide Responsible Accredited Production — 12項原則" data-en="Worldwide Responsible Accredited Production — 12 Principles" data-km="WRAP 12 Principles">Worldwide Responsible Accredited Production — 12項原則</div>
+  </div>
+  <div class="article">
+    <span class="art-num" data-zh="第三十二條" data-en="Article 32" data-km="មាត្រា ៣២">第三十二條</span>
+    <div class="art-body">
+      <p data-zh="【WRAP十二項原則】本公司承諾遵守並落實WRAP社會責任認證之十二（12）項核心原則：" data-en="[WRAP 12 Principles] The Company commits to complying with and implementing the twelve (12) core principles of WRAP social responsibility certification:" data-km="[WRAP 12 Principles]:">【WRAP十二項原則】</p>
+      <ul class="wrap-list">
+        <li data-zh="遵守法律：遵守一切適用之柬埔寨勞工法律法規及相關部令。" data-en="Compliance with Laws: Comply with all applicable Cambodian labour laws and regulations." data-km="P1 Compliance with Laws ।">遵守法律：遵守一切適用之柬埔寨勞工法律法規。</li>
+        <li data-zh="禁止強迫勞動：嚴禁任何形式之強制性、監獄性或債務性勞動。" data-en="No Forced Labor: Strictly prohibit all forms of forced, prison, or bonded labor." data-km="P2 No Forced Labor ।">禁止強迫勞動：嚴禁強制性、監獄性或債務性勞動。</li>
+        <li data-zh="禁止童工：嚴禁雇用十八（18）歲以下人員（依柬埔寨勞動法）。" data-en="No Child Labor: Strictly prohibit employment of persons under 18 years old (Cambodia Labour Law)." data-km="P3 No Child Labor (<18) ।">禁止童工：嚴禁雇用18歲以下人員。</li>
+        <li data-zh="禁止騷擾及虐待：對身體、性或語言上的騷擾及虐待採零容忍政策。" data-en="No Harassment or Abuse: Zero tolerance for physical, sexual, or verbal harassment and abuse." data-km="P4 No Harassment/Abuse ।">禁止騷擾及虐待：零容忍任何形式騷擾。</li>
+        <li data-zh="禁止歧視：不因種族、性別、宗教、殘疾或其他因素歧視員工。" data-en="No Discrimination: No discrimination by race, gender, religion, disability or other factors." data-km="P5 No Discrimination ।">禁止歧視：不因任何因素歧視員工。</li>
+        <li data-zh="薪資與福利：支付至少最低工資並依法提供所有員工應享有之福利。" data-en="Compensation and Benefits: Pay at least minimum wage and provide all legally required benefits." data-km="P6 Compensation & Benefits HL ।">薪資與福利：支付最低工資並依法提供福利。</li>
+        <li data-zh="工作時間：遵守法定工時上限及加班限制規定。" data-en="Working Hours: Comply with legal working hour limits and overtime restrictions." data-km="P7 Working Hours HL ।">工作時間：遵守法定工時及加班限制。</li>
+        <li data-zh="結社自由及集體談判：尊重員工自由組成工會及進行集體談判之權利。" data-en="Freedom of Association and Collective Bargaining: Respect employees' rights to organise and bargain collectively." data-km="P8 Freedom of Association ।">結社自由及集體談判：尊重員工結社及談判權利。</li>
+        <li data-zh="健康與安全：提供安全、健康的工作及生活環境，符合相關安全衛生法規。" data-en="Health and Safety: Provide a safe, healthy work and living environment compliant with applicable regulations." data-km="P9 Health & Safety HL ।">健康與安全：提供安全健康的工作環境。</li>
+        <li data-zh="環境保護：遵守環境保護法規，積極減少生產活動對環境之影響。" data-en="Environment: Comply with environmental regulations and actively reduce the environmental impact of production." data-km="P10 Environment HL ।">環境保護：遵守環保法規並減少環境影響。</li>
+        <li data-zh="海關合規：遵守進出口海關相關法規及安全要求。" data-en="Customs Compliance: Comply with import/export customs laws and security requirements." data-km="P11 Customs Compliance ।">海關合規：遵守進出口海關法規。</li>
+        <li data-zh="禁止毒品及酒精：廠區內嚴禁攜帶、使用或販賣毒品及酒精飲料。" data-en="Drug and Alcohol Policy: Strictly prohibit carrying, using or selling drugs and alcohol in the factory." data-km="P12 Drug/Alcohol Zero Tolerance ।">禁止毒品及酒精：廠區嚴禁毒品及酒精。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="doc-section" id="ch14">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 14</div>
+    <div class="chapter-title" data-zh="第十四章　離職管理" data-en="Chapter 14　Separation Management" data-km="ជំពូកទី ១៤　ការគ្រប់គ្រងលាឈប់">第十四章　離職管理</div>
+    <div class="chapter-sub" data-zh="柬埔寨勞動法第73–80條" data-en="Labour Law Art. 73–80" data-km="HL ៧៣-៨០">勞動法第73–80條</div>
+  </div>
+  <div class="article">
+    <span class="art-num" data-zh="第三十三條" data-en="Article 33" data-km="មាត្រា ៣៣">第三十三條</span>
+    <div class="art-body">
+      <p data-zh="【離職申請規定】員工自願離職之規定如下：" data-en="[Resignation Rules] Voluntary resignation provisions:" data-km="[Resignation]:">【離職申請規定】</p>
+      <div class="clause"><span class="cl-num">（一）</span><span class="cl-body" data-zh="離職申請須於每日上午十（10）點前提交；十點後之申請順延至次日；" data-en="Resignation must be submitted before 10:00 AM daily; applications after 10:00 AM are processed the next day;" data-km="Resign: Before 10:00 AM; After = Next Day ;">離職申請須於每日10:00前提交；</span></div>
+      <div class="clause"><span class="cl-num">（二）</span><span class="cl-body" data-zh="第四（4）級以上員工，須在部門主管批准後方可辦理離職；" data-en="Level 4+ employees: resignation requires dept head approval;" data-km="L4+: DH Approval ;">第4級以上員工須主管批准離職；</span></div>
+      <div class="clause"><span class="cl-num">（三）</span><span class="cl-body" data-zh="大組長及以上職級，須確保有人可進行工作交接後，方可申請離職；" data-en="Large team leader and above: must have handover plan before resignation application;" data-km="TL+: Handover First ;">大組長級以上需有交接人方可申請；</span></div>
+      <div class="clause"><span class="cl-num">（四）</span><span class="cl-body" data-zh="辦公室職員服務滿一（1）年者，須提前一（1）個月提交離職申請，並確定有接替人選後方可離職；" data-en="Office staff with 1+ year service: 1 month notice required with a replacement candidate identified;" data-km="Office L1yr: 1 Month Notice + Replacement ;">服務滿1年辦公室員工須提前一個月申請；</span></div>
+      <div class="clause"><span class="cl-num">（五）</span><span class="cl-body" data-zh="連續曠工七（7）天（含週日），視為自動放棄工作，公司得作自動離職處理；" data-en="7 consecutive absent days (incl. Sunday) treated as voluntary resignation;" data-km="AB 7 Consecutive: Auto Resign ;">連續曠工7天視為自動離職；</span></div>
+      <div class="clause"><span class="cl-num">（六）</span><span class="cl-body" data-zh="離職員工應完整辦理工作交接，歸還所有公司財物（包括識別卡、制服及公司物品）。" data-en="Departing employees must complete work handover and return all company property (ID card, uniform, company items)." data-km="Handover; Return ID + Uniform + Items ;">離職員工須完成交接並歸還所有公司財物。</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="doc-section" id="ch15">
+  <div class="chapter-head">
+    <div class="chapter-label">CHAPTER 15</div>
+    <div class="chapter-title" data-zh="第十五章　附則" data-en="Chapter 15　Supplementary Provisions" data-km="ជំពូកទី ១៥　បទបញ្ញត្តិបន្ថែម">第十五章　附則</div>
+  </div>
+  <div class="article">
+    <span class="art-num" data-zh="第三十四條" data-en="Article 34" data-km="មាត្រា ៣៤">第三十四條</span>
+    <div class="art-body">
+      <p data-zh="【廠規修訂】本廠規由行政管理部負責解釋及修訂。如因法律法規變化或業務需要，公司得對本廠規進行修訂，並提前公告員工。修訂版本自公告之日起生效。" data-en="[Amendment] These regulations are interpreted and amended by the Admin. Centre Management. The Company may amend these regulations as required by law or business needs, with advance notice to employees. Amendments take effect from the date of announcement." data-km="[Amendment] Admin Dept. HL; Announced; Effective from Date ।">【廠規修訂】本廠規由行政管理部負責解釋及修訂，修訂版本自公告之日起生效。</p>
+    </div>
+  </div>
+  <div class="article">
+    <span class="art-num" data-zh="第三十五條" data-en="Article 35" data-km="មាត្រា ៣៥">第三十五條</span>
+    <div class="art-body">
+      <p data-zh="【生效日期】本廠規自二〇二六年一月一日起正式生效，原有相關規定同時廢止。" data-en="[Effective Date] These regulations take effect on January 1, 2026, superseding all previous related provisions." data-km="[Effective] 01 Jan 2026; Previous Void ।">【生效日期】本廠規自2026年1月1日起生效，原有規定同時廢止。</p>
+    </div>
+  </div>
+
+  <!-- SIGNATURE BLOCK -->
+  <div class="sig-block">
+    <div class="sig-line">
+      <div>員工簽名確認 / Employee Acknowledgement</div>
+      <div class="line"></div>
+      <div data-zh="姓名 / 簽名" data-en="Name / Signature" data-km="ឈ្មោះ / ហ្សីញ">姓名 / 簽名</div>
+      <div style="margin-top:4px;font-size:11px;color:#aaa" data-zh="入職日期：_______" data-en="Join Date: _______" data-km="LD: _____">入職日期：_______</div>
+    </div>
+    <div class="sig-line">
+      <div>HR確認 / HR Confirmation</div>
+      <div class="line"></div>
+      <div data-zh="HR代表簽名" data-en="HR Representative" data-km="HS HR">HR代表簽名</div>
+      <div style="margin-top:4px;font-size:11px;color:#aaa" data-zh="日期：___________" data-en="Date: ___________" data-km="Date: ______">日期：___________</div>
+    </div>
+    <div class="sig-line">
+      <div>管理部經理 / Admin. Manager</div>
+      <div class="line"></div>
+      <div data-zh="行政管理部經理" data-en="Admin. Centre Manager" data-km="HS ACM">行政管理部經理</div>
+      <div style="margin-top:4px;font-size:11px;color:#aaa" data-zh="（蓋章）" data-en="(Stamp)" data-km="(ត្រា)">（蓋章）</div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:40px;padding:20px 0;border-top:3px double var(--blue);font-size:12px;color:var(--muted)">
+    <strong>VANTAGE RIVER TEXTILES CO., LTD</strong><br>
+    <span data-zh="西哈努克省 · 柬埔寨 | 廠規版本 2026 v1.0" data-en="Sihanoukville, Cambodia | Regulations v2026-1.0" data-km="ខេត្ត​ព្រះ​សីហ​នុ ​| v2026-1.0">西哈努克省 · 柬埔寨 | 廠規版本 2026 v1.0</span>
+  </div>
+</div>
+
+</div><!-- /doc-page -->
+</main><!-- /doc -->
+
+<div id="statusBar">✓ <span id="sTxt"></span></div>
+
+<script>
+let lang = localStorage.getItem('vl') || 'zh';
+
+function setLang(l) {
+  lang = l; localStorage.setItem('vl', l);
+  document.body.className = 'lang-' + l;
+  const subs = {zh:'員工手冊暨廠規 · 2026年版', en:'Employee Handbook & Factory Regulations · 2026', km:'សៀវភៅ · ២០២៥'};
+  document.getElementById('hd-sub').textContent = subs[l];
+  document.querySelectorAll('.lb').forEach(b => b.classList.remove('on'));
+  document.getElementById('lb-' + l).classList.add('on');
+  document.querySelectorAll('[data-zh]').forEach(el => {
+    const t = el.getAttribute('data-' + l);
+    if (t !== null) el.textContent = t;
+  });
+}
+
+function go(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'start'});
+  document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('on'));
+  event?.currentTarget?.classList.add('on');
+}
+
+function doCalc() {
+  const base = parseFloat(document.getElementById('c_base').value) || 0;
+  const att = parseFloat(document.getElementById('c_att').value) || 0;
+  const inc = parseFloat(document.getElementById('c_inc').value) || 0;
+  const ot = parseFloat(document.getElementById('c_ot').value) || 0;
+  const dd = parseFloat(document.getElementById('c_dd').value) || 0;
+  const gross = base + att + inc + ot;
+  let pit = 0;
+  if (gross > 3000) pit = 350*0.05 + 750*0.10 + 1750*0.15 + (gross-3000)*0.20;
+  else if (gross > 1250) pit = 350*0.05 + 750*0.10 + (gross-1250)*0.15;
+  else if (gross > 500) pit = 350*0.05 + (gross-500)*0.10;
+  else if (gross > 150) pit = (gross-150)*0.05;
+  const nssf = base * 0.02;
+  const net = gross - pit - nssf - dd;
+  const f = n => '$' + n.toFixed(2);
+  document.getElementById('r_gross').textContent = f(gross);
+  document.getElementById('r_pit').textContent = '- ' + f(pit);
+  document.getElementById('r_nssf').textContent = '- ' + f(nssf);
+  document.getElementById('r_dd').textContent = dd > 0 ? '- ' + f(dd) : '$0.00';
+  document.getElementById('r_net').textContent = f(net);
+  document.getElementById('calcOut').style.display = 'block';
+}
+
+// Highlight active TOC on scroll
+const secIds = ['cover','toc-pg','preface','ch1','ch2','ch3','ch4','ch5','ch6','ch6-nssf','ch6-pit','ch6-calc','ch7','ch8','ch9','ch10','ch11','ch12','ch13','ch14','ch15'];
+window.addEventListener('scroll', () => {
+  const offset = 80;
+  let current = 'cover';
+  secIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top <= offset) current = id;
+  });
+  document.querySelectorAll('#toc .toc-item').forEach(item => {
+    const onclick = item.getAttribute('onclick') || '';
+    if (onclick.includes("'"+current+"'")) item.classList.add('on');
+    else item.classList.remove('on');
+  });
+}, {passive:true});
+
+document.addEventListener('DOMContentLoaded', () => setLang(lang));
+</script>
+</body>
+</html>

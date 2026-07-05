@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>柬埔寨法律參考系統 | Cambodia Legal Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0f1e3c;
+  --navy-light: #1a2f57;
+  --navy-mid: #243c6e;
+  --gold: #c9a84c;
+  --gold-light: #e8c96a;
+  --gold-pale: #f5e9c8;
+  --cream: #faf7f0;
+  --white: #ffffff;
+  --text-dark: #1a1a2e;
+  --text-mid: #3d4a6e;
+  --text-light: #6b7a9e;
+  --border: #dde3f0;
+  --success: #2d7a4e;
+  --warn: #b5651d;
+  --danger: #8b1a1a;
+  --highlight: #fff3cd;
+  --highlight-border: #c9a84c;
+  --example-bg: #e8f4fd;
+  --example-border: #2563eb;
+  --sidebar-w: 280px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans TC', 'Source Sans 3', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--navy);
+  color: var(--white);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+#sidebar-header {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid rgba(201,168,76,0.3);
+  background: var(--navy-light);
+}
+
+#sidebar-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  color: var(--gold);
+  line-height: 1.3;
+  letter-spacing: 0.3px;
+}
+
+#sidebar-header p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 3px;
+  letter-spacing: 0.5px;
+}
+
+#lang-toggle {
+  display: flex;
+  margin: 12px 18px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.lang-btn {
+  flex: 1;
+  padding: 6px;
+  font-size: 12px;
+  border: none;
+  background: none;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.lang-btn.active {
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 600;
+}
+
+#sidebar-search {
+  margin: 0 18px 12px;
+  position: relative;
+}
+
+#sidebar-search input {
+  width: 100%;
+  padding: 7px 30px 7px 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: white;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+#sidebar-search input::placeholder { color: rgba(255,255,255,0.35); }
+#sidebar-search input:focus { border-color: var(--gold); }
+
+.search-icon {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  color: rgba(255,255,255,0.4); font-size: 13px;
+}
+
+#law-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 0 12px 0;
+}
+
+#law-list::-webkit-scrollbar { width: 4px; }
+#law-list::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 2px; }
+
+.law-group {
+  margin-bottom: 2px;
+}
+
+.law-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  gap: 10px;
+  position: relative;
+}
+
+.law-item:hover { background: rgba(255,255,255,0.06); }
+
+.law-item.active {
+  background: rgba(201,168,76,0.12);
+  border-left-color: var(--gold);
+}
+
+.law-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.law-name {
+  flex: 1;
+}
+
+.law-name-cn { font-size: 13px; font-weight: 500; }
+.law-name-en { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 1px; }
+
+.law-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.5);
+}
+
+.chapter-list {
+  display: none;
+  padding: 4px 0 4px 38px;
+  background: rgba(0,0,0,0.15);
+}
+
+.chapter-list.open { display: block; }
+
+.chapter-item {
+  padding: 6px 12px;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 1px 0;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+
+.chapter-item:hover { color: var(--gold-light); background: rgba(255,255,255,0.05); }
+.chapter-item.active { color: var(--gold); }
+
+#sidebar-footer {
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sidebar-btn {
+  flex: 1;
+  min-width: 70px;
+  padding: 7px 4px;
+  font-size: 11px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: none;
+  color: rgba(255,255,255,0.7);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  text-align: center;
+}
+
+.sidebar-btn:hover { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.4); }
+.sidebar-btn.primary { background: var(--gold); color: var(--navy); border-color: var(--gold); font-weight: 600; }
+.sidebar-btn.primary:hover { background: var(--gold-light); }
+
+/* ── MAIN CONTENT ── */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#topbar {
+  background: white;
+  border-bottom: 2px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  gap: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+#breadcrumb {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+#breadcrumb span { color: var(--text-dark); font-weight: 600; }
+
+.topbar-btn {
+  padding: 6px 14px;
+  font-size: 12px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  color: var(--text-mid);
+}
+
+.topbar-btn:hover { border-color: var(--navy); color: var(--navy); }
+.topbar-btn.gold { background: var(--gold); color: var(--navy); border-color: var(--gold); font-weight: 600; }
+.topbar-btn.gold:hover { background: var(--gold-light); }
+
+#view-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--cream);
+  padding: 3px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.view-tab {
+  padding: 4px 12px;
+  font-size: 11.5px;
+  border: none;
+  background: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-light);
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.view-tab.active { background: white; color: var(--navy); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+#content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+#content-area::-webkit-scrollbar { width: 6px; }
+#content-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── WELCOME SCREEN ── */
+#welcome-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--text-light);
+}
+
+.welcome-icon { font-size: 56px; margin-bottom: 16px; }
+
+.welcome-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+
+.welcome-sub { font-size: 14px; color: var(--text-light); margin-bottom: 28px; line-height: 1.6; }
+
+.welcome-cards {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 700px;
+}
+
+.welcome-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 20px;
+  text-align: left;
+  width: 200px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.welcome-card:hover { border-color: var(--navy); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+.wc-icon { font-size: 24px; margin-bottom: 8px; }
+.wc-title { font-size: 13px; font-weight: 600; color: var(--navy); }
+.wc-sub { font-size: 11px; color: var(--text-light); margin-top: 3px; }
+
+/* ── LAW OVERVIEW ── */
+.law-header {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+  color: white;
+  padding: 28px 32px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.law-header::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(201,168,76,0.12);
+}
+
+.law-header-dot {
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.law-header-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.law-header-sub { font-size: 14px; color: var(--gold-light); margin-bottom: 12px; }
+
+.law-meta {
+  display: flex;
+  gap: 20px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.law-meta-item {
+  font-size: 12px;
+  color: rgba(255,255,255,0.65);
+}
+
+.law-meta-item strong { color: var(--gold-light); }
+
+.law-summary-box {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.chapters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.chapter-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.chapter-card:hover {
+  border-color: var(--navy);
+  border-left-color: var(--gold);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.chapter-card-num { font-size: 11px; color: var(--text-light); margin-bottom: 5px; }
+.chapter-card-title { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+.chapter-card-en { font-size: 11.5px; color: var(--text-light); margin-bottom: 8px; }
+.chapter-card-summary { font-size: 12px; color: var(--text-mid); line-height: 1.6; }
+
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+.chip {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--highlight);
+  color: var(--warn);
+  font-weight: 500;
+}
+
+.chip.blue { background: var(--example-bg); color: var(--example-border); }
+.chip.green { background: #e8f5ee; color: var(--success); }
+
+/* ── CHAPTER VIEW ── */
+.chapter-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+}
+
+.ch-back {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-mid);
+  font-family: inherit;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.ch-back:hover { border-color: var(--navy); color: var(--navy); }
+
+.ch-title { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--navy); }
+.ch-title-en { font-size: 13px; color: var(--text-light); margin-top: 3px; }
+
+.content-block {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.block-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.block-icon { font-size: 16px; }
+
+.summary-text {
+  font-size: 13.5px;
+  line-height: 1.85;
+  color: var(--text-dark);
+}
+
+/* Article list */
+.article-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.article-item:last-child { border-bottom: none; }
+
+.article-num {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.article-text { font-size: 13px; line-height: 1.75; color: var(--text-dark); }
+
+/* Highlights */
+.highlight-box {
+  background: #fffbeb;
+  border: 1px solid var(--gold);
+  border-left: 4px solid var(--gold);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.highlight-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.highlight-text { font-size: 13px; line-height: 1.75; color: var(--text-dark); }
+
+/* Examples */
+.example-box {
+  background: var(--example-bg);
+  border: 1px solid #b3d4f0;
+  border-left: 4px solid var(--example-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.example-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--example-border);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.example-text { font-size: 13px; line-height: 1.75; color: var(--text-dark); }
+
+/* ── COMPARISON VIEW ── */
+#compare-view {
+  display: none;
+}
+
+.compare-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  background: white;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.compare-toolbar label { font-size: 13px; color: var(--text-mid); font-weight: 500; }
+
+.compare-toolbar select {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text-dark);
+  background: var(--cream);
+  outline: none;
+}
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.compare-panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.compare-panel-header {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.compare-panel-body { padding: 16px; }
+
+.compare-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.compare-row:last-child { border-bottom: none; margin-bottom: 0; }
+.compare-label { font-size: 11px; font-weight: 600; color: var(--text-light); min-width: 80px; }
+.compare-val { font-size: 12.5px; color: var(--text-dark); line-height: 1.6; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,20,40,0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: white;
+  border-radius: 14px;
+  width: 640px;
+  max-width: 95vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  color: var(--navy);
+}
+
+.modal-close {
+  width: 28px; height: 28px;
+  border: none;
+  background: var(--cream);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.form-row { margin-bottom: 16px; }
+
+.form-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-mid);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-dark);
+  outline: none;
+  transition: border-color 0.15s;
+  background: var(--cream);
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--navy);
+  background: white;
+}
+
+.form-textarea { min-height: 80px; resize: vertical; line-height: 1.6; }
+
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.btn {
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+
+.btn-secondary { border-color: var(--border); background: white; color: var(--text-mid); }
+.btn-secondary:hover { border-color: var(--navy); color: var(--navy); }
+.btn-primary { background: var(--navy); color: white; border-color: var(--navy); }
+.btn-primary:hover { background: var(--navy-mid); }
+.btn-danger { background: #fef2f2; color: var(--danger); border-color: #fecaca; }
+.btn-danger:hover { background: #fee2e2; }
+.btn-gold { background: var(--gold); color: var(--navy); border-color: var(--gold); font-weight: 600; }
+.btn-gold:hover { background: var(--gold-light); }
+
+/* Color selector */
+.color-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-opt {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.color-opt.selected { border-color: var(--text-dark); transform: scale(1.15); }
+
+/* Tag input area */
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag-pill {
+  background: var(--highlight);
+  color: var(--warn);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.tag-remove { cursor: pointer; font-size: 13px; line-height: 1; color: var(--warn); }
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--navy);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s;
+  pointer-events: none;
+  border-left: 4px solid var(--gold);
+}
+
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* Responsive scrollbar */
+.scrollable { overflow-y: auto; }
+.scrollable::-webkit-scrollbar { width: 4px; }
+.scrollable::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Print styles */
+@media print {
+  #sidebar { display: none; }
+  #topbar { display: none; }
+  #content-area { padding: 20px; }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-light);
+}
+.empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state-text { font-size: 14px; }
+
+.actions-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.article-edit-btn {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--text-light);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.article-edit-btn:hover { color: var(--navy); border-color: var(--navy); }
+.article-edit-btn.del:hover { color: var(--danger); border-color: var(--danger); }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <h1>⚖️ 柬埔寨法律參考<br><span style="font-family:'Source Sans 3',sans-serif;font-size:12px;font-weight:400;color:var(--gold)">Cambodia Legal Reference</span></h1>
+    <p>SA8000 合規管理工具 · VRT</p>
+  </div>
+
+  <div id="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('cn')">中文</button>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+    <button class="lang-btn" onclick="setLang('bi')">雙語</button>
+  </div>
+
+  <div id="sidebar-search">
+    <input type="text" id="search-input" placeholder="搜尋法律 / Search laws..." oninput="doSearch(this.value)">
+    <span class="search-icon">🔍</span>
+  </div>
+
+  <div id="law-list"></div>
+
+  <div id="sidebar-footer">
+    <button class="sidebar-btn primary" onclick="openAddLaw()">+ 新增</button>
+    <button class="sidebar-btn" onclick="compareView()">對比</button>
+    <button class="sidebar-btn" onclick="exportData()">匯出</button>
+    <button class="sidebar-btn" onclick="document.getElementById('import-file').click()">匯入</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="topbar">
+    <div id="breadcrumb">柬埔寨法律參考系統</div>
+    <div id="view-tabs">
+      <button class="view-tab active" onclick="setViewTab('overview')">概覽</button>
+      <button class="view-tab" onclick="setViewTab('articles')">條文</button>
+      <button class="view-tab" onclick="setViewTab('highlights')">重點</button>
+      <button class="view-tab" onclick="setViewTab('examples')">範例</button>
+    </div>
+    <button class="topbar-btn" id="btn-edit-chapter" style="display:none" onclick="editCurrentChapter()">✏️ 編輯</button>
+    <button class="topbar-btn" id="btn-add-article" style="display:none" onclick="openAddArticle()">+ 條文</button>
+    <button class="topbar-btn gold" id="btn-print" onclick="window.print()">列印</button>
+  </div>
+
+  <div id="content-area">
+    <div id="welcome-screen">
+      <div class="welcome-icon">📚</div>
+      <div class="welcome-title">柬埔寨法律參考系統</div>
+      <div class="welcome-sub">Cambodia Legal Reference System<br>請從左側選擇法律類別開始瀏覽，或點選下方快速入口</div>
+      <div class="welcome-cards" id="welcome-cards"></div>
+    </div>
+    <div id="law-overview" style="display:none"></div>
+    <div id="chapter-view" style="display:none"></div>
+    <div id="compare-view" style="display:none"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- MODAL: Add/Edit Law -->
+<div class="modal-overlay" id="modal-law">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-law-title">新增法律</div>
+      <button class="modal-close" onclick="closeModal('modal-law')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="form-row">
+          <label class="form-label">法律名稱 (中文) *</label>
+          <input class="form-input" id="fl-nameCN" placeholder="例：勞工法">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Law Name (English) *</label>
+          <input class="form-input" id="fl-nameEN" placeholder="e.g. Labor Law">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-row">
+          <label class="form-label">生效年份</label>
+          <input class="form-input" id="fl-year" type="number" placeholder="1997">
+        </div>
+        <div class="form-row">
+          <label class="form-label">最新修訂</label>
+          <input class="form-input" id="fl-amended" placeholder="2018年修訂">
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">標籤顏色</label>
+        <div class="color-row" id="fl-colors">
+          <div class="color-opt selected" data-color="#2563eb" style="background:#2563eb"></div>
+          <div class="color-opt" data-color="#16a34a" style="background:#16a34a"></div>
+          <div class="color-opt" data-color="#c9a84c" style="background:#c9a84c"></div>
+          <div class="color-opt" data-color="#dc2626" style="background:#dc2626"></div>
+          <div class="color-opt" data-color="#7c3aed" style="background:#7c3aed"></div>
+          <div class="color-opt" data-color="#0891b2" style="background:#0891b2"></div>
+          <div class="color-opt" data-color="#be185d" style="background:#be185d"></div>
+          <div class="color-opt" data-color="#92400e" style="background:#92400e"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">法律摘要 (中文)</label>
+        <textarea class="form-textarea" id="fl-summaryCN" placeholder="本法律主要規範..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Summary (English)</label>
+        <textarea class="form-textarea" id="fl-summaryEN" placeholder="This law regulates..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">適用機構類型</label>
+        <input class="form-input" id="fl-scope" placeholder="製造業、服務業、外資企業...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-law')">取消</button>
+      <button class="btn btn-primary" onclick="saveLaw()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add/Edit Chapter -->
+<div class="modal-overlay" id="modal-chapter">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-ch-title">新增章節</div>
+      <button class="modal-close" onclick="closeModal('modal-chapter')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div class="form-row">
+          <label class="form-label">章節標題 (中文) *</label>
+          <input class="form-input" id="fch-titleCN" placeholder="第一章 總則">
+        </div>
+        <div class="form-row">
+          <label class="form-label">Chapter Title (English) *</label>
+          <input class="form-input" id="fch-titleEN" placeholder="Chapter 1: General Provisions">
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">章節摘要 (中文)</label>
+        <textarea class="form-textarea" id="fch-summaryCN" style="min-height:100px" placeholder="本章主要規定..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Chapter Summary (English)</label>
+        <textarea class="form-textarea" id="fch-summaryEN" style="min-height:100px" placeholder="This chapter mainly covers..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-chapter')">取消</button>
+      <button class="btn btn-primary" onclick="saveChapter()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Article / Highlight / Example -->
+<div class="modal-overlay" id="modal-article">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-art-title">新增條文</div>
+      <button class="modal-close" onclick="closeModal('modal-article')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label class="form-label">類型</label>
+        <select class="form-select" id="fart-type" onchange="updateArtType()">
+          <option value="article">📄 條文 Article</option>
+          <option value="highlight">⚠️ 重要提醒 Highlight</option>
+          <option value="example">💡 範例說明 Example</option>
+        </select>
+      </div>
+      <div class="form-row" id="fart-num-row">
+        <label class="form-label">條文編號</label>
+        <input class="form-input" id="fart-num" placeholder="第1條 / Article 1">
+      </div>
+      <div class="form-row">
+        <label class="form-label">內容 (中文) *</label>
+        <textarea class="form-textarea" id="fart-textCN" style="min-height:110px" placeholder="條文內容..."></textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Content (English)</label>
+        <textarea class="form-textarea" id="fart-textEN" style="min-height:110px" placeholder="Article content..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-article')">取消</button>
+      <button class="btn btn-primary" onclick="saveArticle()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════════════════════════
+const STORAGE_KEY = 'cambodia_laws_v1';
+let lang = 'cn'; // 'cn' | 'en' | 'bi'
+let currentLawId = null;
+let currentChapterId = null;
+let currentViewTab = 'overview';
+let editingLawId = null;
+let editingChapterId = null;
+let editingArticleId = null;
+let selectedColor = '#2563eb';
+
+// Default law data
+const DEFAULT_DATA = [
+  {
+    id: 'labor',
+    nameCN: '勞工法',
+    nameEN: 'Labor Law',
+    year: 1997,
+    amended: '2007、2018、2021年三次修訂（最新）',
+    color: '#2563eb',
+    summaryCN: '柬埔寨《勞工法》是規範勞動關係的基本法律，涵蓋勞動合約、工資、工時、休假、工會及職業健康安全等核心議題，適用於所有在柬埔寨境內從事勞動的工人與雇主。',
+    summaryEN: 'The Cambodian Labor Law is the fundamental legislation governing labor relations, covering employment contracts, wages, working hours, leave, trade unions, and occupational health and safety. It applies to all workers and employers operating in Cambodia.',
+    scope: '適用於所有在柬埔寨境內工作之勞工與雇主（外資企業、本地企業均適用）',
+    chapters: [
+      {
+        id: 'lc1', titleCN: '第一章 總則及適用範圍', titleEN: 'Chapter 1: General Provisions & Scope',
+        summaryCN: '確立勞工法的適用範圍、基本原則及定義，包含勞工、雇主、工作場所等核心概念的法律定義。',
+        summaryEN: 'Establishes the scope of application, fundamental principles, and definitions including legal definitions of worker, employer, and workplace.',
+        items: [
+          { id: 'a1', type: 'article', num: '第1條', textCN: '本法適用於柬埔寨王國境內所有雇傭活動，無論雇主或工人的國籍為何。', textEN: 'This Law applies to all employment activities in the Kingdom of Cambodia, regardless of the nationality of the employer or the worker.' },
+          { id: 'a2', type: 'article', num: '第3條', textCN: '「工人」指根據雇傭合約從事有償工作的任何人。「雇主」指雇用工人從事工作的任何自然人或法人。', textEN: '"Worker" means any person who performs paid work under an employment contract. "Employer" means any natural or legal person who employs workers.' },
+          { id: 'h1', type: 'highlight', textCN: '⚠️ 重點：本法保護範圍廣泛，包含正式勞動合約及非正式雇傭關係，外資工廠（如VRT）須完整遵守。', textEN: '⚠️ Key: This law has broad protective scope including formal and informal employment. Foreign-owned factories (e.g. VRT) must fully comply.' },
+          { id: 'e1', type: 'example', textCN: '💡 範例：若VRT聘用臨時縫紉工人（無書面合約），仍受本法保護，雇主不得以無合約為由拒絕給付加班費或假日津貼。', textEN: '💡 Example: If VRT hires temporary sewing workers without a written contract, they are still protected. The employer cannot refuse overtime pay or holiday allowances on the basis of no written contract.' }
+        ]
+      },
+      {
+        id: 'lc2', titleCN: '第二章 勞動合約', titleEN: 'Chapter 2: Employment Contracts',
+        summaryCN: '規定勞動合約的形式、期限、試用期及終止條件。分為固定期限合約（FDC）及不定期合約（UDC），影響工人資遣補償計算。',
+        summaryEN: 'Governs the form, duration, probation period, and termination conditions of employment contracts. Distinguishes Fixed Duration Contracts (FDC) and Undetermined Duration Contracts (UDC), affecting severance pay calculations.',
+        items: [
+          { id: 'b1', type: 'article', num: '第65條', textCN: '固定期限合約（FDC）最長為2年，到期可更新一次。連續更新後，視同不定期合約（UDC）。', textEN: 'Fixed Duration Contracts (FDC) may last a maximum of 2 years and may be renewed once. Successive renewals convert it to an Undetermined Duration Contract (UDC).' },
+          { id: 'b2', type: 'article', num: '第67條', textCN: '試用期：非技術工人最長1個月；技術工人最長2個月；高技術工人最長3個月。試用期間可隨時終止合約，無需給付補償。', textEN: 'Probation period: max 1 month for unskilled workers; 2 months for skilled workers; 3 months for highly skilled workers. Contracts may be terminated at any time during probation without compensation.' },
+          { id: 'b3', type: 'article', num: '第89條', textCN: '雇主無正當理由終止UDC合約，須依工齡給付資遣費：工齡1-5年者，每年給付15天工資；5年以上者，每年10天。', textEN: 'Termination of UDC without just cause requires severance pay: 15 days wages per year of service for 1-5 years; 10 days per year thereafter.' },
+          { id: 'bh1', type: 'highlight', textCN: '⚠️ 重要：FDC到期若未書面續約直接繼續工作，自動轉為UDC，工人獲得更強法律保護，資遣費大幅增加。工廠HR須嚴格追蹤合約到期日。', textEN: '⚠️ Important: If an FDC expires and work continues without written renewal, it automatically converts to a UDC, giving workers stronger legal protection and higher severance pay. Factory HR must strictly track contract expiry dates.' },
+          { id: 'be1', type: 'example', textCN: '💡 範例：某車間工人FDC合約於2024/3/1到期，HR未及時處理，工人3/5仍在上班。此時已自動轉為UDC，若後續終止合約需按UDC計算資遣費（遠高於FDC）。', textEN: "💡 Example: A workshop worker's FDC expired on 2024/3/1. HR did not process renewal; the worker continued on 3/5. The contract automatically converted to UDC. Any subsequent termination requires UDC-level severance (significantly higher than FDC)." }
+        ]
+      },
+      {
+        id: 'lc3', titleCN: '第三章 工資與薪酬', titleEN: 'Chapter 3: Wages & Remuneration',
+        summaryCN: '規定最低工資標準、工資支付方式、加班費計算及禁止扣薪條款。最低工資由政府每年公告調整。',
+        summaryEN: 'Regulates minimum wage standards, wage payment methods, overtime pay calculation, and prohibitions on wage deductions. Minimum wage is announced annually by the government.',
+        items: [
+          { id: 'c1', type: 'article', num: '第104條', textCN: '工人有權獲得不低於政府規定最低工資的報酬。<strong>2025年柬埔寨紡織/成衣/鞋類/旅行箱包業最低月薪：正式工$208美元；試用期工人$206美元</strong>（依MLVT第211/24號令，2025年1月1日起生效）。其他行業最低工資另行規定，但通常以此為參考底線。', textEN: 'Workers have the right to wages no less than the minimum wage set by the government. <strong>2025 minimum monthly wage for garment/textile/footwear/travel goods sectors: USD 208 (regular workers), USD 206 (probationary workers)</strong> — effective January 1, 2025 per MLVT Prakas No. 211/24. Other sectors use this as a reference floor.' },
+          { id: 'c2', type: 'article', num: '第137/139/144條', textCN: '加班費率（2007年修訂確立，2021年修訂未變動）：①平日加班（晚上10點前）：正常工資的150%；②夜間加班（晚10點至凌晨5點）、週日加班、或法定假日加班：正常工資的200%。注意：<strong>正常夜班（非加班）工資率為正常工資的130%</strong>（2007年修訂後從200%降至130%）。', textEN: 'Overtime rates (established by 2007 amendment, unchanged in 2021): ①Weekday overtime (before 10pm): 150% of normal wages; ②Overtime at night (10pm-5am), Sunday, or public holiday: 200% of normal wages. Note: <strong>Regular night shift (non-overtime) rate is 130% of normal wages</strong> (reduced from 200% by 2007 amendment).' },
+          { id: 'c3', type: 'article', num: '第106條', textCN: '工資須以現金支付，支付週期最長不得超過16天（月薪工人）或7天（日薪工人）。不得以實物、代金券或其他形式替代現金支付。', textEN: 'Wages must be paid in cash. Payment intervals: no longer than 16 days for monthly workers or 7 days for daily workers. Payment must not be in goods, vouchers, or any non-cash form.' },
+          { id: 'ch1', type: 'highlight', textCN: '⚠️ SA8000關聯：SA8000第8條要求工資不得以懲罰目的扣減。柬勞工法第108條亦明確禁止雇主以損害損失或罰款形式扣薪，兩者一致。VRT若有計件制需確認不低於最低工資。', textEN: '⚠️ SA8000 Link: SA8000 Article 8 prohibits wage deduction as punishment. Cambodia Labor Law Art. 108 also explicitly prohibits wage deductions as penalties. These are aligned. VRT piece-rate systems must ensure minimum wage is met.' },
+          { id: 'ce1', type: 'example', textCN: '💡 範例：工人月薪204美元，若某月工作22天（含2天加班，每次2小時），加班費計算：204÷22天÷8小時=1.159美元/時；加班費=4小時×1.159×1.5=6.95美元。', textEN: '💡 Example: Worker monthly wage USD 204, working 22 days with 2 overtime sessions (2hrs each): Hourly rate = 204÷22÷8 = USD 1.159; Overtime = 4hrs × 1.159 × 1.5 = USD 6.95.' }
+        ]
+      },
+      {
+        id: 'lc4', titleCN: '第四章 工作時間與假期', titleEN: 'Chapter 4: Working Hours & Leave',
+        summaryCN: '規定標準工時、加班上限、年假、病假、產假及法定公假等。柬埔寨公假日約28天，為全球最多之一。',
+        summaryEN: 'Regulates standard working hours, overtime limits, annual leave, sick leave, maternity leave, and public holidays. Cambodia has approximately 28 public holidays, one of the highest globally.',
+        items: [
+          { id: 'd1', type: 'article', num: '第138條', textCN: '標準工時：每日8小時，每週48小時（6天工作制）。工人每工作6天必須享有至少1天休息。', textEN: 'Standard working hours: 8 hours per day, 48 hours per week (6-day work week). Workers must have at least 1 rest day for every 6 consecutive working days.' },
+          { id: 'd2', type: 'article', num: '第139條', textCN: '加班最高限制：每日不超過2小時，每週不超過10小時。在特殊情況下（如節日前趕貨），可申請延長加班，但需提前向勞工部報備。', textEN: 'Maximum overtime: 2 hours per day, 10 hours per week. In special circumstances (e.g. pre-holiday rush), extended overtime may be applied for but must be reported to the Ministry of Labor in advance.' },
+          { id: 'd3', type: 'article', num: '第166條', textCN: '年假：工齡1年以上享15個工作日有薪年假；每增加3年工齡，加1天，最多可累積至25天。', textEN: 'Annual leave: Workers with 1+ year of service receive 15 working days paid leave. One additional day is added per 3 years of service, up to a maximum of 25 days.' },
+          { id: 'd4', type: 'article', num: '第182條', textCN: '產假：女性工人有權享受90天有薪產假（前後均可），其中至少50%由社會保障基金支付，其餘由雇主支付。', textEN: 'Maternity leave: Female workers are entitled to 90 days paid maternity leave. At least 50% is covered by the National Social Security Fund; the remainder is paid by the employer.' },
+          { id: 'dh1', type: 'highlight', textCN: '⚠️ 重要：柬埔寨約有28個法定公假日，工廠需提前規劃排班避免違規。SA8000第7條要求不得強制加班，VRT須建立自願加班同意書制度。', textEN: '⚠️ Important: Cambodia has ~28 public holidays. Factories must plan schedules in advance to avoid violations. SA8000 Article 7 prohibits mandatory overtime; VRT must implement a voluntary overtime consent system.' },
+          { id: 'de1', type: 'example', textCN: '💡 範例：柬埔寨水節（Bon Om Touk）通常為3天公假，若工廠需在此期間生產，需付300%加班費，且需書面記錄工人自願同意。強制要求工人工作屬嚴重違規。', textEN: '💡 Example: The Water Festival (Bon Om Touk) is typically 3 public holidays. If the factory needs production during this period, it must pay 300% overtime and maintain written records of voluntary consent. Mandatory work during holidays is a serious violation.' }
+        ]
+      },
+      {
+        id: 'lc5', titleCN: '第五章 工會與集體談判', titleEN: 'Chapter 5: Trade Unions & Collective Bargaining',
+        summaryCN: '保障工人自由結社及成立工會的權利，規定工會登記程序及集體談判機制。柬埔寨工會活動頻繁，尤其在成衣業。',
+        summaryEN: "Guarantees workers' rights to freedom of association and forming trade unions, and regulates union registration procedures and collective bargaining mechanisms. Cambodia has active union activities, especially in the garment sector.",
+        items: [
+          { id: 'e1', type: 'article', num: '第266條', textCN: '工人有權自由組成、加入或退出工會，雇主不得以工人的工會活動為由進行歧視、解雇或懲罰。', textEN: 'Workers have the right to freely form, join, or leave trade unions. Employers may not discriminate, dismiss, or penalize workers based on their union activities.' },
+          { id: 'e2', type: 'article', num: '第280條', textCN: '最具代表性工會（擁有最多成員的工會）享有在工廠與雇主進行集體談判的優先權。', textEN: 'The most representative union (the union with the most members) has priority rights to conduct collective bargaining with the employer.' },
+          { id: 'eh1', type: 'highlight', textCN: '⚠️ SA8000第4條要求：即便法律限制結社自由，雇主仍須允許工人選舉代表。VRT需設立SA8000工人代表選舉制度，不可干涉工會運作。', textEN: '⚠️ SA8000 Article 4: Even where the law limits freedom of association, employers must allow workers to elect representatives. VRT must establish an SA8000 worker representative election system and must not interfere with union operations.' }
+        ]
+      },
+      {
+        id: 'lc6', titleCN: '第六章 職業健康與安全', titleEN: 'Chapter 6: Occupational Health & Safety',
+        summaryCN: '規定雇主提供安全工作環境的義務，包括個人防護設備、健康檢查、工傷賠償及安全委員會設立。',
+        summaryEN: "Regulates employers' obligations to provide safe working environments, including personal protective equipment, health examinations, workers' compensation, and establishment of safety committees.",
+        items: [
+          { id: 'f1', type: 'article', num: '第232條', textCN: '雇主有義務採取必要措施確保工人的健康、安全及福祉，包括提供免費個人防護設備（PPE）及定期安全培訓。', textEN: "Employers are obligated to take necessary measures to ensure workers' health, safety, and welfare, including providing free personal protective equipment (PPE) and regular safety training." },
+          { id: 'f2', type: 'article', num: '第242條', textCN: '雇主超過100名工人的工廠須設立勞工健康安全委員會（HSC），每季至少召開一次會議，委員會須包含工人代表。', textEN: 'Factories with over 100 workers must establish a Health and Safety Committee (HSC), meeting at least quarterly. The committee must include worker representatives.' },
+          { id: 'fh1', type: 'highlight', textCN: '⚠️ VRT關鍵合規點：縫紉車間噪音、切割車間粉塵、化學品使用（染料）均為重點OHS風險。SA8000第3.5條與本條款要求一致，須定期記錄HSC會議紀錄。', textEN: '⚠️ VRT Key Compliance: Sewing workshop noise, cutting workshop dust, and chemical use (dyes) are key OHS risks. SA8000 Article 3.5 aligns with this requirement; HSC meeting records must be regularly documented.' },
+          { id: 'fe1', type: 'example', textCN: '💡 稽核準備：審計員會要求查閱：①HSC成立文件及成員名單 ②近12個月會議紀錄 ③工傷事故記錄本 ④PPE發放記錄 ⑤工人安全培訓簽到表。', textEN: '💡 Audit Preparation: Auditors will request: ①HSC formation documents and member list ②Meeting records for last 12 months ③Workplace injury/accident log ④PPE distribution records ⑤Worker safety training attendance sheets.' }
+        ]
+      },
+      {
+        id: 'lc7', titleCN: '第七章 童工規定', titleEN: 'Chapter 7: Child Labor Provisions',
+        summaryCN: '明確禁止童工，規定最低就業年齡及未成年工的特別保護措施，與SA8000第1條高度契合。',
+        summaryEN: 'Explicitly prohibits child labor, stipulates the minimum employment age, and provides special protections for young workers. Highly aligned with SA8000 Article 1.',
+        items: [
+          { id: 'g1', type: 'article', num: '第177條', textCN: '最低就業年齡為15歲。禁止雇用15歲以下兒童從事任何形式的勞動。', textEN: 'The minimum employment age is 15 years. Employing children under 15 in any form of labor is prohibited.' },
+          { id: 'g2', type: 'article', num: '第178條', textCN: '15至18歲未成年工：禁止安排夜班（晚上10時至凌晨5時）；每日工時不得超過8小時；禁止從事危險或有害健康的工作。', textEN: 'Workers aged 15-18: prohibited from night shifts (10pm-5am); daily hours must not exceed 8 hours; prohibited from hazardous or health-damaging work.' },
+          { id: 'gh1', type: 'highlight', textCN: '⚠️ SA8000對照：SA8000定義兒童為15歲以下，與柬埔寨法律一致。VRT在招募時須核驗年齡證明文件（身份證/出生證明），並保留複印件備查。', textEN: '⚠️ SA8000 Alignment: SA8000 defines a child as under 15, consistent with Cambodian law. VRT must verify age documents (ID/birth certificate) during recruitment and retain copies for inspection.' }
+        ]
+      },
+      {
+        id: 'lc8', titleCN: '【2021年第三次修訂】重點變更', titleEN: '2021 Third Amendment: Key Changes',
+        summaryCN: '2021年10月5日頒布（第NS/RKM/1021/011號），即日生效。修訂重點：三班制、週日公假補償取消、個人勞動爭議新機制。此為最新版本，工廠需更新內部規章以符合新規。',
+        summaryEN: 'Promulgated October 5, 2021 (Royal Kram NS/RKM/1021/011), effective immediately. Key changes: three-shift system, removal of Sunday public holiday compensation, new individual dispute mechanism. Factories must update internal regulations to comply.',
+        items: [
+          { id: 'am1', type: 'article', num: '新第138條（工班制度）', textCN: '企業可根據業務性質安排最多三個班次：早班、午班、夜班。每班不超過每日法定最高工時（8小時）。此修訂使工廠可合法安排三班24小時連續生產，有利電子業及食品加工業；成衣廠亦可靈活排班。', textEN: 'Enterprises may schedule up to three shifts: morning, afternoon, and night. Each shift must not exceed the daily maximum working hours (8 hours). This allows factories to legally operate 24-hour continuous production, benefiting electronics and food processing; garment factories may also use this for flexible scheduling.' },
+          { id: 'am2', type: 'article', num: '新第162條（週日公假補償取消）', textCN: '原規定：法定公假若落在週日，工人可獲下一個工作日補假。新規定：<strong>取消此補假制度</strong>。公假落在週日即視同已休，不再補假。此舉實質上減少每年公假天數（視每年有多少公假落在週日而定）。', textEN: 'Previous rule: If a public holiday falls on Sunday, workers receive a compensatory day off on the next working day. New rule: <strong>This compensatory system is abolished</strong>. A holiday on Sunday is treated as taken; no replacement day is given. This effectively reduces total annual public holidays (depending on how many fall on Sundays each year).' },
+          { id: 'am3', type: 'article', num: '新第300條（個人勞動爭議）', textCN: '仲裁委員會（Arbitration Council）管轄範圍擴大，可受理<strong>個人勞動爭議</strong>（原僅限集體爭議）。程序：當事人先向勞工督察申請調解 → 調解不成，可向勞工法院或仲裁委員會提訴。具體程序待勞工部另頒布行政令（Prakas）規定。', textEN: 'The Arbitration Council\'s jurisdiction is expanded to cover <strong>individual labor disputes</strong> (previously only collective disputes). Process: parties first file for conciliation with the Labor Inspector → if unresolved, may file with Labor Court or Arbitration Council. Specific procedures to be determined by MLVT Prakas.' },
+          { id: 'amh1', type: 'highlight', textCN: '⚠️ VRT合規行動項：①更新工廠內部規章（Internal Rules）中的班次規定，如有三班制需依新法描述；②更新公假日曆計算方式（落在週日的公假不再補假）；③通知工人了解新個人爭議申訴渠道（須書面告知）。未更新內部規章可能在MLVT線上自申報系統審查中被標記。', textEN: '⚠️ VRT Action Items: ①Update factory Internal Rules regarding shift provisions; if operating 3 shifts, describe per new law; ②Update public holiday calendar calculation (no compensatory day for holidays on Sunday); ③Inform workers of new individual dispute channels (must be communicated in writing). Failure to update internal rules may be flagged in the MLVT online self-declaration system.' },
+          { id: 'ame1', type: 'example', textCN: '💡 範例：2025年若某法定公假（如高棉新年某天）恰逢週日，工廠無需安排週一補假，亦無需支付額外補償。但若要求工人在該週日（公假日）正常上班，仍須依「公假日加班」標準（200%）支付。', textEN: '💡 Example: In 2025, if a public holiday (e.g., a Khmer New Year day) falls on Sunday, the factory does not need to arrange a compensatory Monday off, nor pay additional compensation. However, if workers are required to work that Sunday (which is a public holiday), it must still be paid at the public holiday overtime rate (200%).' }
+        ]
+      },
+    ]
+  },
+  {
+    id: 'investment',
+    nameCN: '投資法',
+    nameEN: 'Law on Investment',
+    year: 2021,
+    amended: '2021年10月15日全面取代1994年舊法；2023年第139號施行細則',
+    color: '#16a34a',
+    summaryCN: '2021年《投資法》取代1994年舊法，大幅優化外資投資獎勵體制，設立合格投資項目（QIP）分級制度，提供稅收優惠、土地使用及人員引進便利，是在柬投資的核心法律依據。',
+    summaryEN: 'The 2021 Investment Law replaced the 1994 law, significantly improving the foreign investment incentive system. It establishes a Qualified Investment Project (QIP) tiering system providing tax incentives, land use benefits, and staffing facilitation - the core legal basis for investment in Cambodia.',
+    scope: '適用於所有在柬埔寨境內的外資及本地投資者',
+    chapters: [
+      {
+        id: 'ic1', titleCN: '第一章 合格投資項目（QIP）', titleEN: 'Chapter 1: Qualified Investment Projects (QIP)',
+        summaryCN: 'QIP依投資規模與行業分為三個等級，不同等級享有不同期限的企業所得稅豁免（最長9年）及關稅優惠。',
+        summaryEN: 'QIPs are tiered into three levels based on investment scale and industry. Different tiers enjoy different periods of corporate income tax exemption (up to 9 years) and customs duty exemptions.',
+        items: [
+          { id: 'ia1', type: 'article', num: '第11條', textCN: 'QIP三級：優先行業A級（如出口製造業）：企業所得稅豁免9年；B級：豁免6年；C級：豁免3年。豁免期後享受企業所得稅減半優惠。', textEN: 'QIP Tier: Priority Sector A (e.g. export manufacturing): CIT exemption 9 years; Tier B: 6 years; Tier C: 3 years. After exemption, reduced CIT rate applies.' },
+          { id: 'ia2', type: 'article', num: '第14條', textCN: '出口製造業（成衣、紡織、鞋類等）列為A級優先行業，可享最長9年企業所得稅豁免及生產設備進口關稅豁免。', textEN: 'Export manufacturing (garments, textiles, footwear, etc.) is classified as Tier A priority sector, eligible for up to 9 years CIT exemption and import duty exemption on production equipment.' },
+          { id: 'ih1', type: 'highlight', textCN: '⚠️ VRT關聯：作為紡織出口製造商，VRT符合A級QIP資格。如尚未申請QIP認定，建議向柬埔寨發展委員會（CDC）諮詢，可節省可觀稅務支出。2023年第139號施行細則（取代2005年第111號）已出台，規定了QIP線上申請程序，CDC須在20個工作天內核發注冊證書。', textEN: '⚠️ VRT Relevance: As a textile export manufacturer, VRT qualifies for Tier A QIP status. Sub-Decree No. 139 (2023) replaced Sub-Decree No. 111 (2005) and governs QIP registration under the new law, with CDC required to issue a Registration Certificate within 20 working days via online application.' },
+          { id: 'ie1', type: 'example', textCN: '💡 範例：若VRT申請QIP認定成功，進口縫紉機、裁床設備可免關稅（一般為7-15%），企業所得稅（20%）可豁免最長9年，累計節省金額可觀。', textEN: '💡 Example: If VRT successfully registers as a QIP, imported sewing machines and cutting equipment can be exempt from customs duties (normally 7-15%), and CIT (20%) can be exempted for up to 9 years, resulting in substantial cumulative savings.' }
+        ]
+      },
+      {
+        id: 'ic2', titleCN: '第二章 土地使用與租賃', titleEN: 'Chapter 2: Land Use & Leasing',
+        summaryCN: '規定外資企業的土地使用方式，包含長期租賃及受益性土地使用權（LMAP）制度。外資不得直接購買土地所有權。',
+        summaryEN: "Regulates foreign companies' land use methods, including long-term leases and Land Management and Administration Project (LMAP) rights. Foreign entities cannot directly purchase land ownership.",
+        items: [
+          { id: 'ib1', type: 'article', num: '第50條', textCN: '外資企業可通過長期租賃（最長99年，可更新）使用國有土地建設廠房。租賃合約須向土地部登記，取得合法租賃憑證。', textEN: 'Foreign companies may use state land for factory construction through long-term leases (up to 99 years, renewable). Lease agreements must be registered with the Ministry of Land to obtain a legal lease certificate.' },
+          { id: 'ih2', type: 'highlight', textCN: '⚠️ 重要：柬埔寨法律禁止外資擁有土地所有權。若工廠廠房以外籍個人名義持有，存在法律風險。建議透過柬埔寨本地法人持有或正式租賃協議。', textEN: '⚠️ Important: Cambodian law prohibits foreign ownership of land. Holding factory land in the name of a foreign individual carries legal risk. Holding through a Cambodian legal entity or formal lease agreement is recommended.' }
+        ]
+      },
+      {
+        id: 'ic3', titleCN: '第三章 外籍人員配額與工作許可', titleEN: 'Chapter 3: Expatriate Quota & Work Permits',
+        summaryCN: '規定外籍員工佔全體員工的比例上限（技術工種10%，管理職位不限），以及工作許可證的申請程序。',
+        summaryEN: 'Regulates the maximum percentage of foreign employees (10% for technical positions, no limit for management), and work permit application procedures.',
+        items: [
+          { id: 'ic1i', type: 'article', num: '第57條', textCN: '外籍技術工人不得超過工廠技術工種員工總數的10%；管理及主管職位不受比例限制，但每人均須持有有效工作許可證（E-MAP）。', textEN: 'Foreign technical workers must not exceed 10% of total technical staff. Management and supervisor positions have no quota limit, but each person must hold a valid work permit (E-MAP).' },
+          { id: 'ih3', type: 'highlight', textCN: '⚠️ 合規要求：所有外籍員工（包含台籍主管、技術人員）均需持有有效工作許可，每年須更新。未持工作許可被查獲，工廠與當事人均面臨罰款。', textEN: '⚠️ Compliance Requirement: All foreign employees (including Taiwanese managers and technicians) must hold valid work permits, renewed annually. Violations result in fines for both the factory and the individual.' },
+          { id: 'ie2', type: 'example', textCN: '💡 實務提醒：VRT台籍幹部需持有：①工作許可（E-MAP，每年更新）②商業簽證（E類，有效期6-12個月）③入境登記（到柬後28天內向移民局登記）。建議HR建立到期提醒系統。', textEN: '💡 Practical Note: Taiwanese managers at VRT need: ①Work permit (E-MAP, renewed annually) ②Business visa (Type E, valid 6-12 months) ③Immigration registration (within 28 days of arrival). HR should maintain an expiry reminder system.' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'tax',
+    nameCN: '稅法',
+    nameEN: 'Law on Taxation',
+    year: 1997,
+    amended: '多次修訂，2021年重大更新',
+    color: '#c9a84c',
+    summaryCN: '《稅法》規定柬埔寨各類稅種的徵收辦法，主要包括：企業所得稅（CIT，20%）、加值稅（VAT，10%）、預扣稅（WHT）、薪資稅及最低稅（MT）。外資製造業通常享有多項豁免。',
+    summaryEN: 'The Law on Taxation governs the collection of various taxes in Cambodia, primarily: Corporate Income Tax (CIT, 20%), Value Added Tax (VAT, 10%), Withholding Tax (WHT), Salary Tax, and Minimum Tax (MT). Foreign manufacturing companies typically enjoy multiple exemptions.',
+    scope: '適用於所有在柬埔寨登記的企業及個人納稅義務人',
+    chapters: [
+      {
+        id: 'tc1', titleCN: '第一章 企業所得稅（CIT）', titleEN: 'Chapter 1: Corporate Income Tax (CIT)',
+        summaryCN: '企業所得稅稅率為20%，QIP企業可享豁免期。小型企業（年營業額低於700百萬瑞爾）適用較低稅率。',
+        summaryEN: 'Corporate Income Tax rate is 20%. QIP enterprises may enjoy exemption periods. Small enterprises (annual turnover below KHR 700 million) qualify for lower rates.',
+        items: [
+          { id: 'ta1', type: 'article', num: '第20條', textCN: '一般企業所得稅稅率：20%。石油天然氣及採礦業：30%。非居民企業來源於柬埔寨的被動收入：14%預扣稅。', textEN: 'Standard CIT rate: 20%. Oil & gas and mining: 30%. Non-resident companies on Cambodia-sourced passive income: 14% withholding tax.' },
+          { id: 'ta2', type: 'article', num: '第25條', textCN: '最低稅（MT）：無論是否盈利，企業每年須繳納年度毛利0.1%的最低稅。QIP企業在豁免期內免繳MT。', textEN: 'Minimum Tax (MT): Regardless of profitability, enterprises must pay MT equal to 0.1% of annual gross revenue. QIP enterprises are exempt from MT during their exemption period.' },
+          { id: 'th1', type: 'highlight', textCN: '⚠️ 重要：即使企業虧損，仍需繳納MT（毛利的0.1%）。財務部門須每月計算並預繳MT，避免罰款。QIP豁免期屆滿後需立即開始繳納。', textEN: '⚠️ Important: Even if the enterprise incurs a loss, MT (0.1% of gross revenue) is still due. Finance must calculate and prepay MT monthly to avoid penalties. MT payments must begin immediately upon expiry of QIP exemption period.' }
+        ]
+      },
+      {
+        id: 'tc2', titleCN: '第二章 加值稅（VAT）', titleEN: 'Chapter 2: Value Added Tax (VAT)',
+        summaryCN: 'VAT稅率10%，出口商品適用0%稅率（免稅並可申請退稅）。月營業額超過125百萬瑞爾的企業須辦理VAT登記。',
+        summaryEN: 'VAT rate is 10%, with a 0% rate for exported goods (tax-exempt with refund eligibility). Enterprises with monthly turnover exceeding KHR 125 million must register for VAT.',
+        items: [
+          { id: 'tb1', type: 'article', num: '第65條', textCN: 'VAT一般稅率10%；出口服務及貨物適用0%（可申請進項稅額退稅）；特定免稅項目包括：基本農產品、教育、醫療及金融服務。', textEN: 'VAT standard rate 10%; exported services and goods at 0% (input tax refund eligible); specific exemptions include basic agricultural products, education, healthcare, and financial services.' },
+          { id: 'te1', type: 'example', textCN: '💡 實務說明：VRT出口成品（服飾、圍裙）適用VAT 0%，且可申請退回採購原材料時已繳的VAT（進項稅額）。此退稅機制對出口型工廠意義重大，須妥善保存所有進項發票。', textEN: '💡 Practical Note: VRT exported finished goods (garments, aprons) qualify for VAT 0%, and can apply for refunds of VAT paid on raw material purchases (input tax). This mechanism is highly beneficial for export factories; all input invoices must be carefully retained.' }
+        ]
+      },
+      {
+        id: 'tc3', titleCN: '第三章 薪資稅與社會保障', titleEN: 'Chapter 3: Salary Tax & Social Security',
+        summaryCN: '薪資稅採累進制（0-20%），雇主須每月代扣代繳。社會保障（NSSF）涵蓋工傷、醫療及養老保障。',
+        summaryEN: 'Salary tax uses a progressive rate (0-20%); employers must withhold and remit monthly. National Social Security Fund (NSSF) covers workplace injury, healthcare, and pension.',
+        items: [
+          { id: 'tc1i', type: 'article', num: '薪資稅率表', textCN: '月薪0-1,300,000瑞爾（約325美元）：免稅；1,300,001-2,000,000（約500美元）：5%；2,000,001-8,500,000（約2,125美元）：10%；以上層級稅率15-20%。', textEN: 'Monthly salary 0-KHR 1,300,000 (~USD 325): exempt; 1,300,001-2,000,000 (~USD 500): 5%; 2,000,001-8,500,000 (~USD 2,125): 10%; higher brackets 15-20%.' },
+          { id: 'tc2i', type: 'article', num: 'NSSF繳費率（2025年現行）', textCN: '①工傷保險：雇主0.8%（工人免繳）；②醫療保障：雇主2.6%（月薪超120萬瑞爾者固定3萬1,200瑞爾/月）+工人1.3%；③<strong>養老保險：自2022年10月1日起正式實施，2025年費率：雇主2%+工人2%=共4%</strong>，每5年遞增2%，上限為月薪120萬瑞爾。所有繳費均需透過NSSF官方門戶網站電子申報。', textEN: '①Workplace injury insurance: employer 0.8% (worker exempt); ②Healthcare: employer 2.6% (fixed KHR 31,200/month for salary over KHR 1.2M) + worker 1.3%; ③<strong>Pension: mandatory since Oct 1, 2022; 2025 rate: employer 2% + worker 2% = 4% total</strong>, increasing by 2% every 5 years, ceiling KHR 1.2M/month. All contributions must be filed electronically via the NSSF portal.' },
+          { id: 'th2', type: 'highlight', textCN: '⚠️ 合規風險：NSSF三項保障均已強制實施：工傷險、醫療保障、<strong>養老保險（2022年10月正式啟動）</strong>。養老保險2025費率：雇主2%+工人2%=共4%，每5年遞增2%。勞動手冊（Labour Book）已數位化，需線上登記。所有NSSF申報須透過官方電子平台提交。未按時繳費面臨每月2-10%罰款。VRT所有線別工人（含試用期、外包人員）均須申報。', textEN: '⚠️ Compliance Risk: All three NSSF schemes are now mandatory: workplace injury insurance, healthcare, and <strong>pension (formally launched October 2022)</strong>. 2025 pension rate: employer 2% + worker 2% = 4% total, increasing by 2% every 5 years. The labour book is now digital and must be registered online. All NSSF contributions must be filed electronically. Late payment incurs 2-10% monthly penalties. All VRT workers — including probationary and contracted — must be registered.' }
+,
+      {"id": "tc0", "titleCN": "第零章 柬埔寨稅制概覽", "titleEN": "Chapter 0: Cambodia Tax System Overview", "summaryCN": "柬埔寨採用自申報制度（Self-Assessment Regime, SAR），大中型企業（Real Regime）須每月申報並繳納各項稅款，由柬埔寨稅務總局（GDT）管轄。主要稅種：企業所得稅（CIT）、加值稅（VAT）、預扣稅（WHT）、薪資稅、最低稅（MT）、特定商品及服務稅（STSP）及房產稅。", "summaryEN": "Cambodia uses a Self-Assessment Regime (SAR). Medium and large enterprises (Real Regime) must file and pay taxes monthly, regulated by the General Department of Taxation (GDT). Main taxes: Corporate Income Tax (CIT), Value Added Tax (VAT), Withholding Tax (WHT), Salary Tax, Minimum Tax (MT), Specific Tax on Certain Merchandise and Services (STSP), and Property Tax.", "items": [{"id": "tc0a1", "type": "article", "num": "企業規模分級", "textCN": "柬埔寨依年營業額將企業分三級：① 大型企業（Large Taxpayer）：年營業額超40億瑞爾（約100萬美元）→ 向大型納稅人辦公室（LTO）申報 ② 中型企業（Medium）：10億-40億瑞爾 → 向省市稅務局申報 ③ 小型企業（Small）：2.5億-10億瑞爾 → 簡化申報，可選擇估算稅制（Estimated Regime）。成衣工廠通常屬於大型或中型納稅人。", "textEN": "Cambodia classifies enterprises by annual turnover: ①Large Taxpayer: >KHR 4 billion (~USD 1M) → reports to Large Taxpayer Office (LTO) ②Medium: KHR 1-4 billion → reports to provincial/municipal tax department ③Small: KHR 250M-1B → simplified filing; may choose Estimated Regime. Garment factories are typically large or medium taxpayers."}, {"id": "tc0a2", "type": "article", "num": "月度申報截止日", "textCN": "每月20日前須申報並繳納：薪資稅（Salary Tax）、預扣稅（WHT）、加值稅（VAT）、特定商品及服務稅（STSP）、公共照明稅（PLT）。每月最低稅（MT）亦在此期間預繳。年度所得稅（CIT/TOI）申報截止：3月31日。", "textEN": "Filing and payment due by the 20th of each month: Salary Tax, Withholding Tax (WHT), VAT, STSP, Public Lighting Tax (PLT). Monthly Minimum Tax (MT) prepayment also due at this time. Annual income tax (CIT/TOI) filing deadline: March 31."}, {"id": "tc0h1", "type": "highlight", "textCN": "⚠️ 合規風險：自2023年起，MLVT推行線上自申報系統，GDT亦強化數位化稽查能力。遲報或錯誤申報將面臨：本金10%罰款+月息2%（最高24%年息）。VRT財務部須建立每月申報日曆，確保20日前完成所有月度申報。", "textEN": "⚠️ Compliance Risk: Since 2023, GDT has enhanced digital audit capabilities. Late or incorrect filing: 10% penalty on principal + 2% monthly interest (max 24% annually). VRT finance must establish a monthly filing calendar ensuring all submissions are completed before the 20th."}]},
+      {"id": "tc4", "titleCN": "第四章 預扣稅（WHT）", "titleEN": "Chapter 4: Withholding Tax (WHT)", "summaryCN": "預扣稅是支付方在付款時代扣代繳的稅款。適用於支付給居民及非居民的各類所得，包括股息、利息、服務費、特許費、租金等，是工廠日常財務中最常涉及的稅種之一。", "summaryEN": "Withholding Tax is deducted at source by the payer on behalf of the recipient. It applies to various income paid to residents and non-residents, including dividends, interest, service fees, royalties, and rent. It is one of the most frequently encountered taxes in factory operations.", "items": [{"id": "tc4a1", "type": "article", "num": "居民WHT稅率", "textCN": "支付給柬埔寨居民的所得預扣稅率：① 服務費（獨立承攬商/個人服務）：15% ② 租金（動產及不動產）：10% ③ 利息（支付給非金融機構居民）：15% ④ 股息（支付給居民股東）：免稅（若CIT已繳納）⑤ 彩票獎金：20%。", "textEN": "WHT rates for payments to Cambodia residents: ①Service fees (independent contractors/personal services): 15% ②Rent (movable and immovable property): 10% ③Interest (paid to non-financial institution residents): 15% ④Dividends (to resident shareholders): exempt (if CIT already paid) ⑤Lottery winnings: 20%."}, {"id": "tc4a2", "type": "article", "num": "非居民WHT稅率", "textCN": "支付給非居民（包含境外母公司、台灣總部）的所得預扣稅率：① 股息：14% ② 利息：14% ③ 特許費/技術服務費：14% ④ 租金：14% ⑤ 管理費：14%。注意：柬埔寨與台灣無租稅協定（DTA），無法適用較低協定稅率。", "textEN": "WHT rates for payments to non-residents (including overseas parent companies, Taiwan HQ): ①Dividends: 14% ②Interest: 14% ③Royalties/technical service fees: 14% ④Rent: 14% ⑤Management fees: 14%. Note: No DTA between Cambodia and Taiwan; reduced treaty rates are not available."}, {"id": "tc4h1", "type": "highlight", "textCN": "⚠️ VRT常見WHT場景：① 支付台北總部管理費（Management Fee）→ 14% WHT ② 向外部顧問/律師支付服務費（居民）→ 15% WHT ③ 向房東支付廠房租金 → 10% WHT ④ 向境外採購物料並支付服務費 → 14% WHT。每月20日前申報，憑WHT扣繳憑單可作為對方所得稅的抵免憑證。", "textEN": "⚠️ Common VRT WHT scenarios: ①Management fees paid to Taipei HQ → 14% WHT ②Service fees to external consultants/lawyers (residents) → 15% WHT ③Rent paid to factory landlord → 10% WHT ④Service fees to overseas suppliers → 14% WHT. File by 20th monthly; WHT certificates can be used as income tax credits by recipients."}, {"id": "tc4e1", "type": "example", "textCN": "💡 計算範例：VRT每月支付台北總部管理費1萬美元。應扣WHT：$10,000 × 14% = $1,400。VRT實際匯給台北：$8,600；WHT $1,400在柬埔寨申報繳納給GDT。若台北公司希望收到整數$10,000，需採取「毛額化」（Gross-up）處理：$10,000 ÷ (1-14%) ≈ $11,628，其中WHT為$1,628。", "textEN": "💡 Calculation: VRT pays USD 10,000 monthly management fee to Taipei HQ. WHT: $10,000 × 14% = $1,400. VRT remits $8,600 to Taipei; $1,400 WHT is filed and paid to GDT. If Taipei wants to receive a net USD 10,000, gross-up is needed: $10,000 ÷ (1-14%) ≈ $11,628 total, WHT = $1,628."}]},
+      {"id": "tc5", "titleCN": "第五章 特許稅（Patent Tax）與商業登記費", "titleEN": "Chapter 5: Patent Tax & Business Registration Fees", "summaryCN": "特許稅（Patent Tax）是每年向GDT繳納的企業營業許可稅，按企業規模分級收費。另需每年向商業部（MoC）申報年度申報（Annual Return）。", "summaryEN": "Patent Tax is an annual business license tax paid to the GDT, assessed by company size. Companies must also file an Annual Return to the Ministry of Commerce (MoC) each year.", "items": [{"id": "tc5a1", "type": "article", "num": "特許稅年費", "textCN": "按企業年度VAT申報營業額分級：① 大型企業：約1,250美元/年 ② 中型企業：約450美元/年 ③ 小型企業：約200美元/年（估計值，以GDT現行公告為準）。新設企業首年免繳特許稅；第二年起依實際規模繳納。每年1月31日前完成繳納。", "textEN": "Annual Patent Tax by enterprise VAT-registered turnover tier: ①Large enterprise: approx. USD 1,250/year ②Medium: approx. USD 450/year ③Small: approx. USD 200/year (estimates; refer to current GDT announcements). New enterprises are exempt in their first year; patent tax is due from the second year. Pay by January 31 annually."}, {"id": "tc5h1", "type": "highlight", "textCN": "⚠️ VRT年度合規日曆整合：1月31日前→特許稅繳納；3月31日前→年度所得稅申報（GDT）+ 商業部年度申報（MoC）；每月20日→薪資稅/WHT/VAT月度申報；每月15日前→NSSF月度申報。建議財務部建立Outlook行事曆重複提醒。", "textEN": "⚠️ VRT Annual Compliance Calendar: By Jan 31→Patent Tax; By Mar 31→Annual CIT filing (GDT) + Annual Return (MoC); Monthly by 20th→Salary Tax/WHT/VAT; Monthly by 15th→NSSF. Recommend finance set up recurring Outlook calendar reminders."}]},
+      {"id": "tc6", "titleCN": "第六章 特定商品及服務稅（STSP）", "titleEN": "Chapter 6: Specific Tax on Certain Merchandise and Services (STSP)", "summaryCN": "STSP為特定商品及服務的銷售稅，類似消費稅。對成衣工廠影響有限，但若廠內有銷售特定商品（如酒精飲料、菸草、燃料）或提供某些服務需注意。", "summaryEN": "STSP is a sales tax on specific goods and services, similar to an excise tax. Its impact on garment factories is limited, but factories selling specific goods (e.g., alcohol, tobacco, fuel) or providing certain services must be aware.", "items": [{"id": "tc6a1", "type": "article", "num": "主要稅率", "textCN": "STSP主要適用：① 酒精飲料：15-35% ② 菸草製品：20% ③ 國內航空服務：10% ④ 娛樂服務：10% ⑤ 蓋在柬埔寨生產的木材：10%。成衣工廠通常不適用STSP，但廠內福利社若銷售含酒精飲料需注意合規。", "textEN": "STSP mainly applies to: ①Alcoholic beverages: 15-35% ②Tobacco products: 20% ③Domestic aviation services: 10% ④Entertainment services: 10% ⑤Timber produced in Cambodia: 10%. Garment factories generally are not subject to STSP, but factory canteens selling alcoholic beverages must ensure compliance."}]},
+      {"id": "tc7", "titleCN": "第七章 移轉訂價（Transfer Pricing）", "titleEN": "Chapter 7: Transfer Pricing", "summaryCN": "柬埔寨已於2017年引入移轉訂價規定（Prakas 986），要求關聯企業間交易須依公平交易原則（Arm's Length Principle）定價。對外資工廠與境外母公司間的交易（如管理費、商標授權費、原材料採購）影響重大。", "summaryEN": "Cambodia introduced transfer pricing rules (Prakas 986) in 2017, requiring related-party transactions to follow the Arm's Length Principle. This significantly impacts foreign factories' transactions with overseas parent companies (management fees, trademark licensing, raw material purchases).", "items": [{"id": "tc7a1", "type": "article", "num": "關聯交易申報義務", "textCN": "年營業額超5,000萬瑞爾（約1.25萬美元）且有關聯交易的企業，須在年度CIT申報時附上關聯交易申報表（TP Disclosure Form），列明：① 交易類型 ② 交易對象及關係 ③ 交易金額 ④ 定價方法（如CUP法、TNMM法等）。未申報面臨罰款。", "textEN": "Enterprises with annual turnover exceeding KHR 50 million (~USD 12,500) that have related-party transactions must submit a Transfer Pricing Disclosure Form with the annual CIT filing, detailing: ①Transaction type ②Related party and relationship ③Transaction amount ④Pricing method (e.g., CUP, TNMM). Non-disclosure faces penalties."}, {"id": "tc7h1", "type": "highlight", "textCN": "⚠️ VRT關聯交易高風險項目：① 支付台北總部管理費（Management Service Fee）② 向台北採購原材料或半成品 ③ 品牌授權費/商標使用費 ④ 貸款利息支付。建議：維護完整的關聯交易文件（本地文件+主文件），參考OECD移轉訂價指引，並在GDT稽查前做好準備。", "textEN": "⚠️ VRT High-Risk Related-Party Transactions: ①Management service fees to Taipei HQ ②Raw material or semi-finished goods procurement from Taipei ③Brand licensing/trademark royalties ④Loan interest payments. Recommendation: Maintain complete TP documentation (local file + master file) referencing OECD TP Guidelines; be prepared before GDT audit."}]},
+      {"id": "tc8", "titleCN": "第八章 稅務稽查與爭議處理", "titleEN": "Chapter 8: Tax Audit & Dispute Resolution", "summaryCN": "GDT可對企業進行稅務稽查，稽查分為辦公室稽查（Desk Audit）和現場稽查（Field Audit）兩類。稽查期限為稅款到期後10年內。", "summaryEN": "GDT may conduct tax audits on enterprises. Audits are classified as Desk Audits and Field Audits. The statute of limitations for audit is 10 years from the tax due date.", "items": [{"id": "tc8a1", "type": "article", "num": "稽查類型與程序", "textCN": "① 辦公室稽查：GDT要求企業提交補充文件（通常針對申報異常），企業有15天回覆期。② 現場稽查（Limited Scope）：針對特定稅種或交易，通常3-6個月完成。③ 綜合稽查（Comprehensive）：全面審查所有稅種，可能長達1-2年。稽查結束後，GDT發出稅務評定通知，企業可在30天內提出異議。", "textEN": "①Desk Audit: GDT requests supplementary documents (typically for abnormal filings); companies have 15 days to respond. ②Limited Scope Field Audit: targets specific taxes or transactions; typically 3-6 months. ③Comprehensive Audit: full review of all taxes; may take 1-2 years. After audit, GDT issues a tax assessment notice; companies can file an objection within 30 days."}, {"id": "tc8h1", "type": "highlight", "textCN": "⚠️ VRT稽查準備要點：保留記錄10年（GDT追溯期限）：① 所有月度申報記錄及繳款憑據 ② 進出口報關單 ③ 員工薪資記錄（含NSSF繳費） ④ 關聯交易合約及移轉訂價文件 ⑤ 固定資產折舊表。建議每年進行「模擬稽查」（Mock Audit），由外部稅務顧問協助識別風險。", "textEN": "⚠️ VRT Audit Preparation Checklist: Retain records for 10 years (GDT lookback period): ①All monthly filing records and payment receipts ②Import/export customs declarations ③Employee payroll records (including NSSF) ④Related-party contracts and TP documentation ⑤Fixed asset depreciation schedules. Recommend annual 'Mock Audit' with external tax advisor to identify risks."}]}
+        ]
+      }
+    ]
+  },
+  {
+    id: 'environment',
+    nameCN: '環境法',
+    nameEN: 'Environmental Protection Law',
+    year: 1996,
+    amended: '2023年環境與自然資源部成立',
+    color: '#0891b2',
+    summaryCN: '《環境保護及自然資源管理法》要求企業進行環境影響評估（EIA）、廢水處理、廢棄物管理及環境許可申請。紡織、染整行業為重點監管對象。',
+    summaryEN: 'The Law on Environmental Protection and Natural Resources Management requires companies to conduct Environmental Impact Assessments (EIA), wastewater treatment, waste management, and environmental permit applications. Textile and dyeing industries are key regulatory targets.',
+    scope: '適用於所有可能對環境造成影響的工業、農業及商業活動',
+    chapters: [
+      {
+        id: 'ec1', titleCN: '第一章 環境影響評估（EIA）', titleEN: 'Chapter 1: Environmental Impact Assessment (EIA)',
+        summaryCN: '投資規模超過一定門檻的工業項目須進行EIA，並取得環境合規證書（ECC）後方可投入生產。',
+        summaryEN: 'Industrial projects above a certain investment threshold must complete an EIA and obtain an Environmental Compliance Certificate (ECC) before commencing production.',
+        items: [
+          { id: 'ea1', type: 'article', num: '第6條', textCN: '初始環境評估（IEE）：適用於中等規模項目（投資額2-10百萬美元或特定行業）；完整EIA：大型項目（投資額超10百萬美元）。', textEN: 'Initial Environmental Examination (IEE): applies to medium-scale projects (USD 2-10 million investment or specific sectors). Full EIA: large projects (investment exceeding USD 10 million).' },
+          { id: 'eh1', type: 'highlight', textCN: '⚠️ 紡織業重點：成衣廠雖以縫製為主，若廠內有染色、水洗工序，廢水排放須符合環保部標準，需取得廢水排放許可，並定期送廢水樣本至認可實驗室檢測。', textEN: '⚠️ Textile Sector Focus: While garment factories mainly involve sewing, any dyeing or washing processes require wastewater discharge permits. Wastewater samples must be regularly sent to accredited laboratories for testing.' },
+          { id: 'ee1', type: 'example', textCN: '💡 稽核查核點：C-TPAT及SA8000稽核員可能要求查閱：①環境合規證書（ECC）②廢水檢測報告 ③廢棄物（布邊、線頭）處理記錄 ④危險化學品（黏合劑、清潔劑）儲存及使用記錄。', textEN: '💡 Audit Checkpoints: C-TPAT and SA8000 auditors may request: ①Environmental Compliance Certificate (ECC) ②Wastewater testing reports ③Waste disposal records (fabric scraps, threads) ④Hazardous chemical (adhesives, cleaners) storage and usage records.' }
+        ]
+      },
+      {
+        id: 'ec2', titleCN: '第二章 廢棄物管理', titleEN: 'Chapter 2: Waste Management',
+        summaryCN: '規定固體廢棄物、危險廢棄物的分類、儲存及處置要求。工廠須建立廢棄物管理計畫並保存處置記錄。',
+        summaryEN: 'Regulates classification, storage, and disposal requirements for solid waste and hazardous waste. Factories must establish waste management plans and maintain disposal records.',
+        items: [
+          { id: 'eb1', type: 'article', num: '第25條', textCN: '危險廢棄物（包括含化學物質的廢棄布料、溶劑容器等）須委託持有危廢處置許可的單位處理，並保留轉移聯單。', textEN: 'Hazardous waste (including chemically treated fabric scraps, solvent containers, etc.) must be disposed of by licensed hazardous waste handlers. Transfer manifests must be retained.' },
+          { id: 'eh2', type: 'highlight', textCN: '⚠️ VRT應建立：布邊布料每月處置記錄（重量及處置方式）、危化品清單（Safety Data Sheet存檔）、廢棄PPE（口罩、手套）分類處理記錄。此為環保稽核及SA8000稽核共同查核點。', textEN: '⚠️ VRT should maintain: Monthly fabric scrap disposal records (weight and method), hazardous chemical inventory (SDS on file), and classification/disposal records for expired PPE (masks, gloves). These are common checkpoints for both environmental and SA8000 audits.' }
+,
+      {"id": "ec0", "titleCN": "第零章 環境法律體系概覽", "titleEN": "Chapter 0: Environmental Legal Framework Overview", "summaryCN": "柬埔寨環境保護的主要法律框架：① 1996年《環境保護及自然資源管理法》（主體法）② 2009年《水資源管理法》③ 2007年《廢水管理次法令》④ 2015年《固體廢棄物管理次法令》⑤ 2019年《氣候變化法規》。2023年成立環境及自然資源部（MoENR）統一管理。", "summaryEN": "Cambodia's main environmental legal framework: ①1996 Law on Environmental Protection and Natural Resources Management (primary law) ②2009 Law on Water Resources Management ③2007 Sub-Decree on Wastewater ④2015 Sub-Decree on Solid Waste ⑤2019 Climate Change regulations. Ministry of Environment and Natural Resources (MoENR) established in 2023 as unified regulator.", "items": [{"id": "ec0a1", "type": "article", "num": "主要監管機構", "textCN": "① 環境及自然資源部（MoENR）：政策制定、EIA審批、執法監督 ② 省市環境局：地方層面監管及現場稽查 ③ 工業科技創新部（MISTI）：工業企業環保合規配合監管 ④ 水資源及氣象部：水資源使用許可 ⑤ 城市管理部：固體廢棄物收集處理。各部門之間可能存在重疊管轄，建議與各機構保持良好關係。", "textEN": "①MoENR: Policy, EIA approval, enforcement ②Provincial/municipal environment departments: local regulation and field inspections ③MISTI: Industrial environmental compliance ④Ministry of Water Resources and Meteorology: water use permits ⑤Ministry of Interior (Urban Management): solid waste collection. Overlapping jurisdictions possible; maintaining good relationships with all agencies is advisable."}, {"id": "ec0h1", "type": "highlight", "textCN": "⚠️ SA8000關聯：SA8000管理系統（第9條）要求組織識別其運營對外部環境的影響並採取措施。雖SA8000本身非環保認證，但稽核員可能詢問工廠是否遵守當地環保法規。保留ECC、廢水報告、廢棄物處理記錄是應對SA8000及客戶稽核的雙重需求。", "textEN": "⚠️ SA8000 Link: SA8000 management system (Article 9) requires organizations to identify impacts of their operations on the external environment and take measures. While SA8000 is not an environmental certification, auditors may inquire whether the factory complies with local environmental regulations. Maintaining ECC, wastewater reports, and waste disposal records serves dual purposes for SA8000 and client audits."}]},
+      {"id": "ec3", "titleCN": "第三章 廢水管理與排放標準", "titleEN": "Chapter 3: Wastewater Management & Discharge Standards", "summaryCN": "2007年《廢水管理次法令》及MoENR相關規定設定了工業廢水排放標準。紡織染整業為重點監管行業，廢水須達標後方可排放。", "summaryEN": "The 2007 Sub-Decree on Wastewater Management and MoENR regulations set industrial wastewater discharge standards. Textile dyeing and finishing is a priority regulated sector; wastewater must meet standards before discharge.", "items": [{"id": "ec3a1", "type": "article", "num": "工業廢水排放標準（A類：排入地表水）", "textCN": "主要指標限值（A類）：pH值：6-9；懸浮固體（SS）：≤50 mg/L；生化需氧量（BOD5）：≤30 mg/L；化學需氧量（COD）：≤100 mg/L；總氮（TN）：≤30 mg/L；總磷（TP）：≤5 mg/L；石油及油脂：≤5 mg/L；重金屬（鉻等）：依物質另訂。成衣廠（純縫製，無染色）通常只需處理生活污水。", "textEN": "Key discharge limits (Class A: discharge to surface water): pH: 6-9; Suspended Solids (SS): ≤50 mg/L; BOD5: ≤30 mg/L; COD: ≤100 mg/L; Total Nitrogen (TN): ≤30 mg/L; Total Phosphorus (TP): ≤5 mg/L; Oil and grease: ≤5 mg/L; Heavy metals (chromium etc.): per substance. Garment factories (sewing only, no dyeing) typically only need to manage domestic wastewater."}, {"id": "ec3a2", "type": "article", "num": "廢水排放許可申請", "textCN": "凡有工業廢水排放的企業須向MoENR申請廢水排放許可（Wastewater Discharge Permit）。申請材料：① 企業登記證明 ② ECC（環境合規證書） ③ 廢水處理系統技術說明 ④ 廠區平面圖（標示排放口位置）⑤ 廢水樣本初步檢測報告（由認可實驗室出具）。許可有效期通常為1-3年，需定期更新。", "textEN": "Enterprises with industrial wastewater discharge must apply for a Wastewater Discharge Permit from MoENR. Required documents: ①Business registration ②ECC ③Technical description of wastewater treatment system ④Factory layout (showing discharge point locations) ⑤Initial wastewater sample test report (from accredited laboratory). Permit validity: typically 1-3 years, requires periodic renewal."}, {"id": "ec3h1", "type": "highlight", "textCN": "⚠️ VRT實務：若VRT廠區有洗手間、廚房、食堂等生活污水，應確認其接入市政排污系統或建有化糞池（Septic Tank）並定期清理。若未來有增加洗水或染色工序的計劃，必須提前申請廢水排放許可，建設廢水處理設施（ETP）後方可啟動。", "textEN": "⚠️ VRT Practice: If VRT has toilets, kitchens, canteens generating domestic wastewater, confirm it is connected to municipal sewage or has a properly maintained Septic Tank. Any future plans for washing or dyeing processes must include advance application for a Wastewater Discharge Permit and construction of an Effluent Treatment Plant (ETP) before operations begin."}]},
+      {"id": "ec4", "titleCN": "第四章 空氣污染與噪音管理", "titleEN": "Chapter 4: Air Pollution & Noise Management", "summaryEN": "Cambodia's environmental law regulates industrial air emissions and workplace noise. Garment factories primarily face dust (from cutting), thread/fiber particles, and generator exhaust as air quality concerns; noise from sewing machines and cutting equipment also requires management.", "summaryCN": "柬埔寨環境法規管工業廢氣排放及噪音。成衣廠主要涉及：裁剪車間粉塵、纖維顆粒、發電機廢氣等空氣品質議題，及縫紉機、裁床噪音管理。", "items": [{"id": "ec4a1", "type": "article", "num": "工業廢氣排放管制", "textCN": "工廠固定污染源（發電機、鍋爐等）排放廢氣須符合MoENR規定的排放標準。主要管制項目：顆粒物（PM）、二氧化硫（SO2）、氮氧化物（NOx）、一氧化碳（CO）。使用柴油發電機的工廠需定期檢測排放，並保留記錄。", "textEN": "Fixed source air emissions from factories (generators, boilers, etc.) must meet MoENR emission standards. Main regulated pollutants: Particulate Matter (PM), Sulfur Dioxide (SO2), Nitrogen Oxides (NOx), Carbon Monoxide (CO). Factories using diesel generators must conduct periodic emission testing and maintain records."}, {"id": "ec4a2", "type": "article", "num": "噪音限制標準", "textCN": "工業區噪音限制：白天（6:00-22:00）≤70分貝；夜間（22:00-6:00）≤55分貝（工業區邊界外測量）。縫紉車間平均噪音通常在80-90分貝（需提供防護耳罩）。工廠邊界噪音超標須採取隔音措施，並向MoENR報告。", "textEN": "Industrial zone noise limits: Daytime (6:00-22:00) ≤70 dB; Nighttime (22:00-6:00) ≤55 dB (measured at factory boundary). Sewing workshop noise typically 80-90 dB (hearing protection required). Factory boundary noise exceeding limits requires soundproofing measures and reporting to MoENR."}, {"id": "ec4h1", "type": "highlight", "textCN": "⚠️ SA8000稽核關聯：SA8000第3條（健康安全）要求辨識並控制工作場所的危害因素，包括：噪音危害（縫紉/裁床）、粉塵（裁剪車間）、化學品（黏合劑/清潔劑）。建議VRT定期委託第三方進行車間噪音分級評估，並建立防護耳罩發放及使用記錄。", "textEN": "⚠️ SA8000 Audit Link: SA8000 Article 3 (H&S) requires identifying and controlling workplace hazards including: noise (sewing/cutting), dust (cutting workshop), chemicals (adhesives/cleaners). VRT should periodically engage third-party noise level assessments in workshops and maintain hearing protection distribution and usage records."}]},
+      {"id": "ec5", "titleCN": "第五章 化學品管理", "titleEN": "Chapter 5: Chemical Management", "summaryCN": "工廠使用的化學品（清洗劑、黏合劑、油脂、染料等）須依柬埔寨環保及衛生法規進行儲存、使用及廢棄處置管理，並備存安全資料表（SDS）。", "summaryEN": "Chemicals used in factories (detergents, adhesives, lubricants, dyes, etc.) must be managed for storage, use, and disposal per Cambodia environmental and health regulations, with Safety Data Sheets (SDS) maintained.", "items": [{"id": "ec5a1", "type": "article", "num": "化學品管理要求", "textCN": "① SDS（安全資料表/MSDS）：所有危險化學品須有中文或英文SDS，並張貼於使用區域或存放在便於查閱之處。② 化學品儲存：危險化學品需在通風、防爆、防漏的專用儲存區，與明火及其他不相容物質分開。③ 廢棄化學品：依危廢規定處理，不得倒入下水道或隨意丟棄。④ 緊急應對：備有化學品洩漏應急計劃及吸附材料（Spill Kit）。", "textEN": "①SDS (Safety Data Sheets): All hazardous chemicals must have Chinese or English SDS posted in usage areas or accessible locations. ②Chemical storage: Hazardous chemicals require dedicated ventilated, explosion-proof, leak-proof storage, separated from ignition sources and incompatible substances. ③Waste chemicals: Dispose as hazardous waste; must not be poured into drains or discarded casually. ④Emergency response: Chemical spill emergency plan and Spill Kit must be in place."}, {"id": "ec5h1", "type": "highlight", "textCN": "⚠️ VRT常見化學品清單（需建立管理台帳）：縫紉機油（潤滑劑）、紡織品黏合劑/熱熔膠、清潔用洗滌劑、噴膠（輔助定型）、蟲害防治藥品。每種化學品需記錄：採購量、使用量、庫存量、廢棄量及處置方式。此記錄亦是SA8000、C-TPAT及客戶社會責任稽核的共同查核點。", "textEN": "⚠️ Common VRT Chemical Inventory (management register required): Sewing machine oil (lubricants), textile adhesives/hot melt glue, cleaning detergents, spray adhesive (shape fixing), pest control chemicals. For each chemical record: purchase quantity, usage, inventory, disposal quantity and method. This record is a common checkpoint for SA8000, C-TPAT, and customer CSR audits."}]},
+      {"id": "ec6", "titleCN": "第六章 環保違規處罰", "titleEN": "Chapter 6: Environmental Violation Penalties", "summaryCN": "違反環保法規的罰則從警告、罰款到停業均有，嚴重者可追究刑事責任。MoENR近年加強執法力度，尤其針對廢水違規排放。", "summaryEN": "Penalties for environmental violations range from warnings and fines to suspension of operations; serious violations may result in criminal liability. MoENR has strengthened enforcement in recent years, especially targeting illegal wastewater discharge.", "items": [{"id": "ec6a1", "type": "article", "num": "違規處罰層級", "textCN": "① 警告通知：輕微違規，限期改正（通常14-30天）。② 行政罰款：依違規性質，罰款從500美元至5萬美元不等。③ 停業處分：嚴重違規或屢次違規後仍不改正，MoENR可命令停工整改。④ 刑事責任：故意違規造成嚴重環境損害者，可移送司法，追究刑事責任（罰款+最高監禁）。⑤ 損害賠償：對第三方造成環境損害，須承擔民事賠償責任。", "textEN": "①Warning notice: Minor violation; correction required within 14-30 days. ②Administrative fine: USD 500 to 50,000 depending on violation type. ③Suspension order: Serious or repeated violations uncorrected; MoENR may order production halt. ④Criminal liability: Willful violations causing serious environmental damage may be prosecuted (fines + imprisonment). ⑤Civil damages: Environmental harm to third parties incurs civil liability."}, {"id": "ec6h1", "type": "highlight", "textCN": "⚠️ VRT風險提示：未取得環境合規證書（ECC）即投入生產屬嚴重違規，面臨停業風險。廢水超標排放若被MoENR現場稽查發現，可能面臨即時停工令。建議VRT定期自我評估：ECC是否有效、廢水檢測是否按時進行、廢棄物處置記錄是否完整。", "textEN": "⚠️ VRT Risk Warning: Operating without an ECC is a serious violation subject to suspension. On-site wastewater exceedance found during MoENR inspection may result in immediate production halt orders. VRT should regularly self-assess: Is ECC valid? Are wastewater tests performed on schedule? Are waste disposal records complete?"}]}
+        ]
+      }
+    ]
+  },
+  {
+    id: 'company',
+    nameCN: '商業企業法',
+    nameEN: 'Law on Commercial Enterprises',
+    year: 2005,
+    amended: '2014年修訂',
+    color: '#7c3aed',
+    summaryCN: '規定在柬埔寨設立公司的類型、程序、治理結構及股東權利。外資可選擇設立有限責任公司（LLC）或股份有限公司（Plc），以及分公司或代表處形式進入市場。',
+    summaryEN: 'Regulates types of companies in Cambodia, registration procedures, governance structures, and shareholder rights. Foreign investors may choose to establish a Limited Liability Company (LLC), Public Limited Company (Plc), branch, or representative office.',
+    scope: '適用於所有在柬埔寨商業部登記的本地及外資企業',
+    chapters: [
+      {
+        id: 'cc1', titleCN: '第一章 公司類型與設立', titleEN: 'Chapter 1: Company Types & Establishment',
+        summaryCN: '主要公司類型：有限責任公司（LLC，最受外資青睞）、股份有限公司（Plc，需2名以上股東）、分公司（母公司完全負責）。',
+        summaryEN: 'Main company types: Limited Liability Company (LLC, most popular with foreign investors), Public Limited Company (Plc, requires 2+ shareholders), Branch (parent company fully liable).',
+        items: [
+          { id: 'ca1', type: 'article', num: '第46條', textCN: '有限責任公司（LLC）：最低1名股東，最多30名；股東責任以出資額為限；最低資本無法定限制（投資法另有規定除外）；須有在柬埔寨居住的董事。', textEN: 'LLC: minimum 1 shareholder, maximum 30; shareholder liability limited to capital contribution; no minimum capital required (except as required by investment law); must have a director resident in Cambodia.' },
+          { id: 'ch1', type: 'highlight', textCN: '⚠️ 重要提醒：在柬埔寨持有土地或廠房的柬籍股東，若僅是名義持股（代外資持股），在法律上存在被強制執行（如離婚、債務糾紛）的風險，建議尋求法律顧問協助安排股權保護協議。', textEN: '⚠️ Important: Cambodian shareholders holding land or factories on behalf of foreign investors face risks of forced execution (e.g., divorce, debt disputes). Legal counsel should be engaged to arrange shareholder protection agreements.' }
+        ]
+      },
+      {
+        id: 'cc2', titleCN: '第二章 公司治理與合規', titleEN: 'Chapter 2: Corporate Governance & Compliance',
+        summaryCN: '規定年度申報義務、財務報表要求及董事會職責。未按時年度申報將面臨罰款及可能的公司除名。',
+        summaryEN: 'Regulates annual filing obligations, financial statement requirements, and board of directors duties. Failure to file annual returns results in fines and potential company deregistration.',
+        items: [
+          { id: 'cb1', type: 'article', num: '第254條', textCN: '所有在商業部登記的公司須每年進行年度申報（Annual Return），提交最新股東、董事資料及財務摘要。逾期罰款從100美元起。', textEN: 'All companies registered with the Ministry of Commerce must file an Annual Return annually, submitting updated shareholder, director information, and financial summary. Late filing penalties start from USD 100.' },
+          { id: 'ce2', type: 'example', textCN: '💡 VRT年度合規清單：①商業部年度申報（3月31日前）②稅務局年度所得稅申報（3月31日前）③NSSF年度更新 ④工作許可更新（各外籍員工）⑤環境合規更新（如適用）。建議每年初建立合規日曆。', textEN: '💡 VRT Annual Compliance Checklist: ①MoC Annual Return (by March 31) ②Tax authority annual CIT filing (by March 31) ③NSSF annual update ④Work permit renewals (each foreign employee) ⑤Environmental compliance renewal (if applicable). Recommend building an annual compliance calendar at the start of each year.' }
+        ]
+      }
+    ]
+  },
+  {"id": "sa8000", "nameCN": "SA8000：2014社會責任標準", "nameEN": "SA8000:2014 Social Accountability Standard", "year": 2014, "amended": "第四版（取代2001、2004、2008版）", "color": "#be185d", "summaryCN": "SA8000是社會責任國際（SAI）制定的全球通用、可供第三方認證稽核的自願性標準，涵蓋8個核心社會責任要求領域及管理系統。標準基礎：聯合國人權宣言、ILO公約、國際人權規範及各國勞動法律。", "summaryEN": "SA8000 is a globally applicable voluntary standard by Social Accountability International (SAI), auditable by third parties. It covers 8 core social accountability requirement areas plus a management system. Based on the UN Declaration of Human Rights, ILO Conventions, international human rights norms, and national labor laws.", "scope": "適用於所有國家、規模及行業的組織，認證以工作場所為單位", "chapters": [{"id": "sa1", "titleCN": "1. 童工", "titleEN": "1. Child Labor", "summaryCN": "禁止雇用15歲以下兒童（若當地法律規定更高年齡則從高）。未成年工（15-18歲）受特別保護。需建立童工救助政策。", "summaryEN": "Prohibit employment of children under 15 (or higher if local law requires). Young workers (15-18) receive special protections. A child remediation policy must be established.", "items": [{"id": "sa1a1", "type": "article", "num": "1.1", "textCN": "組織不應雇用或支持使用符合定義的童工。", "textEN": "The organization shall not engage in or support the use of child labor as defined."}, {"id": "sa1a2", "type": "article", "num": "1.2", "textCN": "若發現童工，組織應建立書面童工救助政策及程序，向員工及利益相關方傳達，並提供足夠財務支持使兒童接受教育直至超過童工年齡。", "textEN": "If child labor is found, establish written child remediation policy and procedures, communicate to workers and stakeholders, and provide sufficient financial support for schooling until the child exceeds the child labor age."}, {"id": "sa1a3", "type": "article", "num": "1.3（未成年工）", "textCN": "可聘用未成年工，但：①若法規要求接受義務教育，只可在課外時間工作；②上課+工作+交通累計不超10小時/天；③每日工作不超8小時；④不可安排晚班或夜班。", "textEN": "Young workers may be employed if: ①Working only outside school hours if compulsory education required; ②Combined school+work+transport ≤10 hours/day; ③Work ≤8 hours/day; ④No evening or night shifts."}, {"id": "sa1h1", "type": "highlight", "textCN": "⚠️ VRT：所有招募均須查驗身份證/出生證明並留存複印件。若發現任何懷疑年齡不符者，立即暫停其工作安排，人事確認後再處理。", "textEN": "⚠️ VRT: All recruitment must verify and copy ID/birth certificate. If age is suspected to be insufficient, immediately suspend assignment pending HR confirmation."}]}, {"id": "sa2", "titleCN": "2. 強迫或強制性勞動", "titleEN": "2. Forced or Compulsory Labor", "summaryCN": "禁止強迫勞動、監獄勞工、扣押押金/文件、限制人身自由及人口販賣。員工有權在工作時間結束後自由離開。", "summaryEN": "Prohibition on forced labor, prison labor, retention of deposits/documents, restriction of freedom of movement, and human trafficking. Employees have the right to leave freely after working hours.", "items": [{"id": "sa2a1", "type": "article", "num": "2.1", "textCN": "組織不得使用或支持強迫/強制性勞動（含監獄勞工），不得要求員工入職時交押金或身份文件。", "textEN": "The organization shall not use or support forced or compulsory labor (including prison labor) or require employees to deposit money or identity documents upon engagement."}, {"id": "sa2a2", "type": "article", "num": "2.2-2.5", "textCN": "不得扣留工資/財產/文件以強迫工作；員工不承擔雇傭費用；員工有權在工作時間後自由離開；不得從事或支持人口販賣。", "textEN": "No withholding of wages/property/documents to coerce work; workers not to bear recruitment fees; workers have right to leave after working hours; no trafficking in persons."}, {"id": "sa2h1", "type": "highlight", "textCN": "⚠️ VRT外籍移工（如越南、泰國工人）：確認無代理人向工人收取招募費（Recruitment Fees）。若發現工人為支付招募費而負債，此屬強迫勞動預警信號，需立即調查並通報。此為C-TPAT及SA8000共同重點查核項。", "textEN": "⚠️ VRT migrant workers (e.g., Vietnamese, Thai): Confirm no recruitment fees charged by agents. If workers are found indebted for recruitment fees, this is a forced labor red flag requiring immediate investigation and reporting. A key checkpoint for both C-TPAT and SA8000."}]}, {"id": "sa3", "titleCN": "3. 健康與安全", "titleEN": "3. Health and Safety", "summaryCN": "共10個子條款，要求提供安全工作環境、健安委員會、定期培訓、書面程序、PPE、緊急救護、宿舍安全等。VRT須特別關注縫紉噪音、裁剪粉塵、化學品及宿舍消防。", "summaryEN": "10 sub-clauses requiring safe working environment, H&S committee, regular training, documented procedures, PPE, emergency medical care, and dormitory safety. VRT must pay special attention to sewing noise, cutting dust, chemicals, and dormitory fire safety.", "items": [{"id": "sa3a1", "type": "article", "num": "3.1-3.3", "textCN": "提供安全健康工作環境；評估孕婦/哺乳期婦女工作場所風險；免費提供PPE；發生工傷時提供緊急救護。", "textEN": "Provide safe and healthy working environment; assess risks for pregnant/nursing workers; provide free PPE; provide emergency medical care in case of workplace injury."}, {"id": "sa3a2", "type": "article", "num": "3.4-3.5", "textCN": "任命高層健安管理代表；建立工人與管理者均衡組成的健安委員會（HSC）；HSC成員接受培訓；定期進行正式OHS風險評估；保留評估、改正及預防措施記錄。", "textEN": "Appoint senior management H&S representative; establish balanced worker-management H&S Committee (HSC); HSC members receive training; conduct formal periodic OHS risk assessments; retain records of assessments, corrective and preventive actions."}, {"id": "sa3a3", "type": "article", "num": "3.6-3.7", "textCN": "定期為員工提供健安培訓（含現場培訓），新進及調職員工需重新培訓；建立文件化程序檢測/預防/減少/消除健安風險；保留工作場所及宿舍健安事故書面記錄。", "textEN": "Regularly provide H&S training (including on-site), repeat for new and reassigned workers; establish documented procedures to detect/prevent/reduce/eliminate H&S risks; maintain written records of H&S incidents in workplace and dormitories."}, {"id": "sa3a4", "type": "article", "num": "3.8-3.10", "textCN": "免費提供乾淨廁所、飲用水、適當吃飯/休息空間、衛生食物儲存設備；宿舍設施（若提供）須乾淨、安全、滿足基本需求；所有員工有權在無需申請許可的情況下遠離即將發生的嚴重安全危險。", "textEN": "Provide free clean toilets, potable water, adequate eating/rest space, hygienic food storage; dormitories (if provided) must be clean, safe, meet basic needs; all workers have right to leave imminent serious safety danger without requesting permission."}, {"id": "sa3h1", "type": "highlight", "textCN": "⚠️ 稽核常見不符合項（成衣廠）：①HSC會議記錄不完整或未定期召開 ②PPE（耳罩/口罩）有發放但無領用記錄 ③消防設備（滅火器/煙霧感應器）過期未更換 ④緊急出口被堵塞或上鎖 ⑤宿舍消防演練記錄缺失 ⑥工傷記錄本未逐筆填寫。VRT須確保每項均有書面記錄可供查閱。", "textEN": "⚠️ Common Nonconformities (Garment Factories): ①Incomplete or infrequent HSC meeting records ②PPE (earplugs/masks) distributed without usage records ③Fire equipment (extinguishers/smoke detectors) expired without replacement ④Emergency exits blocked or locked ⑤No dormitory fire drill records ⑥Workplace injury log not completed entry-by-entry. VRT must ensure written records exist for each item."}]}, {"id": "sa4", "titleCN": "4. 自由結社及集體談判", "titleEN": "4. Freedom of Association & Collective Bargaining", "summaryCN": "保障工人組建、加入工會及集體談判的權利；保護工人代表不受歧視；在法律限制結社自由的地區，允許工人自由選舉代表。", "summaryEN": "Protects workers' rights to form, join unions and engage in collective bargaining; protects worker representatives from discrimination; in areas where law restricts freedom of association, allows workers to freely elect representatives.", "items": [{"id": "sa4a1", "type": "article", "num": "4.1-4.3", "textCN": "所有員工有權組建/參加自選工會並進行集體談判；組織應有效告知員工此權利且不會有不良後果；不得干涉工人組織的建立/運作；保證工會成員/工人代表不受歧視、騷擾、脅迫或報復。", "textEN": "All workers have the right to form/join unions of their choice and bargain collectively; organization must effectively inform workers of this right with no adverse consequences; must not interfere with worker organizations; guarantee union members/representatives are free from discrimination, harassment, intimidation, or retaliation."}, {"id": "sa4h1", "type": "highlight", "textCN": "⚠️ 柬埔寨工會現況：柬埔寨成衣業工會活躍，工廠須允許合法工會代表在工作時間進行合理範圍的活動。VRT須確保SA8000工人代表的選舉程序文件化，工人代表名單張貼公告，且工人代表可在工時內合理時間與管理層溝通SA8000相關事宜。", "textEN": "⚠️ Cambodia Union Context: Garment sector unions are active. Factories must allow legal union representatives to conduct reasonable activities during working hours. VRT must document SA8000 worker representative election procedures, post the elected representative list, and ensure representatives have reasonable time during work hours to communicate SA8000 matters with management."}]}, {"id": "sa5678", "titleCN": "5-8. 歧視、懲罰、工時、薪酬", "titleEN": "5-8. Discrimination, Discipline, Working Hours, Remuneration", "summaryCN": "禁止在聘用、報酬、培訓、升遷等各方面的歧視；禁止體罰及言語侮辱；工作時間遵守法律及集體協議；工資須至少達法定最低標準並能滿足基本需求。", "summaryEN": "Prohibit discrimination in employment, pay, training, promotion; prohibit corporal punishment and verbal abuse; working hours per law and collective agreements; wages must meet at least legal minimum and cover basic needs.", "items": [{"id": "sa5a1", "type": "article", "num": "第5條（歧視）", "textCN": "在聘用、報酬、培訓、升遷、解雇等方面，不得基於種族、民族、社會階層、宗教、殘疾、性別、性取向、家庭責任、婚姻狀況、政見、年齡等進行歧視。不得允許工作場所及宿舍發生威脅、虐待、剝削或性侵犯行為。不得要求員工接受懷孕或童貞測試。", "textEN": "No discrimination in hiring, pay, training, promotion, termination based on race, ethnicity, social class, religion, disability, gender, sexual orientation, family responsibilities, marital status, political opinion, age, etc. No threats, abuse, exploitation or sexual harassment in workplace or dormitories. No pregnancy or virginity testing."}, {"id": "sa6a1", "type": "article", "num": "第6條（懲罰）", "textCN": "組織應給予所有員工尊嚴與尊重。不得對員工採取體罰、精神或肉體脅迫及言語侮辱行為，不得以粗暴、非人道方式對待員工。", "textEN": "The organization shall treat all workers with dignity and respect. It shall not engage in or tolerate corporal punishment, mental or physical coercion, or verbal abuse of workers; no harsh or inhumane treatment."}, {"id": "sa7a1", "type": "article", "num": "第7條（工作時間）", "textCN": "遵守工時法律及集體協議。標準工作週（不含加班）不超過48小時。員工每連續工作6天至少休息1天。一般加班為自願，每週加班不超12小時，不可經常性。如有集體協議可約定要求加班以滿足短期業務需要。", "textEN": "Comply with applicable laws and collective agreements on working hours. Standard work week (excluding OT) not to exceed 48 hours. Workers must have at least 1 rest day per 6 consecutive working days. OT generally voluntary, ≤12 hours/week, not habitual. Collective agreements may allow mandatory OT for short-term business needs."}, {"id": "sa8a1", "type": "article", "num": "第8條（薪酬）", "textCN": "尊重工人獲得生活工資的權利；標準工作週工資至少達法定/行業最低標準，且滿足基本需求並有些許可隨意支配的收入。不以懲罰目的扣薪（除非法律允許且有集體協議）。工資明細清晰，定期書面告知；不得以限制形式（如抵用券）支付；加班依法定或行業最高倍率支付。", "textEN": "Respect right to living wage; standard week wages ≥ legal/industry minimum, covering basic needs with some discretionary income. No wage deductions as punishment (unless law permits and CBA exists). Clear wage breakdown, periodic written notification; no restricted payment forms (e.g., vouchers); overtime at highest applicable legal or industry rate."}, {"id": "sa5678h1", "type": "highlight", "textCN": "⚠️ VRT薪酬合規要點（SA8000 §8與柬勞工法對照）：① 最低工資2025年：$208/月（正式工），$206（試用期）② 薪資單須逐月書面提供，列明：基本工資、加班費、津貼（交通$7+出勤獎金$10+餐補$0.5）、年資獎金、扣款項目及各項稅費 ③ UDC工人每半年（6月/12月）須發放7.5天年資補貼（Seniority Indemnity） ④ 加班費：平日150%，夜間/週日200%。", "textEN": "⚠️ VRT Wage Compliance (SA8000 §8 vs Cambodia Labor Law): ①2025 minimum wage: $208/month (regular), $206 (probation) ②Monthly payslip required showing: basic wage, overtime, allowances (transport $7 + attendance bonus $10 + meal $0.5), seniority bonus, deductions, taxes ③UDC workers receive 7.5-day seniority indemnity twice yearly (June/December) ④OT rates: weekday 150%, night/Sunday 200%."}]}, {"id": "sa9", "titleCN": "9. 管理系統", "titleEN": "9. Management System", "summaryCN": "管理系統是SA8000所有要求能持續落實的關鍵機制，包含：政策聲明、社會責任績效團隊（SRPT）、風險評估、監督、溝通、投訴管理、外部審核、糾正預防措施、培訓及供應商管理共10個子系統。", "summaryEN": "The management system is the critical mechanism for sustained implementation of all SA8000 requirements, comprising 10 sub-systems: policy declaration, Social Responsibility Performance Team (SRPT), risk assessment, monitoring, communication, complaint management, external audit, corrective/preventive actions, training, and supplier management.", "items": [{"id": "sa9a1", "type": "article", "num": "9.1 政策、程序與記錄", "textCN": "高層須發布SA8000政策聲明（含對所有標準要求及適用法律的承諾）；政策在工作場所及宿舍顯著張貼（多語言）；制定政策及程序實施標準；保持記錄以證明合規；定期管理評審；向利益相關方公開政策。", "textEN": "Senior management must issue SA8000 policy statement (committing to all requirements and applicable laws); policy visibly posted in workplaces and dormitories (multilingual); policies and procedures established for implementation; records maintained to demonstrate compliance; periodic management review; policy disclosed to stakeholders."}, {"id": "sa9a2", "type": "article", "num": "9.2-9.4 社會責任績效團隊與監督", "textCN": "建立由SA8000工人代表+管理人員均衡組成的社會責任績效團隊（SRPT）；SRPT定期書面風險評估，向高層推薦改善行動；SRPT有效監督工作場所活動、推動內部審核、定期開會。", "textEN": "Establish Social Responsibility Performance Team (SRPT) balanced between SA8000 worker representatives and management; SRPT conducts periodic written risk assessments and recommends improvement actions to senior management; SRPT monitors workplace activities, drives internal audits, meets regularly."}, {"id": "sa9a3", "type": "article", "num": "9.5-9.8 溝通、投訴與糾正預防", "textCN": "確保員工有效理解SA8000要求；建立保密、公正、無報復的書面投訴程序；組織對投訴進行調查、追蹤及結果溝通；全力配合外部稽核員；提供充足資源執行糾正及預防措施；SRPT記錄時間表、不符合項、根本原因、措施及改善結果。", "textEN": "Ensure workers effectively understand SA8000 requirements; establish confidential, impartial, non-retaliatory written complaint procedures; investigate, track, and communicate complaint outcomes; fully cooperate with external auditors; provide resources for corrective and preventive actions; SRPT records timeline, non-conformances, root causes, actions, and improvement results."}, {"id": "sa9a4", "type": "article", "num": "9.9-9.10 培訓與供應商管理", "textCN": "依風險評估結果對員工實施有效SA8000培訓，定期衡量有效性；對供應商/分包商/次級供應商進行盡職調查：傳達標準要求、評估重大風險、合理努力確保風險已解決、監督追蹤記錄。若發現供應商使用家庭工，採取有效行動確保同等保護。", "textEN": "Implement effective SA8000 training for all workers based on risk assessment; regularly measure effectiveness; conduct due diligence on suppliers/subcontractors/sub-suppliers: communicate requirements, assess significant risks, make reasonable efforts to ensure risks are addressed, monitor and record. If home workers found in supply chain, take effective action to ensure equivalent protections."}, {"id": "sa9h1", "type": "highlight", "textCN": "⚠️ VRT年度SA8000準備清單：① 政策聲明每年更新並張貼（中文+英文+高棉語） ② SRPT成員名單及選舉記錄 ③ 每季HSC會議記錄 ④ 年度OHS風險評估報告 ⑤ 工人培訓記錄（SA8000意識培訓） ⑥ 投訴箱設置及投訴記錄 ⑦ 供應商SA8000問卷/審核記錄 ⑧ 每半年SRPT評審記錄。", "textEN": "⚠️ VRT Annual SA8000 Preparation Checklist: ①Policy statement updated annually and posted (CN+EN+KH) ②SRPT member list and election records ③Quarterly HSC meeting records ④Annual OHS risk assessment report ⑤Worker training records (SA8000 awareness) ⑥Complaint box setup and complaint records ⑦Supplier SA8000 questionnaire/audit records ⑧Semi-annual SRPT review records."}, {"id": "sa9e1", "type": "example", "textCN": "💡 稽核員通常查閱的文件清單：勞動合約樣本（FDC/UDC各一）、薪資記錄（近3個月）、出勤/加班記錄、HSC會議記錄（近12個月）、OHS培訓記錄、工傷記錄本、PPE發放記錄、投訴處理記錄、供應商評估記錄、SA8000工人代表選舉記錄、員工訪談（稽核員會私下訪談工人）。", "textEN": "💡 Documents auditors typically review: Sample employment contracts (FDC and UDC), payroll records (last 3 months), attendance/OT records, HSC meeting minutes (last 12 months), OHS training records, workplace injury log, PPE distribution records, complaint handling records, supplier evaluation records, SA8000 worker representative election records, worker interviews (auditors conduct private worker interviews)."}]}]}
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE MANAGEMENT
+// ═══════════════════════════════════════════════════════
+function loadData() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    return s ? JSON.parse(s) : DEFAULT_DATA;
+  } catch(e) { return DEFAULT_DATA; }
+}
+
+function saveData(data) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+}
+
+
+// ── Extended chapter data (injected at runtime) ─────────────
+(function() {
+  const investLaw = DEFAULT_DATA.find(l => l.id === 'investment');
+  if (investLaw) {
+    investLaw.amended = '2021年10月15日全面取代1994年舊法；2023年第139號施行細則';
+    const extra = [
+      { id:'ic0', titleCN:'第零章 立法目的與適用範圍', titleEN:'Chapter 0: Objectives & Scope',
+        summaryCN:'2021年《投資法》（NS/RKM/1021/014）10月16日生效，全面取代1994年舊法及2003年修訂，共12章42條。適用於向CDC或省市投資分委員會登記的所有QIP、EQIP及GIP。',
+        summaryEN:'The 2021 Law on Investment (NS/RKM/1021/014) took effect Oct 16, 2021, replacing the 1994 law and 2003 amendment. 12 chapters, 42 articles. Applies to all QIPs, EQIPs, and GIPs registered with CDC or Provincial-Municipal Sub-Committees.',
+        items:[
+          {id:'ic0a1',type:'article',num:'三類投資項目',textCN:'①QIP（合格投資項目）：符合激勵條件、向CDC或省市分委員會登記；②EQIP（擴大QIP）：現有QIP擴大規模，享額外激勵；③GIP（保障投資項目）：不符QIP條件但依法獲保障。',textEN:'①QIP: Meets incentive criteria, registered with CDC or Sub-Committee; ②EQIP: Existing QIP expanding, eligible for additional incentives; ③GIP: Does not qualify for QIP but receives investment guarantees.'},
+          {id:'ic0h1',type:'highlight',textCN:'⚠️ 投資法只適用於CDC/分委員會登記項目。未登記企業受《商業企業法》及《稅法》管轄，但無QIP優惠。VRT應確認其QIP登記在新法框架下仍有效（可向CDC查詢狀態）。',textEN:'⚠️ Investment Law only applies to CDC/Sub-Committee registered projects. Unregistered enterprises governed by Commercial Enterprises Law and Tax Law without QIP incentives. VRT should verify QIP registration remains valid under new legal framework.'}
+        ]
+      },
+      { id:'ic1b', titleCN:'第一章 投資激勵三層結構', titleEN:'Chapter 1: Three-Tier Investment Incentive System',
+        summaryCN:'基本激勵（CIT豁免或特別折舊二選一）+ 附加激勵（社會/環保條件加碼）+ 特別激勵（高潛力項目）。出口型QIP（含成衣/紡織/鞋類）可享最長9年CIT豁免。',
+        summaryEN:'Basic incentives (choose CIT exemption OR special depreciation) + Additional incentives (social/environmental contributions) + Special incentives (high-potential projects). Export QIPs including garments/textiles enjoy up to 9 years CIT exemption.',
+        items:[
+          {id:'ic1b1',type:'article',num:'基本激勵（二選一）',textCN:'選項A（優先期CIT豁免）：出口型A級QIP豁免最長9年（觸發期最長3年+豁免期最長6年），豁免後享10%優惠稅率再延3年，之後恢復20%標準稅率。選項B（特別折舊）：固定資產第一年40%加速折舊，其餘直線攤銷，無CIT豁免。兩者不可兼得。',textEN:'Option A: Tier A Export QIP CIT exemption up to 9 years (trigger period max 3 years + exemption period max 6 years), then 10% preferential rate 3 years, then 20% standard CIT. Option B: 40% first-year accelerated depreciation, remainder straight-line, no CIT exemption. Cannot combine.'},
+          {id:'ic1b2',type:'article',num:'附加激勵條件',textCN:'滿足以下條件可申請附加激勵（延長豁免或擴大優惠）：①對工人提供職業培訓；②為工人建設宿舍、食堂、托兒所；③升級生產線設備；④提供班車接送、宿舍、補貼食堂；⑤使用柬埔寨農業原材料；⑥出口環保產品。',textEN:'Additional incentives for: ①Vocational training for workers; ②Worker dormitories, canteens, nurseries; ③Production equipment upgrades; ④Transportation, accommodation, subsidized canteens; ⑤Use of Cambodian agricultural inputs; ⑥Export of eco-friendly products.'},
+          {id:'ic1bh1',type:'highlight',textCN:'⚠️ VRT可申請附加激勵：工人宿舍（Expat/Local Dorm）、班車接送均符合條件。建議QIP年度審查時向CDC提交記錄，爭取延長優惠期。SA8000宿舍合規記錄（第3.9條）可直接作為佐證材料。',textEN:'⚠️ VRT qualifies: Worker dormitories (Expat/Local Dorm) and shuttle buses meet criteria. Submit records to CDC at annual QIP review to seek extended incentive period. SA8000 dormitory compliance records (Article 3.9) can directly support this application.'},
+          {id:'ic1be1',type:'example',textCN:'💡 關稅豁免：出口型QIP及支援工業QIP進口以下物品免關稅/特別稅/VAT：①建築材料；②建設設備；③生產設備；④生產原材料（出口型）。憑CDC核發的QIP証書向海關總署（GDCE）申辦。',textEN:'💡 Customs Exemption: Export/Supporting Industry QIPs: import duty/special tax/VAT exempt for ①construction materials ②construction equipment ③production equipment ④production inputs (export type). File with GDCE using CDC-issued QIP certificate.'}
+        ]
+      },
+      { id:'ic3b', titleCN:'第二章 投資保障與投資者權利', titleEN:'Chapter 2: Investment Guarantees & Investor Rights',
+        summaryCN:'新法保障：非歧視原則、禁止國有化（除公共利益外須公正補償）、資本及利潤自由匯出、知識產權保護。',
+        summaryEN:'Law guarantees: non-discrimination, no nationalization (except public interest with fair compensation), free capital/profit repatriation, IP protection.',
+        items:[
+          {id:'ic3b1',type:'article',num:'第29-31條（投資保障）',textCN:'①非歧視：外資享受與柬籍國民同等待遇（土地所有權除外）；②禁止徵收：除公共利益且公正補償外，不得徵收投資財產；③自由匯款：利潤、股息、資本、貸款本息、特許費、管理費、個人所得均可匯出；④知識產權依柬埔寨適用法律受保護。',textEN:'①Non-discrimination: Foreign investors treated equally to Cambodian nationals (except land ownership); ②No expropriation except for public interest with fair compensation; ③Free repatriation of profits, dividends, capital, loan principal/interest, royalties, management fees, personal income; ④IP protected per applicable Cambodian laws.'},
+          {id:'ic3bh1',type:'highlight',textCN:'⚠️ 台資工廠匯款WHT：利潤匯回台灣須繳預扣稅：股息14%、利息14%、特許費14%、管理費14%。柬台無租稅協定（DTA），不能適用較低稅率。建議事先規劃稅務架構，避免在台灣再被重複課稅。',textEN:'⚠️ Taiwan Factory WHT: Remitting profits to Taiwan incurs WHT: dividends 14%, interest 14%, royalties 14%, management fees 14%. No DTA between Cambodia and Taiwan. Pre-plan tax structure to avoid double taxation in Taiwan.'}
+        ]
+      },
+      { id:'ic4b', titleCN:'第三章 CDC線上登記程序（第139號施行細則）', titleEN:'Chapter 3: CDC Online Registration (Sub-Decree No. 139/2023)',
+        summaryCN:'2023年第139號施行細則（取代2005年第111號）建立全新線上QIP申請系統，CDC須在20個工作天內核發登記証書。',
+        summaryEN:'Sub-Decree No. 139 (2023), replacing Sub-Decree No. 111 (2005), established a new online QIP application system. CDC must issue a Registration Certificate within 20 working days.',
+        items:[
+          {id:'ic4b1',type:'article',num:'登記步驟',textCN:'①線上提交申請（CDC官網）+ 上傳：商業登記証、股東結構、投資計劃書、EIA文件等；②CDC審核→20個工作天內核發Registration Certificate；③取得QIP登記証書，正式享有所有QIP激勵；④每年向CDC提交年度運營報告。',textEN:'①Online application (CDC website) + upload: business registration, shareholder structure, investment plan, EIA documents, etc.; ②CDC review → Registration Certificate within 20 working days; ③Obtain QIP Certificate, officially eligible for all incentives; ④Submit annual operational report to CDC each year.'},
+          {id:'ic4bh1',type:'highlight',textCN:'⚠️ 年度合規：QIP須每年向CDC申報：①實際投資金額；②柬籍工人雇用人數（需達承諾比例）；③出口金額（出口型QIP須維持）；④稅務合規記錄。未按時提交或不達標可能導致QIP資格撤銷，喪失所有稅務優惠。',textEN:'⚠️ Annual Compliance: QIP must report annually: ①Actual investment amount; ②Cambodian workers employed (must meet committed ratio); ③Export volume (must maintain for export QIPs); ④Tax compliance records. Non-compliance may result in QIP status revocation and loss of all incentives.'},
+          {id:'ic4be1',type:'example',textCN:'💡 爭議解決：投資者間→CDC調解（30天內啟動）→國內/國際仲裁或法院。投資者vs政府→依雙邊投資協定（BIA）或國際條約。注意：柬埔寨與台灣無正式BIA，台資企業爭議保護相對有限，建議投資前諮詢法律顧問。',textEN:'💡 Dispute Resolution: Investor-investor: CDC conciliation (within 30 days) → national/international arbitration or courts. Investor-government: Per BIA or international treaties. Note: No formal BIA between Cambodia and Taiwan; protection for Taiwan-invested enterprises relatively limited. Consult legal counsel before investing.'}
+        ]
+      },
+      { id:'ic5b', titleCN:'第四章 經濟特區（SEZ）', titleEN:'Chapter 4: Special Economic Zones (SEZ)',
+        summaryCN:'柬埔寨設有多個SEZ，提供一站式服務、完善基礎設施及與非SEZ同等的QIP激勵。主要SEZ：金邊SEZ、西哈努克港SEZ（SSEZ）、波貝SEZ。',
+        summaryEN:'Cambodia has multiple SEZs offering one-stop services, infrastructure, and equivalent QIP incentives to non-SEZ locations. Key SEZs: Phnom Penh SEZ, Sihanoukville SEZ (SSEZ), Poipet SEZ.',
+        items:[
+          {id:'ic5b1',type:'article',num:'SEZ優惠内容',textCN:'在SEZ內設立的QIP享有：①與非SEZ相同的CIT豁免及關稅優惠；②一站式行政服務（海關/勞工/環保手續統一辦理）；③完善廠房、電力、水、道路等基礎設施；④可能享有電費折扣。在SEZ設廠通常比自購地建廠更快速、合規更便利。',textEN:'QIPs in SEZs: ①Same CIT exemption and customs incentives as non-SEZ QIPs; ②One-stop administrative services (customs/labor/environment unified); ③Developed factory buildings, electricity, water, roads; ④Possible electricity discounts. SEZ setup typically faster and more compliance-convenient than self-building.'},
+          {id:'ic5be1',type:'example',textCN:'💡 主要SEZ：①金邊SEZ（Phnom Penh SEZ）：距市區近，成衣廠主力選擇；②西哈努克港SEZ（SSEZ）：靠近深水港，大量出口廠商首選；③波貝SEZ：泰柬邊境，利用泰國供應鏈；④曼哈頓SEZ（金邊近郊）：以成衣廠為主。各SEZ土地/廠房月租金及電費依區域有別，選擇前需比較。',textEN:'💡 Key SEZs: ①Phnom Penh SEZ: near city, primary choice for garment factories; ②SSEZ (Sihanoukville): near deep-water port, top choice for high-volume exporters; ③Poipet SEZ: Thai border, leverages Thai supply chain; ④Manhattan SEZ (PP suburbs): garment factories as primary tenants. Land/factory rent and electricity rates vary by zone; compare before choosing.'}
+        ]
+      }
+    ];
+    extra.forEach(ch => investLaw.chapters.push(ch));
+  }
+
+  const taxLaw = DEFAULT_DATA.find(l => l.id === 'tax');
+  if (taxLaw) {
+    const extra = [
+      { id:'tc0', titleCN:'第零章 柬埔寨稅制總覽', titleEN:'Chapter 0: Cambodia Tax System Overview',
+        summaryCN:'柬埔寨採自申報制度（SAR），大中型企業（Real Regime）每月20日前申報繳納各項稅款，由柬埔寨稅務總局（GDT）管轄。主要稅種：CIT、VAT、WHT、薪資稅、最低稅（MT）、STSP及房產稅。',
+        summaryEN:'Cambodia uses a Self-Assessment Regime (SAR). Medium and large enterprises (Real Regime) file and pay taxes by the 20th of each month, regulated by the General Department of Taxation (GDT). Main taxes: CIT, VAT, WHT, Salary Tax, Minimum Tax (MT), STSP, Property Tax.',
+        items:[
+          {id:'tc0a1',type:'article',num:'企業規模分級',textCN:'①大型納稅人（Large Taxpayer）：年營業額超40億瑞爾（約100萬美元），向LTO（大型納稅人辦公室）申報；②中型（Medium）：10億-40億瑞爾，向省市稅務局申報；③小型（Small）：2.5億-10億瑞爾，可採估算稅制（Estimated Regime）。成衣工廠通常屬大型或中型納稅人。',textEN:'①Large Taxpayer: >KHR 4 billion (~USD 1M), reports to Large Taxpayer Office (LTO); ②Medium: KHR 1-4 billion, reports to provincial/municipal tax department; ③Small: KHR 250M-1B, may use Estimated Regime. Garment factories are typically large or medium taxpayers.'},
+          {id:'tc0a2',type:'article',num:'月度申報截止（每月20日）',textCN:'每月20日前須申報並繳納：①薪資稅（Salary Tax）；②預扣稅（WHT）；③加值稅（VAT）；④特定商品及服務稅（STSP）；⑤最低稅（MT）預繳。年度企業所得稅（CIT）申報截止：次年3月31日。特許稅（Patent Tax）：每年1月31日前繳納。',textEN:'File and pay by 20th of each month: ①Salary Tax; ②Withholding Tax (WHT); ③VAT; ④STSP; ⑤Minimum Tax (MT) prepayment. Annual CIT filing deadline: March 31 of following year. Patent Tax: pay by January 31 annually.'},
+          {id:'tc0h1',type:'highlight',textCN:'⚠️ 合規風險：GDT已強化數位化稽查能力，遲報或錯誤申報面臨：本金10%罰款+月息2%（最高24%年息）。VRT財務部應建立每月申報日曆，確保20日前完成所有月度申報，並保留申報記錄10年（GDT追溯期限）。',textEN:'⚠️ Compliance Risk: GDT has enhanced digital audit capabilities. Late or incorrect filing: 10% penalty on principal + 2% monthly interest (max 24% annually). VRT finance must maintain a monthly filing calendar ensuring all submissions by the 20th; retain filing records for 10 years (GDT lookback period).'}
+        ]
+      },
+      { id:'tc4', titleCN:'第四章 預扣稅（WHT）', titleEN:'Chapter 4: Withholding Tax (WHT)',
+        summaryCN:'支付方代扣代繳的稅款，適用於支付給居民及非居民的各類所得，包括股息、利息、服務費、特許費、租金等。是工廠日常財務中最常涉及的稅種之一。',
+        summaryEN:'Tax deducted at source by the payer, applied to various income paid to residents and non-residents: dividends, interest, service fees, royalties, rent, etc. One of the most frequently encountered taxes in factory daily operations.',
+        items:[
+          {id:'tc4a1',type:'article',num:'居民WHT稅率',textCN:'支付給柬埔寨居民：①服務費（獨立承攬商/個人服務）：15%；②租金（動產/不動產）：10%；③利息（支付給非金融機構居民）：15%；④股息（支付給居民股東）：免稅（若CIT已繳納）；⑤彩票獎金：20%。',textEN:'For payments to Cambodia residents: ①Service fees (independent contractors/personal services): 15%; ②Rent (movable/immovable property): 10%; ③Interest (paid to non-financial institution residents): 15%; ④Dividends (to resident shareholders): exempt if CIT paid; ⑤Lottery winnings: 20%.'},
+          {id:'tc4a2',type:'article',num:'非居民WHT稅率（含台灣總部）',textCN:'支付給非居民（含台灣總部、境外母公司）：①股息：14%；②利息：14%；③特許費/技術服務費：14%；④租金：14%；⑤管理費：14%。注意：柬台無租稅協定（DTA），無法適用較低協定稅率。',textEN:'For payments to non-residents (including Taiwan HQ, overseas parent companies): ①Dividends: 14%; ②Interest: 14%; ③Royalties/technical service fees: 14%; ④Rent: 14%; ⑤Management fees: 14%. Note: No DTA between Cambodia and Taiwan; reduced treaty rates not available.'},
+          {id:'tc4h1',type:'highlight',textCN:'⚠️ VRT常見WHT場景：①支付台北總部管理費→14% WHT；②向外部顧問/律師支付服務費（居民）→15% WHT；③向房東支付廠房租金→10% WHT；④支付境外服務費→14% WHT。每月20日前申報；WHT扣繳憑單可作為對方所得稅抵免憑證。',textEN:'⚠️ Common VRT WHT scenarios: ①Management fees to Taipei HQ → 14%; ②Service fees to resident consultants/lawyers → 15%; ③Factory rent to landlord → 10%; ④Overseas service fees → 14%. File by 20th monthly; WHT certificates serve as income tax credit for recipients.'},
+          {id:'tc4e1',type:'example',textCN:'💡 計算範例：VRT每月支付台北管理費USD 10,000。WHT：$10,000×14%=$1,400。VRT匯給台北：$8,600；WHT $1,400申報給GDT。若台北希望收到整數$10,000，需Gross-up：$10,000÷(1-14%)≈$11,628，WHT≈$1,628。',textEN:'💡 Calculation: VRT pays USD 10,000 monthly management fee to Taipei. WHT: $10,000×14%=$1,400. VRT remits $8,600 to Taipei; WHT $1,400 filed with GDT. If Taipei wants net USD 10,000, gross-up: $10,000÷(1-14%)≈$11,628 total, WHT≈$1,628.'}
+        ]
+      },
+      { id:'tc5', titleCN:'第五章 特許稅（Patent Tax）與年度合規', titleEN:'Chapter 5: Patent Tax & Annual Compliance',
+        summaryCN:'特許稅是每年1月31日前向GDT繳納的企業營業許可稅，按企業規模分級收費。另須每年3月31日前向商業部（MoC）及GDT完成年度申報。',
+        summaryEN:'Patent Tax is an annual business license tax paid to GDT by January 31, tiered by company size. Annual returns must also be filed with the Ministry of Commerce (MoC) and GDT by March 31.',
+        items:[
+          {id:'tc5a1',type:'article',num:'特許稅年費（按規模）',textCN:'①大型企業：約USD 1,250/年；②中型企業：約USD 450/年；③小型企業：約USD 200/年（以GDT現行公告為準）。新設企業首年免繳；第二年起依實際規模繳納。逾期罰款另計。',textEN:'①Large enterprise: approx. USD 1,250/year; ②Medium: approx. USD 450/year; ③Small: approx. USD 200/year (refer to current GDT announcements). New enterprises exempt in first year; due from second year. Late payment penalties apply.'},
+          {id:'tc5h1',type:'highlight',textCN:'⚠️ VRT年度合規日曆：1月31日→特許稅繳納；3月31日→年度CIT申報（GDT）+ MoC年度申報；每月20日→薪資稅/WHT/VAT月度申報；每月（建議15日前）→NSSF電子申報。建議Outlook設置重複提醒，避免遺漏罰款。',textEN:'⚠️ VRT Annual Compliance Calendar: Jan 31 → Patent Tax; Mar 31 → Annual CIT (GDT) + Annual Return (MoC); Monthly by 20th → Salary Tax/WHT/VAT; Monthly (recommend by 15th) → NSSF electronic filing. Set up recurring Outlook reminders to avoid penalty gaps.'}
+        ]
+      },
+      { id:'tc6', titleCN:'第六章 移轉訂價（Transfer Pricing）', titleEN:'Chapter 6: Transfer Pricing',
+        summaryCN:'柬埔寨於2017年引入移轉訂價規定（Prakas 986），要求關聯企業間交易依公平交易原則（Arms Length Principle）定價。對外資工廠與境外母公司間的管理費、特許費、原材料交易影響重大。',
+        summaryEN:'Cambodia introduced transfer pricing rules (Prakas 986) in 2017, requiring related-party transactions to follow the Arms Length Principle. Significantly impacts foreign factories on management fees, royalties, and raw material transactions with overseas parent companies.',
+        items:[
+          {id:'tc6a1',type:'article',num:'關聯交易申報義務',textCN:'年營業額超5,000萬瑞爾（約USD 12,500）且有關聯交易的企業，須在年度CIT申報時附上關聯交易申報表（TP Disclosure Form），列明：①交易類型；②交易對象及關係；③交易金額；④定價方法（如CUP法、TNMM法等）。未申報面臨罰款。',textEN:'Enterprises with annual turnover exceeding KHR 50 million (~USD 12,500) with related-party transactions must submit a TP Disclosure Form with the annual CIT filing, detailing: ①Transaction type; ②Related party and relationship; ③Transaction amount; ④Pricing method (e.g., CUP, TNMM). Non-disclosure faces penalties.'},
+          {id:'tc6h1',type:'highlight',textCN:'⚠️ VRT高風險關聯交易：①支付台北總部管理費；②向台北採購原材料或半成品；③品牌授權費/商標使用費；④貸款利息。建議：維護完整TP文件（本地文件+主文件），參考OECD指引，並在GDT稽查前進行內部TP健診。',textEN:'⚠️ VRT High-Risk Related-Party Transactions: ①Management fees to Taipei HQ; ②Raw material/semi-finished goods from Taipei; ③Brand licensing/trademark royalties; ④Loan interest. Recommendation: Maintain complete TP documentation (local file + master file) per OECD guidelines; conduct internal TP health-check before GDT audit.'}
+        ]
+      },
+      { id:'tc7', titleCN:'第七章 稅務稽查與爭議處理', titleEN:'Chapter 7: Tax Audit & Dispute Resolution',
+        summaryCN:'GDT可對企業進行辦公室稽查（Desk Audit）和現場稽查（Field Audit）。稽查追溯期限為稅款到期後10年。稽查後可在30天內提出異議。',
+        summaryEN:'GDT conducts Desk Audits and Field Audits. Statute of limitations: 10 years from tax due date. After audit assessment, companies may file an objection within 30 days.',
+        items:[
+          {id:'tc7a1',type:'article',num:'稽查類型與程序',textCN:'①辦公室稽查：GDT要求補充文件，企業有15天回覆期；②現場有限稽查（Limited Scope）：針對特定稅種，通常3-6個月；③綜合稽查（Comprehensive）：全面審查所有稅種，可能長達1-2年。稽查結束後GDT發稅務評定通知，企業可在30天內提出異議，必要時向稅務上訴委員會（TAC）申訴。',textEN:'①Desk Audit: GDT requests supplementary documents; 15 days to respond; ②Limited Scope Field Audit: targets specific taxes; typically 3-6 months; ③Comprehensive Audit: full review; may take 1-2 years. After audit, GDT issues tax assessment notice; companies may file objection within 30 days; appeal to Tax Appeals Committee (TAC) if necessary.'},
+          {id:'tc7h1',type:'highlight',textCN:'⚠️ VRT稽查準備（保留10年）：①所有月度申報記錄及繳款憑據；②進出口報關單及QIP關稅豁免申請；③員工薪資記錄（含NSSF繳費）；④關聯交易合約及移轉訂價文件；⑤固定資產折舊表及資本支出憑證。建議每年進行模擬稽查（Mock Audit），由外部稅務顧問協助識別風險。',textEN:'⚠️ VRT Audit Preparation (retain 10 years): ①All monthly filing records and payment receipts; ②Import/export customs declarations and QIP duty exemption applications; ③Employee payroll records (including NSSF); ④Related-party contracts and TP documentation; ⑤Fixed asset depreciation schedules and capital expenditure vouchers. Recommend annual Mock Audit with external tax advisor to identify risks in advance.'}
+        ]
+      }
+    ];
+    extra.forEach(ch => taxLaw.chapters.push(ch));
+  }
+
+  const envLaw = DEFAULT_DATA.find(l => l.id === 'environment');
+  if (envLaw) {
+    const extra = [
+      { id:'ec0', titleCN:'第零章 環境法律體系概覽', titleEN:'Chapter 0: Environmental Legal Framework Overview',
+        summaryCN:'主要法律：①1996年《環境保護及自然資源管理法》（主體法）；②2009年《水資源管理法》；③2007年《廢水管理次法令》；④2015年《固體廢棄物管理次法令》。2023年成立環境及自然資源部（MoENR）統一管理。',
+        summaryEN:'Key laws: ①1996 Law on Environmental Protection and Natural Resources Management (primary); ②2009 Law on Water Resources Management; ③2007 Sub-Decree on Wastewater; ④2015 Sub-Decree on Solid Waste. Ministry of Environment and Natural Resources (MoENR) established in 2023 as unified regulator.',
+        items:[
+          {id:'ec0a1',type:'article',num:'主要監管機構',textCN:'①環境及自然資源部（MoENR）：政策制定、EIA審批、執法；②省市環境局：地方監管及現場稽查；③工業科技創新部（MISTI）：工業企業環保配合監管；④水資源及氣象部：水資源使用許可；⑤城市管理部：固體廢棄物收集處理。各部門可能存在重疊管轄，建議與各機構保持良好溝通。',textEN:'①MoENR: Policy, EIA approval, enforcement; ②Provincial/municipal environment departments: local regulation and inspections; ③MISTI: Industrial environmental compliance; ④Ministry of Water Resources and Meteorology: water use permits; ⑤Ministry of Interior (Urban Management): solid waste collection. Overlapping jurisdictions possible; maintain good communication with all agencies.'},
+          {id:'ec0h1',type:'highlight',textCN:'⚠️ SA8000管理系統（第9條）要求組織識別其運營對外部環境的影響。SA8000稽核員可能詢問工廠是否遵守當地環保法規。保留ECC、廢水報告、廢棄物處置記錄是應對SA8000及客戶稽核的雙重需求。',textEN:'⚠️ SA8000 Management System (Article 9) requires identifying impacts on the external environment. SA8000 auditors may inquire about local environmental compliance. Maintaining ECC, wastewater reports, and waste disposal records serves dual purposes for SA8000 and customer audits.'}
+        ]
+      },
+      { id:'ec3', titleCN:'第三章 廢水管理與排放標準', titleEN:'Chapter 3: Wastewater Management & Discharge Standards',
+        summaryCN:'2007年《廢水管理次法令》設定工業廢水排放標準。有染色/水洗工序的紡織廠為重點監管對象，廢水須達標後方可排放，需取得廢水排放許可。',
+        summaryEN:'The 2007 Sub-Decree on Wastewater Management sets industrial discharge standards. Textile factories with dyeing/washing processes are priority regulated; wastewater must meet standards before discharge and require a Wastewater Discharge Permit.',
+        items:[
+          {id:'ec3a1',type:'article',num:'工業廢水排放標準（A類）',textCN:'主要限值（排入地表水）：pH 6-9；懸浮固體（SS）≤50 mg/L；BOD5≤30 mg/L；COD≤100 mg/L；總氮（TN）≤30 mg/L；總磷（TP）≤5 mg/L；油脂≤5 mg/L。成衣廠（純縫製，無染色）通常只需處理生活污水。有染色或水洗工序則需建設廢水處理設施（ETP）。',textEN:'Key limits (Class A, discharge to surface water): pH 6-9; SS≤50 mg/L; BOD5≤30 mg/L; COD≤100 mg/L; TN≤30 mg/L; TP≤5 mg/L; Oil≤5 mg/L. Pure sewing garment factories typically only manage domestic wastewater. Dyeing or washing processes require an Effluent Treatment Plant (ETP).'},
+          {id:'ec3a2',type:'article',num:'廢水排放許可申請',textCN:'有工業廢水排放的企業須向MoENR申請廢水排放許可。申請材料：①企業登記証明；②ECC（環境合規証書）；③廢水處理系統技術說明；④廠區平面圖（標示排放口位置）；⑤廢水樣本初步檢測報告（認可實驗室出具）。許可有效期通常1-3年，需定期更新。',textEN:'Enterprises with industrial wastewater discharge must apply for a Wastewater Discharge Permit from MoENR. Required: ①Business registration; ②ECC; ③Technical description of wastewater treatment system; ④Factory layout (discharge point locations); ⑤Initial wastewater test report (accredited laboratory). Validity: typically 1-3 years, requires periodic renewal.'},
+          {id:'ec3h1',type:'highlight',textCN:'⚠️ VRT實務：若廠區有洗手間/廚房/食堂等生活污水，確認接入市政排污系統或建有化糞池（Septic Tank）並定期清理。若未來計劃增加洗水或染色工序，必須提前申請廢水排放許可並建設ETP後方可啟動。',textEN:'⚠️ VRT Practice: Confirm domestic wastewater (toilets/kitchen/canteen) connects to municipal sewage or has a maintained Septic Tank. Any future plans for washing or dyeing processes must include advance application for Wastewater Discharge Permit and ETP construction before operations begin.'}
+        ]
+      },
+      { id:'ec4', titleCN:'第四章 空氣污染與噪音管理', titleEN:'Chapter 4: Air Pollution & Noise Management',
+        summaryCN:'工廠固定污染源排放廢氣及工業噪音均受管制。成衣廠主要涉及：發電機廢氣、裁剪車間粉塵、縫紉機及裁床噪音。',
+        summaryEN:'Factory fixed source air emissions and industrial noise are regulated. Garment factories primarily face: generator exhaust, cutting workshop dust, sewing machine and cutting equipment noise.',
+        items:[
+          {id:'ec4a1',type:'article',num:'廢氣排放與噪音限制',textCN:'工業區邊界噪音限制：白天（6:00-22:00）≤70分貝；夜間（22:00-6:00）≤55分貝。縫紉車間平均噪音通常80-90分貝，須提供防護耳罩。固定污染源（發電機/鍋爐）需定期進行排放檢測並保留記錄。使用柴油發電機的工廠需特別注意PM及NOx排放。',textEN:'Industrial zone boundary noise limits: Daytime (6:00-22:00) ≤70 dB; Nighttime (22:00-6:00) ≤55 dB. Sewing workshop noise typically 80-90 dB; hearing protection required. Fixed sources (generators/boilers) require periodic emission testing and record retention. Diesel generator users must monitor PM and NOx emissions.'},
+          {id:'ec4h1',type:'highlight',textCN:'⚠️ SA8000稽核關聯：SA8000第3條要求辨識並控制工作場所危害，包括：噪音（縫紉/裁床）、粉塵（裁剪車間）、化學品（黏合劑/清潔劑）。建議VRT定期委託第三方進行車間噪音評估，建立防護耳罩發放及使用記錄，此記錄亦是SA8000稽核的查核點。',textEN:'⚠️ SA8000 Audit Link: SA8000 Article 3 requires identifying and controlling workplace hazards including noise (sewing/cutting), dust (cutting workshop), chemicals (adhesives/cleaners). VRT should periodically engage third-party noise assessments; maintain hearing protection distribution records - also an SA8000 audit checkpoint.'}
+        ]
+      },
+      { id:'ec5', titleCN:'第五章 化學品管理', titleEN:'Chapter 5: Chemical Management',
+        summaryCN:'工廠使用的化學品（清洗劑、黏合劑、機油、染料等）須依環保及衛生法規進行儲存、使用及廢棄處置，並備存安全資料表（SDS/MSDS）。',
+        summaryEN:'Chemicals used in factories (detergents, adhesives, lubricants, dyes, etc.) must be managed for storage, use, and disposal per environmental and health regulations, with Safety Data Sheets (SDS/MSDS) maintained.',
+        items:[
+          {id:'ec5a1',type:'article',num:'化學品管理要求',textCN:'①SDS：所有危險化學品須備有中文或英文SDS，張貼於使用區域；②儲存：危險化學品需在通風、防爆、防漏的專用區域，與明火及不相容物質分開；③廢棄：依危廢規定處理，不得倒入下水道；④緊急應對：備有化學品洩漏應急計劃及Spill Kit（吸附材料）。',textEN:'①SDS: All hazardous chemicals must have Chinese or English SDS posted in usage areas; ②Storage: Dedicated ventilated, explosion-proof, leak-proof storage, separate from ignition sources and incompatible substances; ③Disposal: As hazardous waste; must not pour into drains; ④Emergency: Chemical spill emergency plan and Spill Kit must be in place.'},
+          {id:'ec5h1',type:'highlight',textCN:'⚠️ VRT化學品管理台帳（常見清單）：縫紉機油（潤滑劑）、紡織品黏合劑/熱熔膠、清潔用洗滌劑、噴膠（輔助定型）、蟲害防治藥品。每種化學品需記錄：採購量、使用量、庫存量、廢棄量及處置方式。此記錄是SA8000、C-TPAT及客戶CSR稽核的共同查核點。',textEN:'⚠️ VRT Chemical Management Register (common items): Sewing machine oil, textile adhesives/hot melt glue, cleaning detergents, spray adhesive, pest control chemicals. For each: purchase quantity, usage, inventory, disposal quantity and method. This register is a common checkpoint for SA8000, C-TPAT, and customer CSR audits.'}
+        ]
+      },
+      { id:'ec6', titleCN:'第六章 環保違規處罰', titleEN:'Chapter 6: Environmental Violation Penalties',
+        summaryCN:'違反環保法規的罰則從警告、罰款到停業均有，嚴重者可追究刑事責任。MoENR近年加強執法，尤其針對廢水違規排放。',
+        summaryEN:'Penalties for environmental violations range from warnings and fines to suspension; serious violations may result in criminal liability. MoENR has strengthened enforcement, especially targeting illegal wastewater discharge.',
+        items:[
+          {id:'ec6a1',type:'article',num:'違規處罰層級',textCN:'①警告通知：輕微違規，限期改正（14-30天）；②行政罰款：USD 500至5萬美元不等（依違規性質）；③停業處分：嚴重或屢次違規不改正，MoENR可命令停工整改；④刑事責任：故意違規造成嚴重環境損害，可移送司法（罰款+最高監禁）；⑤民事賠償：對第三方造成環境損害須承擔賠償責任。',textEN:'①Warning notice: Minor violation, correction within 14-30 days; ②Administrative fine: USD 500 to 50,000 depending on violation type; ③Suspension order: Serious or repeated violations; MoENR may order production halt; ④Criminal liability: Willful violations causing serious damage may be prosecuted (fines + imprisonment); ⑤Civil damages: Liability for environmental harm to third parties.'},
+          {id:'ec6h1',type:'highlight',textCN:'⚠️ VRT風險提示：未取得ECC即投入生產屬嚴重違規，面臨停業風險。廢水超標排放若被MoENR現場稽查發現，可能面臨即時停工令。建議VRT定期自我評估：ECC是否有效、廢水檢測是否按時、廢棄物處置記錄是否完整。',textEN:'⚠️ VRT Risk Warning: Operating without an ECC is a serious violation subject to suspension. Wastewater exceedance found during MoENR inspection may result in an immediate production halt order. VRT should regularly self-assess: Is ECC valid? Are wastewater tests on schedule? Are waste disposal records complete?'}
+        ]
+      }
+    ];
+    extra.forEach(ch => envLaw.chapters.push(ch));
+  }
+})();
+
+let DB = loadData();
+
+// ═══════════════════════════════════════════════════════
+// LANG
+// ═══════════════════════════════════════════════════════
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['cn','en','bi'][i] === l);
+  });
+  refreshAll();
+}
+
+function t(cn, en) {
+  if (lang === 'cn') return cn || '';
+  if (lang === 'en') return en || '';
+  return (cn || '') + (en ? `<br><span style="color:var(--text-light);font-size:0.88em">${en}</span>` : '');
+}
+
+// ═══════════════════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════════════════
+function renderSidebar(data) {
+  const list = document.getElementById('law-list');
+  list.innerHTML = '';
+  data.forEach(law => {
+    const active = law.id === currentLawId;
+    const div = document.createElement('div');
+    div.className = 'law-group';
+    div.innerHTML = `
+      <div class="law-item ${active ? 'active' : ''}" onclick="selectLaw('${law.id}')">
+        <div class="law-dot" style="background:${law.color}"></div>
+        <div class="law-name">
+          <div class="law-name-cn">${law.nameCN}</div>
+          <div class="law-name-en">${law.nameEN}</div>
+        </div>
+        <div class="law-badge">${law.chapters.length}章</div>
+      </div>
+      <div class="chapter-list ${active ? 'open' : ''}" id="cl-${law.id}">
+        ${law.chapters.map(ch => `
+          <div class="chapter-item ${ch.id === currentChapterId ? 'active' : ''}" onclick="selectChapter('${law.id}','${ch.id}')">
+            ${lang === 'en' ? ch.titleEN : ch.titleCN}
+          </div>
+        `).join('')}
+        <div class="chapter-item" style="color:var(--gold);opacity:0.7" onclick="openAddChapter('${law.id}')">+ 新增章節</div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function doSearch(q) {
+  if (!q.trim()) { renderSidebar(DB); return; }
+  const lq = q.toLowerCase();
+  const filtered = DB.filter(law =>
+    law.nameCN.includes(q) || law.nameEN.toLowerCase().includes(lq) ||
+    law.summaryCN?.includes(q) || law.summaryEN?.toLowerCase().includes(lq) ||
+    law.chapters.some(ch => ch.titleCN.includes(q) || ch.titleEN.toLowerCase().includes(lq))
+  );
+  renderSidebar(filtered);
+}
+
+// ═══════════════════════════════════════════════════════
+// VIEWS
+// ═══════════════════════════════════════════════════════
+function selectLaw(id) {
+  currentLawId = id;
+  currentChapterId = null;
+  currentViewTab = 'overview';
+  renderSidebar(DB);
+  showLawOverview(id);
+  updateTopbar();
+}
+
+function selectChapter(lawId, chId) {
+  currentLawId = lawId;
+  currentChapterId = chId;
+  currentViewTab = 'overview';
+  renderSidebar(DB);
+  showChapterView(lawId, chId);
+  updateTopbar();
+}
+
+function showLawOverview(id) {
+  const law = DB.find(l => l.id === id);
+  if (!law) return;
+  showOnlySection('law-overview');
+  document.getElementById('breadcrumb').innerHTML = `<span>${t(law.nameCN, law.nameEN)}</span>`;
+
+  const el = document.getElementById('law-overview');
+  const highlights = law.chapters.flatMap(ch => (ch.items || []).filter(i => i.type === 'highlight')).length;
+  const examples = law.chapters.flatMap(ch => (ch.items || []).filter(i => i.type === 'example')).length;
+  const articles = law.chapters.flatMap(ch => (ch.items || []).filter(i => i.type === 'article')).length;
+
+  el.innerHTML = `
+    <div class="law-header">
+      <div style="margin-bottom:8px">
+        <span class="law-header-dot" style="background:${law.color}"></span>
+        <span style="font-size:11px;color:var(--gold-light);letter-spacing:1px;text-transform:uppercase">Law / 法律</span>
+      </div>
+      <div class="law-header-title">${law.nameCN}</div>
+      <div class="law-header-sub">${law.nameEN}</div>
+      <div class="law-meta">
+        <div class="law-meta-item">生效年份 <strong>${law.year}</strong></div>
+        ${law.amended ? `<div class="law-meta-item">修訂 <strong>${law.amended}</strong></div>` : ''}
+        <div class="law-meta-item">章節 <strong>${law.chapters.length}</strong></div>
+        <div class="law-meta-item">條文 <strong>${articles}</strong></div>
+        <div class="law-meta-item">⚠️ 重要提醒 <strong>${highlights}</strong></div>
+        <div class="law-meta-item">💡 範例 <strong>${examples}</strong></div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:8px">
+        <button style="padding:6px 14px;font-size:12px;border-radius:5px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;cursor:pointer;font-family:inherit" onclick="openEditLaw('${law.id}')">✏️ 編輯基本資料</button>
+        <button style="padding:6px 14px;font-size:12px;border-radius:5px;border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.1);color:white;cursor:pointer;font-family:inherit" onclick="openAddChapter('${law.id}')">+ 新增章節</button>
+        <button style="padding:6px 14px;font-size:12px;border-radius:5px;border:1px solid rgba(220,38,38,0.5);background:rgba(220,38,38,0.15);color:#fca5a5;cursor:pointer;font-family:inherit" onclick="deleteLaw('${law.id}')">🗑 刪除法律</button>
+      </div>
+    </div>
+
+    ${law.summaryCN ? `
+    <div class="law-summary-box">
+      <div class="section-title">📋 法律摘要</div>
+      <div class="summary-text">${t(law.summaryCN, law.summaryEN)}</div>
+      ${law.scope ? `<div style="margin-top:10px;font-size:12px;color:var(--text-light)">📌 適用範圍：${law.scope}</div>` : ''}
+    </div>` : ''}
+
+    <div class="section-title">📂 章節列表</div>
+    <div class="chapters-grid">
+      ${law.chapters.map((ch, i) => {
+        const hi = (ch.items || []).filter(x => x.type === 'highlight').length;
+        const ex = (ch.items || []).filter(x => x.type === 'example').length;
+        const ar = (ch.items || []).filter(x => x.type === 'article').length;
+        return `
+        <div class="chapter-card" onclick="selectChapter('${law.id}','${ch.id}')">
+          <div class="chapter-card-num">第 ${i+1} 章</div>
+          <div class="chapter-card-title">${ch.titleCN}</div>
+          <div class="chapter-card-en">${ch.titleEN}</div>
+          <div class="chapter-card-summary">${(ch.summaryCN || '').substring(0,80)}${(ch.summaryCN||'').length > 80 ? '...' : ''}</div>
+          <div class="chip-row">
+            ${ar ? `<span class="chip blue">📄 ${ar}條</span>` : ''}
+            ${hi ? `<span class="chip">⚠️ ${hi}重點</span>` : ''}
+            ${ex ? `<span class="chip green">💡 ${ex}範例</span>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="chapter-card" style="border-style:dashed;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--text-light);cursor:pointer" onclick="openAddChapter('${law.id}')">
+        <div style="text-align:center"><div style="font-size:24px;margin-bottom:6px">+</div><div style="font-size:12px">新增章節</div></div>
+      </div>
+    </div>
+  `;
+}
+
+function showChapterView(lawId, chId) {
+  const law = DB.find(l => l.id === lawId);
+  const ch = law?.chapters.find(c => c.id === chId);
+  if (!law || !ch) return;
+  showOnlySection('chapter-view');
+  document.getElementById('breadcrumb').innerHTML = `${t(law.nameCN, law.nameEN)} › <span>${t(ch.titleCN, ch.titleEN)}</span>`;
+
+  const items = ch.items || [];
+  const renderItem = (item) => {
+    if (item.type === 'article') return `
+      <div class="article-item">
+        ${item.num ? `<div class="article-num">${item.num}</div>` : ''}
+        <div class="article-text">${t(item.textCN, item.textEN)}</div>
+        <div class="actions-row">
+          <button class="article-edit-btn" onclick="openEditArticle('${lawId}','${chId}','${item.id}')">✏️ 編輯</button>
+          <button class="article-edit-btn del" onclick="deleteArticle('${lawId}','${chId}','${item.id}')">🗑 刪除</button>
+        </div>
+      </div>`;
+    if (item.type === 'highlight') return `
+      <div class="highlight-box">
+        <div class="highlight-label">⚠️ 重要提醒 / Key Point</div>
+        <div class="highlight-text">${t(item.textCN, item.textEN)}</div>
+        <div class="actions-row">
+          <button class="article-edit-btn" onclick="openEditArticle('${lawId}','${chId}','${item.id}')">✏️ 編輯</button>
+          <button class="article-edit-btn del" onclick="deleteArticle('${lawId}','${chId}','${item.id}')">🗑 刪除</button>
+        </div>
+      </div>`;
+    if (item.type === 'example') return `
+      <div class="example-box">
+        <div class="example-label">💡 範例說明 / Example</div>
+        <div class="example-text">${t(item.textCN, item.textEN)}</div>
+        <div class="actions-row">
+          <button class="article-edit-btn" onclick="openEditArticle('${lawId}','${chId}','${item.id}')">✏️ 編輯</button>
+          <button class="article-edit-btn del" onclick="deleteArticle('${lawId}','${chId}','${item.id}')">🗑 刪除</button>
+        </div>
+      </div>`;
+    return '';
+  };
+
+  const articleItems = currentViewTab === 'articles' ? items.filter(i => i.type === 'article') :
+                       currentViewTab === 'highlights' ? items.filter(i => i.type === 'highlight') :
+                       currentViewTab === 'examples' ? items.filter(i => i.type === 'example') :
+                       items;
+
+  document.getElementById('chapter-view').innerHTML = `
+    <div class="chapter-header">
+      <button class="ch-back" onclick="selectLaw('${lawId}')">← 返回</button>
+      <div>
+        <div class="ch-title">${t(ch.titleCN, ch.titleEN)}</div>
+        <div class="ch-title-en">${law.nameCN} · ${law.nameEN}</div>
+      </div>
+    </div>
+
+    ${ch.summaryCN ? `
+    <div class="content-block">
+      <div class="block-title"><span class="block-icon">📋</span> 章節摘要 Chapter Summary</div>
+      <div class="summary-text">${t(ch.summaryCN, ch.summaryEN)}</div>
+    </div>` : ''}
+
+    <div class="content-block">
+      <div class="block-title"><span class="block-icon">📄</span> 
+        ${currentViewTab === 'articles' ? '條文 Articles' :
+          currentViewTab === 'highlights' ? '重要提醒 Key Points' :
+          currentViewTab === 'examples' ? '範例說明 Examples' : '全部內容 All Content'}
+        <span style="margin-left:auto;font-size:12px;font-weight:400;color:var(--text-light)">${articleItems.length} 項</span>
+      </div>
+      ${articleItems.length ? articleItems.map(renderItem).join('') :
+        `<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">此分類暫無內容<br>點選上方「+ 條文」按鈕新增</div></div>`}
+      <div style="margin-top:16px">
+        <button class="article-edit-btn" style="padding:7px 16px;font-size:12px" onclick="openAddArticle()">+ 新增內容</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="article-edit-btn" style="padding:7px 14px" onclick="editCurrentChapter()">✏️ 編輯章節摘要</button>
+      <button class="article-edit-btn del" style="padding:7px 14px" onclick="deleteChapter('${lawId}','${chId}')">🗑 刪除本章節</button>
+    </div>
+  `;
+}
+
+function showOnlySection(id) {
+  ['welcome-screen','law-overview','chapter-view','compare-view'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+}
+
+function setViewTab(tab) {
+  currentViewTab = tab;
+  document.querySelectorAll('.view-tab').forEach((b,i) => {
+    b.classList.toggle('active', ['overview','articles','highlights','examples'][i] === tab);
+  });
+  if (currentChapterId) showChapterView(currentLawId, currentChapterId);
+}
+
+function updateTopbar() {
+  document.getElementById('btn-edit-chapter').style.display = currentChapterId ? '' : 'none';
+  document.getElementById('btn-add-article').style.display = currentChapterId ? '' : 'none';
+}
+
+function refreshAll() {
+  renderSidebar(DB);
+  renderWelcomeCards();
+  if (currentChapterId) showChapterView(currentLawId, currentChapterId);
+  else if (currentLawId) showLawOverview(currentLawId);
+}
+
+function renderWelcomeCards() {
+  const el = document.getElementById('welcome-cards');
+  if (!el) return;
+  el.innerHTML = DB.map(law => `
+    <div class="welcome-card" onclick="selectLaw('${law.id}')">
+      <div class="wc-icon" style="color:${law.color}">📗</div>
+      <div class="wc-title">${law.nameCN}</div>
+      <div class="wc-sub">${law.nameEN} · ${law.year}</div>
+      <div class="wc-sub" style="margin-top:4px;color:${law.color}">${law.chapters.length} 章節</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// COMPARE VIEW
+// ═══════════════════════════════════════════════════════
+function compareView() {
+  showOnlySection('compare-view');
+  currentLawId = null; currentChapterId = null;
+  renderSidebar(DB);
+  document.getElementById('breadcrumb').innerHTML = '法律對比分析';
+  document.getElementById('btn-edit-chapter').style.display = 'none';
+  document.getElementById('btn-add-article').style.display = 'none';
+
+  const options = DB.map(l => `<option value="${l.id}">${l.nameCN}</option>`).join('');
+  document.getElementById('compare-view').innerHTML = `
+    <div class="compare-toolbar">
+      <label>法律 A：</label>
+      <select id="cmp-a" onchange="renderCompare()">${options}</select>
+      <label style="margin-left:12px">法律 B：</label>
+      <select id="cmp-b" onchange="renderCompare()">${options.replace('value="'+DB[0].id+'"','').replace(`value="${DB[1]?.id||''}"`,`value="${DB[1]?.id||''}" selected`)}</select>
+    </div>
+    <div id="compare-body" class="compare-grid"></div>
+  `;
+  if (DB.length > 1) { document.getElementById('cmp-b').value = DB[1].id; }
+  renderCompare();
+}
+
+function renderCompare() {
+  const aId = document.getElementById('cmp-a')?.value;
+  const bId = document.getElementById('cmp-b')?.value;
+  const a = DB.find(l => l.id === aId);
+  const b = DB.find(l => l.id === bId);
+  if (!a || !b) return;
+
+  const panel = (law) => {
+    const highlights = law.chapters.flatMap(ch => (ch.items || []).filter(i => i.type === 'highlight'));
+    const examples = law.chapters.flatMap(ch => (ch.items || []).filter(i => i.type === 'example'));
+    const articles = law.chapters.flatMap(ch => (ch.items || []).filter(i => i.type === 'article'));
+    return `
+      <div class="compare-panel">
+        <div class="compare-panel-header" style="background:${law.color}">
+          <span>📗</span> ${law.nameCN} — ${law.nameEN}
+        </div>
+        <div class="compare-panel-body">
+          <div class="compare-row"><div class="compare-label">年份</div><div class="compare-val">${law.year} ${law.amended ? '(修訂：'+law.amended+')' : ''}</div></div>
+          <div class="compare-row"><div class="compare-label">章節數</div><div class="compare-val">${law.chapters.length} 章</div></div>
+          <div class="compare-row"><div class="compare-label">條文</div><div class="compare-val">${articles.length} 條</div></div>
+          <div class="compare-row"><div class="compare-label">重要提醒</div><div class="compare-val">${highlights.length} 項</div></div>
+          <div class="compare-row"><div class="compare-label">範例</div><div class="compare-val">${examples.length} 項</div></div>
+          <div class="compare-row"><div class="compare-label">適用對象</div><div class="compare-val">${law.scope || '—'}</div></div>
+          <div class="compare-row"><div class="compare-label">摘要</div><div class="compare-val">${(law.summaryCN||'').substring(0,150)}...</div></div>
+          <div style="margin-top:12px"><button class="article-edit-btn" onclick="selectLaw('${law.id}')">查看完整內容 →</button></div>
+        </div>
+      </div>`;
+  };
+
+  document.getElementById('compare-body').innerHTML = panel(a) + panel(b);
+}
+
+// ═══════════════════════════════════════════════════════
+// MODALS — LAW
+// ═══════════════════════════════════════════════════════
+function openAddLaw() {
+  editingLawId = null;
+  document.getElementById('modal-law-title').textContent = '新增法律 Add Law';
+  ['fl-nameCN','fl-nameEN','fl-year','fl-amended','fl-summaryCN','fl-summaryEN','fl-scope'].forEach(id => document.getElementById(id).value = '');
+  selectedColor = '#2563eb';
+  updateColorSel();
+  openModal('modal-law');
+}
+
+function openEditLaw(id) {
+  const law = DB.find(l => l.id === id);
+  if (!law) return;
+  editingLawId = id;
+  document.getElementById('modal-law-title').textContent = '編輯法律 Edit Law';
+  document.getElementById('fl-nameCN').value = law.nameCN;
+  document.getElementById('fl-nameEN').value = law.nameEN;
+  document.getElementById('fl-year').value = law.year || '';
+  document.getElementById('fl-amended').value = law.amended || '';
+  document.getElementById('fl-summaryCN').value = law.summaryCN || '';
+  document.getElementById('fl-summaryEN').value = law.summaryEN || '';
+  document.getElementById('fl-scope').value = law.scope || '';
+  selectedColor = law.color || '#2563eb';
+  updateColorSel();
+  openModal('modal-law');
+}
+
+function saveLaw() {
+  const nameCN = document.getElementById('fl-nameCN').value.trim();
+  const nameEN = document.getElementById('fl-nameEN').value.trim();
+  if (!nameCN && !nameEN) { toast('請輸入法律名稱'); return; }
+  if (editingLawId) {
+    const law = DB.find(l => l.id === editingLawId);
+    Object.assign(law, { nameCN, nameEN, year: +document.getElementById('fl-year').value || '', amended: document.getElementById('fl-amended').value, color: selectedColor, summaryCN: document.getElementById('fl-summaryCN').value, summaryEN: document.getElementById('fl-summaryEN').value, scope: document.getElementById('fl-scope').value });
+  } else {
+    DB.push({ id: 'law_' + Date.now(), nameCN, nameEN, year: +document.getElementById('fl-year').value || new Date().getFullYear(), amended: document.getElementById('fl-amended').value, color: selectedColor, summaryCN: document.getElementById('fl-summaryCN').value, summaryEN: document.getElementById('fl-summaryEN').value, scope: document.getElementById('fl-scope').value, chapters: [] });
+  }
+  saveData(DB);
+  closeModal('modal-law');
+  refreshAll();
+  if (editingLawId) showLawOverview(editingLawId);
+  toast(editingLawId ? '已更新法律資料' : '已新增法律');
+}
+
+function deleteLaw(id) {
+  if (!confirm('確認刪除此法律及所有章節？此操作無法復原。')) return;
+  DB = DB.filter(l => l.id !== id);
+  currentLawId = null; currentChapterId = null;
+  saveData(DB);
+  renderSidebar(DB);
+  document.getElementById('welcome-screen').style.display = '';
+  document.getElementById('law-overview').style.display = 'none';
+  document.getElementById('chapter-view').style.display = 'none';
+  document.getElementById('breadcrumb').innerHTML = '柬埔寨法律參考系統';
+  renderWelcomeCards();
+  toast('已刪除法律');
+}
+
+// ═══════════════════════════════════════════════════════
+// MODALS — CHAPTER
+// ═══════════════════════════════════════════════════════
+let addChapterLawId = null;
+
+function openAddChapter(lawId) {
+  addChapterLawId = lawId;
+  editingChapterId = null;
+  document.getElementById('modal-ch-title').textContent = '新增章節 Add Chapter';
+  ['fch-titleCN','fch-titleEN','fch-summaryCN','fch-summaryEN'].forEach(id => document.getElementById(id).value = '');
+  openModal('modal-chapter');
+}
+
+function editCurrentChapter() {
+  const law = DB.find(l => l.id === currentLawId);
+  const ch = law?.chapters.find(c => c.id === currentChapterId);
+  if (!ch) return;
+  addChapterLawId = currentLawId;
+  editingChapterId = currentChapterId;
+  document.getElementById('modal-ch-title').textContent = '編輯章節 Edit Chapter';
+  document.getElementById('fch-titleCN').value = ch.titleCN;
+  document.getElementById('fch-titleEN').value = ch.titleEN;
+  document.getElementById('fch-summaryCN').value = ch.summaryCN || '';
+  document.getElementById('fch-summaryEN').value = ch.summaryEN || '';
+  openModal('modal-chapter');
+}
+
+function saveChapter() {
+  const titleCN = document.getElementById('fch-titleCN').value.trim();
+  const titleEN = document.getElementById('fch-titleEN').value.trim();
+  if (!titleCN && !titleEN) { toast('請輸入章節標題'); return; }
+  const law = DB.find(l => l.id === addChapterLawId);
+  if (!law) return;
+  if (editingChapterId) {
+    const ch = law.chapters.find(c => c.id === editingChapterId);
+    Object.assign(ch, { titleCN, titleEN, summaryCN: document.getElementById('fch-summaryCN').value, summaryEN: document.getElementById('fch-summaryEN').value });
+  } else {
+    law.chapters.push({ id: 'ch_' + Date.now(), titleCN, titleEN, summaryCN: document.getElementById('fch-summaryCN').value, summaryEN: document.getElementById('fch-summaryEN').value, items: [] });
+  }
+  saveData(DB);
+  closeModal('modal-chapter');
+  refreshAll();
+  if (editingChapterId) showChapterView(addChapterLawId, editingChapterId);
+  else showLawOverview(addChapterLawId);
+  toast(editingChapterId ? '已更新章節' : '已新增章節');
+}
+
+function deleteChapter(lawId, chId) {
+  if (!confirm('確認刪除此章節及所有條文？')) return;
+  const law = DB.find(l => l.id === lawId);
+  law.chapters = law.chapters.filter(c => c.id !== chId);
+  currentChapterId = null;
+  saveData(DB);
+  selectLaw(lawId);
+  toast('已刪除章節');
+}
+
+// ═══════════════════════════════════════════════════════
+// MODALS — ARTICLE
+// ═══════════════════════════════════════════════════════
+function openAddArticle() {
+  if (!currentChapterId) return;
+  editingArticleId = null;
+  document.getElementById('modal-art-title').textContent = '新增內容';
+  document.getElementById('fart-type').value = 'article';
+  document.getElementById('fart-num').value = '';
+  document.getElementById('fart-textCN').value = '';
+  document.getElementById('fart-textEN').value = '';
+  updateArtType();
+  openModal('modal-article');
+}
+
+function openEditArticle(lawId, chId, artId) {
+  const law = DB.find(l => l.id === lawId);
+  const ch = law?.chapters.find(c => c.id === chId);
+  const item = ch?.items.find(i => i.id === artId);
+  if (!item) return;
+  editingArticleId = artId;
+  document.getElementById('modal-art-title').textContent = '編輯內容';
+  document.getElementById('fart-type').value = item.type;
+  document.getElementById('fart-num').value = item.num || '';
+  document.getElementById('fart-textCN').value = item.textCN || '';
+  document.getElementById('fart-textEN').value = item.textEN || '';
+  updateArtType();
+  openModal('modal-article');
+}
+
+function updateArtType() {
+  const t = document.getElementById('fart-type').value;
+  document.getElementById('fart-num-row').style.display = t === 'article' ? '' : 'none';
+}
+
+function saveArticle() {
+  const textCN = document.getElementById('fart-textCN').value.trim();
+  const textEN = document.getElementById('fart-textEN').value.trim();
+  if (!textCN && !textEN) { toast('請輸入內容'); return; }
+  const law = DB.find(l => l.id === currentLawId);
+  const ch = law?.chapters.find(c => c.id === currentChapterId);
+  if (!ch) return;
+  if (!ch.items) ch.items = [];
+  if (editingArticleId) {
+    const item = ch.items.find(i => i.id === editingArticleId);
+    Object.assign(item, { type: document.getElementById('fart-type').value, num: document.getElementById('fart-num').value, textCN, textEN });
+  } else {
+    ch.items.push({ id: 'art_' + Date.now(), type: document.getElementById('fart-type').value, num: document.getElementById('fart-num').value, textCN, textEN });
+  }
+  saveData(DB);
+  closeModal('modal-article');
+  showChapterView(currentLawId, currentChapterId);
+  toast(editingArticleId ? '已更新內容' : '已新增內容');
+}
+
+function deleteArticle(lawId, chId, artId) {
+  if (!confirm('確認刪除此條目？')) return;
+  const law = DB.find(l => l.id === lawId);
+  const ch = law?.chapters.find(c => c.id === chId);
+  ch.items = ch.items.filter(i => i.id !== artId);
+  saveData(DB);
+  showChapterView(lawId, chId);
+  toast('已刪除');
+}
+
+// ═══════════════════════════════════════════════════════
+// IMPORT / EXPORT
+// ═══════════════════════════════════════════════════════
+function exportData() {
+  const blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cambodia_laws_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  toast('已匯出 JSON 檔案');
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error();
+      if (!confirm(`確認匯入？將載入 ${data.length} 筆法律資料（現有資料將被覆蓋）`)) return;
+      DB = data;
+      saveData(DB);
+      currentLawId = null; currentChapterId = null;
+      refreshAll();
+      showOnlySection('welcome-screen');
+      renderWelcomeCards();
+      toast(`已匯入 ${data.length} 筆法律資料`);
+    } catch(e) { toast('❌ 匯入失敗：檔案格式錯誤'); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+// ═══════════════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Color picker
+document.getElementById('fl-colors').addEventListener('click', e => {
+  const opt = e.target.closest('.color-opt');
+  if (!opt) return;
+  selectedColor = opt.dataset.color;
+  updateColorSel();
+});
+
+function updateColorSel() {
+  document.querySelectorAll('.color-opt').forEach(o => {
+    o.classList.toggle('selected', o.dataset.color === selectedColor);
+  });
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+renderSidebar(DB);
+renderWelcomeCards();
+document.getElementById('welcome-screen').style.display = 'flex';
+document.getElementById('law-overview').style.display = 'none';
+document.getElementById('chapter-view').style.display = 'none';
+document.getElementById('compare-view').style.display = 'none';
+</script>
+</body>
+</html>

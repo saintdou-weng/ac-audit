@@ -330,13 +330,15 @@ function uid(prefix){
 
 /* ---------- config & DB ---------- */
 const CFG_KEY='ac_audit_config', DB_KEY='ac_audit_db';
+const GAS_DEFAULT='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
 const DEFAULT_CFG={
-  gasUrl:'',
+  gasUrl:GAS_DEFAULT,
   botToken:'8673812837:AAFJqA4rL4RIlAXAP2-ConrrPLCGt8rou8g',
   chatId:'-5456651485',
   notif:{upload:true,download:true,sync:true,hiRisk:true,capOverdue:true,certExpiry:true,docExpiry:true,auditRemind:true,newAudit:false,newIncident:true}
 };
 let CFG=Object.assign({},DEFAULT_CFG,JSON.parse(localStorage.getItem(CFG_KEY)||'{}'));
+if(!CFG.gasUrl)CFG.gasUrl=GAS_DEFAULT;
 CFG.notif=Object.assign({},DEFAULT_CFG.notif,CFG.notif||{});
 function saveCFG(){localStorage.setItem(CFG_KEY,JSON.stringify(CFG))}
 
@@ -673,6 +675,16 @@ function renderNav(){
          '<span>'+ico+'</span><span>'+esc(t(k))+'</span>'+cnt+'</a>';
     });
   });
+  const SUBSYS=[
+   {u:'vrt_training_v1.html',i:'🎓',zh:'培訓計劃系統',en:'Training System'},
+   {u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment'},
+   {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules'},
+   {u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law'},
+   {u:'vrt_damage_report.html',i:'📝',zh:'損壞/遺失報告表',en:'Damage Report Form'},
+   {u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 舊版（資料可遷移）',en:'DCC Legacy'},
+   {u:'MSG_Processor.html',i:'📨',zh:'外來文件管制（舊版）',en:'Ext. Doc Legacy'}];
+  h+='<div class="ngroup">📚 '+(LANG==='zh'?'子系統 / 參考':(LANG==='km'?'ប្រព័ន្ធរង':'Subsystems / Reference'))+'</div>';
+  SUBSYS.forEach(s=>{h+='<a href="'+s.u+'" target="_blank" rel="noopener"><span>'+s.i+'</span><span>'+esc(LANG==='zh'?s.zh:s.en)+'</span><span class="cnt">↗</span></a>'});
   h+='<div class="nfoot">SAINTDOU · Simply the Minimalist<br>AC AUDIT PLATFORM v1.0<br>'+esc(t('openPlatform'))+'</div>';
   $('#nav').innerHTML=h;renderNavCounts();
 }
@@ -1268,8 +1280,61 @@ function renderSettings(){
      '<button class="btn dng" onclick="clearAll()">🗑 '+esc(t('dangerZone'))+'</button></div>'+
      '<div class="kv-row" style="margin-top:12px"><span>'+esc(t('lastSync'))+'</span><b>'+(DB.meta.lastSync?esc(fmtDT(new Date(DB.meta.lastSync))):esc(t('never')))+'</b></div>'+
      '<div class="kv-row"><span>localStorage</span><b>ac_audit_db</b></div></div>'+
+   '<div class="panel setsec"><h4>🔁 '+(LANG==='zh'?'舊系統資料遷移':'Legacy Data Migration')+'</h4>'+
+     '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+     '<button class="btn" onclick="migrateDCC()">🗄 DCC v2 → '+esc(t('documents'))+'</button>'+
+     '<button class="btn" onclick="migrateMSG()">📨 MSG Processor → '+esc(t('msg'))+'</button></div>'+
+     '<p class="hint" style="margin-top:8px">'+(LANG==='zh'
+       ?'需在 saintdou-weng.github.io 同網域下開啟本平台，才能讀取 vrt_dcc_v2 / msgProcessor_data 舊資料（同編號/同檔名不會重複匯入）。WSE 稽核評估請用其「匯出 CSV」再由 CAP 模組 Excel 匯入。'
+       :'Open this platform on the same origin (saintdou-weng.github.io) to read legacy keys vrt_dcc_v2 / msgProcessor_data. Duplicates are skipped. For WSE, export CSV then import into CAP module.')+'</p></div>'+
    '</div>';
 }
+/* ── 舊系統資料遷移（vrt_dcc_v2 / msgProcessor_data）── */
+function _nd(s){if(!s)return'';s=String(s);const m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);return m?m[1]+'-'+pad(+m[2])+'-'+pad(+m[3]):''}
+function _mapDocType(c){c=String(c||'').toLowerCase();
+  if(/sop|wi|指導/.test(c))return'sop';if(/proc|程序/.test(c))return'procedure';
+  if(/form|表/.test(c))return'form';if(/manual|手冊/.test(c))return'manual';
+  if(/legal|法/.test(c))return'legal';if(/cust|客/.test(c))return'customer';
+  if(/cert|證/.test(c))return'certificate';return'other'}
+function _pushLegacyMsg(r){
+  const subj=r.title_zh||r.title_en||r.subject||r.fn||'';
+  if(!subj||DB.msg.some(x=>x.subject===subj&&x.date===_nd(r.date_received)))return 0;
+  DB.msg.push({id:uid('MSG'),date:_nd(r.date_received),from:r.source_org_zh||r.source_org||r.sender||'',
+    subject:subj,msgType:'email',auditId:'',
+    content:[r.summary_zh,r.summary_en,r.action_note,r.doc_code?('編號 '+r.doc_code):''].filter(Boolean).join('\n'),
+    convertedTo:'',photos:[],createdAt:Date.now(),updatedAt:Date.now()});
+  return 1}
+function migrateDCC(){
+  let raw=localStorage.getItem('vrt_dcc_v2');
+  if(!raw)return toast(LANG==='zh'?'找不到 vrt_dcc_v2 舊資料（需同網域）':'vrt_dcc_v2 not found');
+  let S;try{S=JSON.parse(raw)}catch(e){return toast('vrt_dcc_v2 JSON error')}
+  let nd=0,nc=0,ne=0;
+  (S.docs||[]).forEach(d=>{
+    const no=d.docNum||d.docNo||'';if(no&&DB.documents.some(x=>x.docNo===no))return;
+    DB.documents.push({id:uid('DOC'),docNo:no,title:d.title||d.fn||'',category:'internal',
+      docType:_mapDocType(d.cat||d.type),version:d.ver||d.version||'',dept:'',owner:d.owner||'',
+      approvedBy:'',effectiveDate:_nd(d.date||d.eff),expiryDate:_nd(d.expiry||d.exp),copies:'',
+      distribution:'',location:'',status:(String(d.status||'active').toLowerCase()==='active'?'active':'review'),
+      history:'',remark:d.remarks||d.notes||'',photos:[],createdAt:Date.now(),updatedAt:Date.now()});nd++});
+  (S.certs||[]).forEach(c=>{
+    const ttl=(c.holder||'')+' — '+(c.type||'Certificate');
+    if(DB.documents.some(x=>x.title===ttl&&x.expiryDate===_nd(c.expiry)))return;
+    DB.documents.push({id:uid('DOC'),docNo:c.docNo||'',title:ttl,category:'external',docType:'certificate',
+      version:'',dept:'',owner:c.holder||'',approvedBy:'',effectiveDate:_nd(c.issue),expiryDate:_nd(c.expiry),
+      copies:'',distribution:'',location:'',status:'active',history:'',
+      remark:[c.nat,c.remarks].filter(Boolean).join(' / '),photos:[],createdAt:Date.now(),updatedAt:Date.now()});nc++});
+  (S.ext||[]).forEach(r=>{ne+=_pushLegacyMsg(r)});
+  DB.meta.updatedAt=Date.now();saveDB();renderNavCounts();
+  toast((LANG==='zh'?'DCC 遷移完成：文件 ':'DCC migrated: docs ')+nd+' / '+(LANG==='zh'?'證書 ':'certs ')+nc+' / '+(LANG==='zh'?'外來文件 ':'ext ')+ne)}
+function migrateMSG(){
+  let raw=localStorage.getItem('msgProcessor_data');
+  if(!raw)return toast(LANG==='zh'?'找不到 msgProcessor_data 舊資料（需同網域）':'msgProcessor_data not found');
+  let S;try{S=JSON.parse(raw)}catch(e){return toast('msgProcessor_data JSON error')}
+  let n=0;((S.results)||[]).forEach(r=>{if(r.status!=='error')n+=_pushLegacyMsg(r)});
+  DB.meta.updatedAt=Date.now();saveDB();renderNavCounts();
+  toast((LANG==='zh'?'MSG 遷移完成：':'MSG migrated: ')+n)}
+window.migrateDCC=migrateDCC;window.migrateMSG=migrateMSG;
+
 function saveCloudSet(){
   CFG.gasUrl=$('#set_gas').value.trim();CFG.chatId=$('#set_chat').value.trim();
   saveCFG();toast(t('saved'));pingCloud();

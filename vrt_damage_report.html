@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRT Damage/Lost Property Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Sans+Khmer:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0ede6;
+  --surface: #ffffff;
+  --surface2: #f8f6f1;
+  --border: #d0ccc0;
+  --border2: #b8b2a4;
+  --primary: #1a4a7a;
+  --primary-light: #2d6fad;
+  --primary-bg: #e8f0f8;
+  --accent: #c0392b;
+  --green: #1e8449;
+  --green-bg: #eafaf1;
+  --red-bg: #fdf0ef;
+  --yellow: #d4ac0d;
+  --yellow-bg: #fef9e7;
+  --text: #1a1a1a;
+  --text2: #444;
+  --text3: #888;
+  --shadow: rgba(0,0,0,0.08);
+  --shadow2: rgba(0,0,0,0.16);
+  --r: 10px;
+  --r2: 6px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans SC','Noto Sans Khmer',sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13.5px;
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.app-header {
+  background: linear-gradient(135deg, #1a4a7a 0%, #0e2d4e 100%);
+  color: #fff;
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 3px 14px var(--shadow2);
+}
+.app-title .main { font-size: 16px; font-weight: 700; }
+.app-title .sub  { font-size: 10.5px; opacity: .75; margin-top: 2px; }
+.lang-btns { display: flex; gap: 5px; }
+.lang-btn {
+  background: rgba(255,255,255,.15); color: #fff;
+  border: 1px solid rgba(255,255,255,.3); border-radius: 20px;
+  padding: 4px 12px; cursor: pointer; font-size: 12px; font-weight: 600;
+  transition: .2s;
+}
+.lang-btn.active, .lang-btn:hover { background: rgba(255,255,255,.32); }
+
+/* ── LAYOUT ── */
+.app-body { display: grid; grid-template-columns: 200px 1fr; min-height: calc(100vh - 54px); }
+.sidebar {
+  background: var(--surface); border-right: 1px solid var(--border);
+  padding: 16px 0; display: flex; flex-direction: column; gap: 2px;
+}
+.sb-label {
+  font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 1px;
+  text-transform: uppercase; padding: 8px 16px 3px;
+}
+.nav-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 16px; cursor: pointer; border: none; background: none;
+  width: 100%; text-align: left; font-family: inherit; font-size: 13px;
+  color: var(--text2); border-left: 3px solid transparent; transition: .18s;
+}
+.nav-btn:hover { background: var(--bg); color: var(--primary); }
+.nav-btn.active { background: var(--primary-bg); color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+.sb-div { height: 1px; background: var(--border); margin: 8px 16px; }
+.content { padding: 20px; overflow-y: auto; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface); border-radius: var(--r);
+  box-shadow: 0 2px 10px var(--shadow); border: 1px solid var(--border);
+  margin-bottom: 18px; overflow: hidden;
+}
+.card-header {
+  padding: 13px 18px; border-bottom: 1px solid var(--border);
+  background: var(--surface2); display: flex; align-items: center; justify-content: space-between;
+}
+.card-title { font-size: 14px; font-weight: 700; color: var(--primary); }
+.card-body { padding: 18px; }
+
+/* ── STATS ── */
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 18px; }
+.stat-card {
+  background: var(--surface); border-radius: var(--r); border: 1px solid var(--border);
+  padding: 14px 16px; box-shadow: 0 1px 5px var(--shadow);
+  display: flex; flex-direction: column; gap: 5px;
+}
+.stat-icon { font-size: 20px; }
+.stat-val { font-size: 24px; font-weight: 800; color: var(--primary); }
+.stat-lbl { font-size: 11px; color: var(--text3); }
+
+/* ── VRT FORM ── */
+.vrt-paper {
+  background: #fff; border: 2px solid #333; border-radius: 4px;
+  padding: 0; font-size: 13px;
+}
+.vrt-head {
+  text-align: center; padding: 10px 16px 6px;
+  border-bottom: 1.5px solid #333;
+}
+.vrt-head .kh { font-size: 12px; color: #555; margin-bottom: 2px; font-family:'Noto Sans Khmer',sans-serif; }
+.vrt-head .en { font-size: 17px; font-weight: 800; color: var(--primary); letter-spacing: .5px; }
+.vrt-section { padding: 12px 16px; }
+
+/* top fields row */
+.vrt-fields-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  border-bottom: 1px solid #ccc;
+}
+.vrt-field-cell {
+  padding: 7px 12px; border-right: 1px solid #ccc;
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.vrt-field-cell:last-child { border-right: none; }
+.vrt-label { font-weight: 700; white-space: nowrap; min-width: 80px; }
+.vrt-label .kh { display: block; font-size: 11px; color: #555; font-family:'Noto Sans Khmer',sans-serif; }
+.vrt-label .en { display: block; font-size: 12px; }
+.vrt-input {
+  border: none; border-bottom: 1.5px solid #555; outline: none;
+  flex: 1; min-width: 80px; font-family: inherit; font-size: 13px; padding: 2px 4px;
+  background: transparent; color: var(--text);
+}
+.vrt-input:focus { border-bottom-color: var(--primary); }
+
+/* item section */
+.item-section-head {
+  padding: 6px 12px; background: #f0f0f0;
+  border-top: 1px solid #ccc; border-bottom: 1px solid #ccc;
+  font-weight: 700; display: flex; gap: 8px; align-items: center;
+}
+.item-section-head .kh { font-family:'Noto Sans Khmer',sans-serif; font-size: 12px; }
+
+.items-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid #ccc;
+}
+.items-col { padding: 6px 10px; }
+.items-col:first-child { border-right: 1px solid #ccc; }
+
+.chk-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 2px; cursor: pointer; border-radius: 4px;
+  transition: background .15s; user-select: none;
+}
+.chk-item:hover { background: #f5f0e8; }
+.chk-box {
+  width: 16px; height: 16px; border: 1.5px solid #555;
+  background: #fff; flex-shrink: 0; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  transition: .15s; cursor: pointer;
+}
+.chk-item.checked .chk-box {
+  background: var(--primary); border-color: var(--primary); color: #fff;
+}
+.chk-item.checked .chk-box::after { content: '✓'; font-size: 11px; font-weight: 700; }
+.chk-text .kh { font-family:'Noto Sans Khmer',sans-serif; font-size: 11.5px; color: #333; }
+.chk-text .en { font-size: 12px; font-weight: 600; color: #111; }
+
+/* other row */
+.vrt-other-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid #ccc;
+}
+.vrt-other-cell {
+  padding: 7px 12px; border-right: 1px solid #ccc;
+  display: flex; align-items: center; gap: 6px;
+}
+.vrt-other-cell:last-child { border-right: none; }
+
+/* property lost row */
+.prop-lost-row {
+  padding: 7px 12px; border-bottom: 1px solid #ccc;
+  display: flex; align-items: center; gap: 10px;
+}
+
+/* description rows */
+.vrt-desc-row {
+  padding: 7px 12px; border-bottom: 1px solid #ccc;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.vrt-desc-row:last-child { border-bottom: none; }
+.vrt-textarea {
+  flex: 1; border: none; border-bottom: 1.5px solid #555; outline: none;
+  font-family: inherit; font-size: 13px; resize: none; min-height: 36px;
+  background: transparent; padding: 2px 4px; color: var(--text);
+}
+.vrt-textarea:focus { border-bottom-color: var(--primary); }
+
+/* photo upload in form */
+.photo-zone {
+  border: 2px dashed var(--border2); border-radius: 8px;
+  padding: 18px; text-align: center; cursor: pointer; background: var(--surface2);
+  transition: .2s; margin: 12px 16px 4px;
+}
+.photo-zone:hover { border-color: var(--primary); background: var(--primary-bg); }
+.photo-zone .ico { font-size: 30px; margin-bottom: 6px; }
+.photo-zone p { font-size: 12px; color: var(--text3); }
+.photo-previews {
+  display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 16px 12px;
+}
+.photo-thumb {
+  position: relative; width: 72px; height: 72px;
+  border-radius: 6px; overflow: hidden; border: 2px solid var(--border);
+}
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.photo-rm {
+  position: absolute; top: 2px; right: 2px;
+  background: rgba(0,0,0,.65); color: #fff; border: none; border-radius: 50%;
+  width: 18px; height: 18px; cursor: pointer; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── BUTTONS ── */
+.btn {
+  padding: 8px 16px; border: none; border-radius: var(--r2);
+  cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 5px; transition: .18s;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-light); }
+.btn-success { background: var(--green); color: #fff; }
+.btn-success:hover { filter: brightness(1.1); }
+.btn-danger { background: var(--accent); color: #fff; }
+.btn-danger:hover { filter: brightness(1.1); }
+.btn-outline { background: var(--surface); color: var(--primary); border: 1.5px solid var(--primary); }
+.btn-outline:hover { background: var(--primary-bg); }
+.btn-sm { padding: 5px 11px; font-size: 12px; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+/* ── TABLE ── */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  background: var(--surface2); font-size: 11.5px; font-weight: 700;
+  color: var(--text2); text-align: left; padding: 9px 11px;
+  border-bottom: 2px solid var(--border); white-space: nowrap;
+}
+td { padding: 9px 11px; border-bottom: 1px solid var(--border); font-size: 12.5px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--bg); }
+.badge {
+  display: inline-block; padding: 2px 9px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+}
+.badge-damage { background: #fde8e7; color: #b52b20; }
+.badge-lost { background: var(--yellow-bg); color: #a07b00; }
+.badge-pending { background: var(--yellow-bg); color: #a07b00; }
+.badge-approved { background: var(--green-bg); color: var(--green); }
+.badge-rejected { background: #fde8e7; color: #b52b20; }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  padding: 11px 16px; background: var(--surface2); border-bottom: 1px solid var(--border);
+}
+.filter-bar label { font-size: 11.5px; font-weight: 700; color: var(--text3); }
+.filter-bar select, .filter-bar input {
+  border: 1.5px solid var(--border); border-radius: 5px; padding: 5px 8px;
+  font-family: inherit; font-size: 12px; background: var(--surface); color: var(--text); outline: none;
+}
+.filter-bar select:focus, .filter-bar input:focus { border-color: var(--primary); }
+.f-sep { width: 1px; height: 20px; background: var(--border); }
+.period-tabs { display: flex; border: 1.5px solid var(--border); border-radius: 6px; overflow: hidden; }
+.ptab {
+  padding: 5px 12px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+  background: var(--surface); border: none; color: var(--text3);
+  font-family: inherit; transition: .15s; border-right: 1px solid var(--border);
+}
+.ptab:last-child { border-right: none; }
+.ptab.active { background: var(--primary); color: #fff; }
+
+/* ── CHART ── */
+.chart-wrap { padding: 18px 16px 10px; }
+.chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 150px; }
+.bar-col { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; min-width: 24px; }
+.bar-pair { display: flex; align-items: flex-end; gap: 2px; height: 140px; }
+.bar { width: 14px; border-radius: 4px 4px 0 0; transition: height .5s ease; cursor: default; }
+.bar-d { background: linear-gradient(180deg,#e74c3c,#c0392b); }
+.bar-l { background: linear-gradient(180deg,#f0c040,#d4ac0d); }
+.bar-lbl { font-size: 9.5px; color: var(--text3); text-align: center; }
+.chart-legend { display: flex; gap: 14px; margin-top: 10px; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 11.5px; }
+.leg-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+/* ── MODAL ── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.42);
+  z-index: 200; display: flex; align-items: center; justify-content: center;
+  padding: 16px; backdrop-filter: blur(2px);
+}
+.modal-box {
+  background: var(--surface); border-radius: var(--r);
+  box-shadow: 0 10px 40px rgba(0,0,0,.22);
+  max-width: 700px; width: 100%; max-height: 92vh; overflow-y: auto;
+}
+.modal-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--primary); color: #fff;
+  border-radius: var(--r) var(--r) 0 0;
+}
+.modal-title { font-size: 15px; font-weight: 700; }
+.modal-close {
+  background: rgba(255,255,255,.2); border: none; border-radius: 50%;
+  width: 28px; height: 28px; cursor: pointer; font-size: 15px; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-body { padding: 20px; }
+.modal-foot {
+  padding: 12px 20px; border-top: 1px solid var(--border);
+  display: flex; gap: 8px; justify-content: flex-end;
+  background: var(--surface2); border-radius: 0 0 var(--r) var(--r);
+}
+.det-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.det-item .det-lbl { font-size: 10.5px; font-weight: 700; color: var(--text3); margin-bottom: 2px; }
+.det-item .det-val { font-size: 13.5px; }
+.det-photos { display: flex; flex-wrap: wrap; gap: 8px; }
+.det-photo { width: 90px; height: 90px; border-radius: 7px; object-fit: cover; border: 2px solid var(--border); cursor: pointer; }
+.sec-title {
+  font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase;
+  letter-spacing: .8px; margin: 14px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.det-items-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.det-item-tag {
+  background: var(--primary-bg); color: var(--primary); border: 1px solid #b8d0ea;
+  border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600;
+}
+
+/* ── LIGHTBOX ── */
+.lightbox {
+  position: fixed; inset: 0; background: rgba(0,0,0,.9);
+  z-index: 600; display: flex; align-items: center; justify-content: center;
+}
+.lightbox img { max-width: 90%; max-height: 90%; border-radius: 6px; }
+.lb-close {
+  position: absolute; top: 18px; right: 18px;
+  background: rgba(255,255,255,.2); border: none; border-radius: 50%;
+  width: 38px; height: 38px; color: #fff; font-size: 20px; cursor: pointer;
+}
+
+/* ── TOAST ── */
+.toasts {
+  position: fixed; bottom: 20px; right: 20px; z-index: 500;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.toast {
+  background: #222; color: #fff; padding: 11px 18px;
+  border-radius: 9px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.22);
+  animation: slideIn .3s ease; max-width: 300px;
+}
+.toast.success { background: var(--green); }
+.toast.error   { background: var(--accent); }
+@keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 40px 20px; color: var(--text3); }
+.empty .ico { font-size: 46px; margin-bottom: 10px; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px) {
+  .app-body { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .items-grid { grid-template-columns: 1fr; }
+  .vrt-fields-row { grid-template-columns: 1fr; }
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+.rid { font-size: 10.5px; color: var(--text3); font-family: monospace; }
+.page-hd { margin-bottom: 16px; }
+.page-hd h2 { font-size: 18px; font-weight: 800; color: var(--primary); }
+.page-hd p { font-size: 12px; color: var(--text3); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="app-title">
+    <div class="main" id="hTitle">損壞/遺失財物報告系統</div>
+    <div class="sub">VRT Damage / Lost Property Report</div>
+  </div>
+  <div class="lang-btns">
+    <button class="lang-btn active" onclick="setLang('zh')">中文</button>
+    <button class="lang-btn" onclick="setLang('en')">English</button>
+    <button class="lang-btn" onclick="setLang('km')">ខ្មែរ</button>
+  </div>
+</div>
+
+<div class="app-body">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-label" id="sb-menu">功能選單</div>
+  <button class="nav-btn active" onclick="showPage('dash')" id="nb-dash">📊 <span id="nb-dash-t">儀表板</span></button>
+  <button class="nav-btn" onclick="showPage('new')"  id="nb-new">➕ <span id="nb-new-t">新增報告</span></button>
+  <button class="nav-btn" onclick="showPage('recs')" id="nb-recs">📋 <span id="nb-recs-t">所有記錄</span></button>
+  <div class="sb-div"></div>
+  <div class="sb-label" id="sb-ana">分析</div>
+  <button class="nav-btn" onclick="showPage('ana')"  id="nb-ana">📈 <span id="nb-ana-t">統計圖表</span></button>
+  <div class="sb-div"></div>
+  <div class="sb-label" id="sb-tools">工具</div>
+  <button class="nav-btn" onclick="exportCSV()">💾 <span id="nb-exp-t">匯出資料</span></button>
+  <button class="nav-btn" onclick="confirmClear()">🗑️ <span id="nb-clr-t">清除全部</span></button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- ── DASHBOARD ── -->
+<div id="page-dash">
+  <div class="page-hd"><h2 id="dsh-h">📊 儀表板</h2><p id="dsh-p">總覽數據</p></div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val" id="s-total">0</div><div class="stat-lbl" id="s-total-l">總報告數</div></div>
+    <div class="stat-card"><div class="stat-icon">🔨</div><div class="stat-val" id="s-dmg">0</div><div class="stat-lbl" id="s-dmg-l">損壞</div></div>
+    <div class="stat-card"><div class="stat-icon">🔍</div><div class="stat-val" id="s-lst">0</div><div class="stat-lbl" id="s-lst-l">遺失</div></div>
+    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-val" id="s-pnd">0</div><div class="stat-lbl" id="s-pnd-l">待審核</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title" id="dsh-rec">最近記錄</div>
+      <button class="btn btn-outline btn-sm" onclick="showPage('new')">➕ <span id="dsh-add">新增</span></button>
+    </div>
+    <div class="tbl-wrap"><table><thead id="dashHead"></thead><tbody id="dashBody"></tbody></table></div>
+    <div id="dashEmpty" class="empty" style="display:none"><div class="ico">📭</div><p id="no-rec-t">暫無記錄</p></div>
+  </div>
+</div>
+
+<!-- ── NEW REPORT ── -->
+<div id="page-new" style="display:none">
+  <div class="page-hd"><h2 id="nw-h">➕ 新增報告</h2><p id="nw-p">填寫損壞或遺失財物報告</p></div>
+  <div class="card">
+    <div class="card-header"><div class="card-title" id="nw-form-t">報告表格</div><div style="font-size:11px;color:var(--text3);" id="nw-auto">自動生成編號</div></div>
+
+    <!-- VRT PAPER FORM -->
+    <div class="vrt-paper" style="margin:16px;">
+
+      <!-- HEAD -->
+      <div class="vrt-head">
+        <div class="kh">របាយការណ៍ខូចខាត / ខូច</div>
+        <div class="en">VRT Damage / Lost Property Report</div>
+      </div>
+
+      <!-- NAME & DATE -->
+      <div class="vrt-fields-row" style="border-top:none;">
+        <div class="vrt-field-cell">
+          <div class="vrt-label"><span class="kh">ឈ្មោះ</span><span class="en">Name:</span></div>
+          <input class="vrt-input" id="f-name" type="text">
+        </div>
+        <div class="vrt-field-cell">
+          <div class="vrt-label"><span class="kh">កាលបរិច្ឆេទ</span><span class="en">Date:</span></div>
+          <input class="vrt-input" id="f-date" type="date">
+        </div>
+      </div>
+
+      <!-- DEPT & ID -->
+      <div class="vrt-fields-row">
+        <div class="vrt-field-cell">
+          <div class="vrt-label"><span class="kh">នាគ</span><span class="en">Department:</span></div>
+          <input class="vrt-input" id="f-dept" type="text">
+        </div>
+        <div class="vrt-field-cell">
+          <div class="vrt-label"><span class="kh">អត្តសញ្ញាណ</span><span class="en">ID:</span></div>
+          <input class="vrt-input" id="f-id" type="text">
+        </div>
+      </div>
+
+      <!-- ITEM HEADER -->
+      <div class="item-section-head">
+        <span class="kh">វត្ថុ</span>
+        <span style="font-size:13px;"><b>Item:</b></span>
+      </div>
+
+      <!-- ITEM CHECKBOXES -->
+      <div class="items-grid">
+        <!-- LEFT -->
+        <div class="items-col" id="col-left"></div>
+        <!-- RIGHT -->
+        <div class="items-col" id="col-right"></div>
+      </div>
+
+      <!-- OTHER ROW -->
+      <div class="vrt-other-row">
+        <div class="vrt-other-cell">
+          <div class="vrt-label" style="min-width:auto;"><span class="kh" style="font-size:11px;">ផ្សេងៗ</span> <b>Other:</b></div>
+          <input class="vrt-input" id="f-other" type="text" style="flex:1;">
+        </div>
+        <div class="vrt-other-cell">
+          <div class="vrt-label" style="min-width:auto;"><span class="kh" style="font-size:11px;">កាលបរិច្ឆេទ</span> <b>Date:</b></div>
+          <input class="vrt-input" id="f-other-date" type="date" style="flex:1;">
+        </div>
+      </div>
+
+      <!-- PROPERTY LOST -->
+      <div class="prop-lost-row">
+        <div style="font-weight:700;"><span style="font-family:'Noto Sans Khmer',sans-serif;font-size:11.5px;">ហ្វ</span> <b>Property Lost:</b></div>
+        <div class="chk-item" id="chk-prop-lost" onclick="togglePropLost()">
+          <div class="chk-box" id="chk-prop-lost-box"></div>
+        </div>
+        <input class="vrt-input" id="f-lost-date" type="date" style="max-width:160px;margin-left:auto;">
+      </div>
+
+      <!-- DESCRIPTION -->
+      <div class="vrt-desc-row">
+        <div class="vrt-label" style="min-width:auto;white-space:nowrap;"><span class="kh" style="font-size:11px;">កំណត់សង្ខេប</span><br><b>Description:</b></div>
+        <textarea class="vrt-textarea" id="f-desc" rows="2"></textarea>
+      </div>
+
+      <!-- LOCATION -->
+      <div class="vrt-desc-row">
+        <div class="vrt-label" style="min-width:auto;white-space:nowrap;"><span class="kh" style="font-size:11px;">ទីតាំង</span><br><b>Location:</b></div>
+        <input class="vrt-input" id="f-loc" type="text" style="flex:1;">
+      </div>
+
+      <!-- EXPLANATION -->
+      <div class="vrt-desc-row" style="border-bottom:none;">
+        <div class="vrt-label" style="min-width:auto;white-space:nowrap;"><span class="kh" style="font-size:11px;">ពន្យល់</span><br><b>Explanation:</b></div>
+        <textarea class="vrt-textarea" id="f-expl" rows="3"></textarea>
+      </div>
+
+    </div><!-- end vrt-paper -->
+
+    <!-- STATUS -->
+    <div style="padding:0 16px 8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div style="font-weight:700;font-size:12px;color:var(--text3);" id="f-status-lbl">狀態:</div>
+      <select id="f-status" style="border:1.5px solid var(--border);border-radius:6px;padding:6px 10px;font-family:inherit;font-size:13px;background:var(--surface);outline:none;color:var(--text);">
+        <option value="pending" id="opt-pending">待審核</option>
+        <option value="approved" id="opt-approved">已批準</option>
+        <option value="rejected" id="opt-rejected">已拒絕</option>
+      </select>
+    </div>
+
+    <!-- PHOTO UPLOAD -->
+    <div style="padding:0 16px 4px;font-size:11px;font-weight:700;color:var(--text3);" id="photo-lbl">📷 照片證明 Photo Evidence</div>
+    <div class="photo-zone" onclick="document.getElementById('fPhotos').click()">
+      <div class="ico">📷</div>
+      <p id="upload-t">點擊上傳照片 / Click to Upload / ចុចដើម្បីផ្ទុករូបថត</p>
+      <p style="font-size:11px;margin-top:3px;color:var(--text3);" id="upload-h">JPG / PNG / GIF · 最多10張</p>
+    </div>
+    <input type="file" id="fPhotos" accept="image/*" multiple style="display:none" onchange="handlePhotos(event)">
+    <div class="photo-previews" id="photoPreviews"></div>
+
+    <!-- SAVE BUTTONS -->
+    <div style="padding:4px 16px 18px;">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveReport()">💾 <span id="btn-save-t">儲存報告</span></button>
+        <button class="btn btn-outline" onclick="resetForm()">🔄 <span id="btn-clear-t">清除表格</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RECORDS ── -->
+<div id="page-recs" style="display:none">
+  <div class="page-hd"><h2 id="rec-h">📋 所有記錄</h2><p id="rec-p">查看和管理所有報告</p></div>
+  <div class="card">
+    <div class="filter-bar">
+      <label id="fl-period">期間：</label>
+      <div class="period-tabs">
+        <button class="ptab active" onclick="setPeriod('all')" id="pt-all">全部</button>
+        <button class="ptab" onclick="setPeriod('day')"  id="pt-day">今日</button>
+        <button class="ptab" onclick="setPeriod('week')" id="pt-week">本週</button>
+        <button class="ptab" onclick="setPeriod('month')"id="pt-month">本月</button>
+        <button class="ptab" onclick="setPeriod('year')" id="pt-year">本年</button>
+      </div>
+      <div class="f-sep"></div>
+      <label id="fl-type">類型：</label>
+      <select id="fType" onchange="renderRecs()">
+        <option value="" id="fType-all">全部</option>
+        <option value="damage" id="fType-dmg">損壞</option>
+        <option value="lost"   id="fType-lst">遺失</option>
+      </select>
+      <label id="fl-status">狀態：</label>
+      <select id="fStatus" onchange="renderRecs()">
+        <option value="" id="fSt-all">全部</option>
+        <option value="pending"  id="fSt-pnd">待審核</option>
+        <option value="approved" id="fSt-apv">已批準</option>
+        <option value="rejected" id="fSt-rej">已拒絕</option>
+      </select>
+      <div class="f-sep"></div>
+      <input type="text" id="fSearch" placeholder="🔍 搜索..." onkeyup="renderRecs()" style="width:140px;">
+    </div>
+    <div class="tbl-wrap"><table><thead id="recsHead"></thead><tbody id="recsBody"></tbody></table></div>
+    <div id="recsEmpty" class="empty" style="display:none"><div class="ico">📭</div><p id="no-recs-t">暫無記錄</p></div>
+    <div id="recsCount" style="padding:10px 16px;font-size:11.5px;color:var(--text3);border-top:1px solid var(--border);"></div>
+  </div>
+</div>
+
+<!-- ── ANALYSIS ── -->
+<div id="page-ana" style="display:none">
+  <div class="page-hd"><h2 id="ana-h">📈 統計分析</h2><p id="ana-p">報告數據統計</p></div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-val" id="a-total">0</div><div class="stat-lbl" id="a-total-l">總報告數</div></div>
+    <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-val" id="a-dmg">0</div><div class="stat-lbl" id="a-dmg-l">損壞</div></div>
+    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-val" id="a-apv">0</div><div class="stat-lbl" id="a-apv-l">已批準</div></div>
+    <div class="stat-card"><div class="stat-icon">❌</div><div class="stat-val" id="a-rej">0</div><div class="stat-lbl" id="a-rej-l">已拒絕</div></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title" id="ana-chart-t">趨勢圖表</div>
+      <div class="period-tabs">
+        <button class="ptab active" onclick="setAnaPeriod('week')"  id="apt-week">本週</button>
+        <button class="ptab" onclick="setAnaPeriod('month')" id="apt-month">本月</button>
+        <button class="ptab" onclick="setAnaPeriod('year')"  id="apt-year">本年</button>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-bars" id="chartBars"></div>
+      <div class="chart-legend">
+        <div class="leg"><div class="leg-dot" style="background:#c0392b;"></div><span id="leg-d">損壞</span></div>
+        <div class="leg"><div class="leg-dot" style="background:#d4ac0d;"></div><span id="leg-l">遺失</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><div class="card-title" id="ana-top-t">最常損壞/遺失物品 Top Items</div></div>
+    <div class="card-body" id="topItems"></div>
+  </div>
+</div>
+
+</div><!-- end .content -->
+</div><!-- end .app-body -->
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="detModal" style="display:none" onclick="outsideClose(event,'detModal')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title" id="mTitle">報告詳情</div>
+      <button class="modal-close" onclick="closeM('detModal')">✕</button>
+    </div>
+    <div class="modal-body" id="mBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" onclick="delFromModal()">🗑️ <span id="m-del-t">刪除</span></button>
+      <button class="btn btn-outline btn-sm" onclick="closeM('detModal')"><span id="m-close-t">關閉</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lb" style="display:none" onclick="closeLb()">
+  <img id="lbImg" src="">
+  <button class="lb-close" onclick="closeLb()">✕</button>
+</div>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ────────────────────────────────────────────────────────
+// ITEMS LIST (from the actual form)
+// ────────────────────────────────────────────────────────
+const ITEMS_LEFT = [
+  { km:'កង្ហារ',  en:'Fan' },
+  { km:'តុ',      en:'Table' },
+  { km:'កៅអី',   en:'Chair' },
+  { km:'ម៉ាស៊ីន',en:'Machine' },
+  { km:'សេ/ស្រែ',en:'Seal' },
+  { km:'ភ្លើងពាក់ព្រំជាតិ', en:'Emergency Light' },
+  { km:'ប្រអប់ថ្នាំ', en:'First Aid Kit' },
+  { km:'ដ្បាំងដែក', en:'Iron' },
+  { km:'គ្រឿងដែក', en:'Iron Board' },
+  { km:'ទ្វារ',   en:'Door' },
+];
+const ITEMS_RIGHT = [
+  { km:'បង្អួច',   en:'Window' },
+  { km:'បំពង់អគ្គីភ័យ', en:'Fire Extinguisher' },
+  { km:'កំព្យូទ័រ', en:'Computer' },
+  { km:'ម៉ាស៊ីនត្រជាក់', en:'Air Conditioner' },
+  { km:'មេសោម',  en:'Pad Lock' },
+  { km:'ក្រណាត់', en:'Fabric' },
+  { km:'ហ្វ័រគ្លីត', en:'Forklift' },
+  { km:'យានជំនិះ', en:'Vehicle' },
+  { km:'វីទ្យុ',   en:'Walkie-Talkie' },
+  { km:'ថតឯ',    en:'Drawers' },
+];
+const ALL_ITEMS = [...ITEMS_LEFT, ...ITEMS_RIGHT];
+
+// ────────────────────────────────────────────────────────
+// I18N
+// ────────────────────────────────────────────────────────
+const T = {
+  zh:{
+    hTitle:'損壞/遺失財物報告系統', sbMenu:'功能選單', sbAna:'分析', sbTools:'工具',
+    dash:'儀表板', newRep:'新增報告', allRec:'所有記錄', stats:'統計圖表',
+    exp:'匯出資料', clr:'清除全部', dshH:'📊 儀表板', dshP:'總覽數據', recent:'最近記錄', add:'新增',
+    nwH:'➕ 新增報告', nwP:'填寫損壞或遺失財物報告', formT:'報告表格', autoId:'自動生成編號',
+    statusLbl:'狀態', pending:'待審核', approved:'已批準', rejected:'已拒絕',
+    uploadT:'點擊上傳照片', uploadH:'JPG / PNG / GIF · 最多10張', photoLbl:'📷 照片證明',
+    saveBtn:'儲存報告', clearBtn:'清除表格',
+    recH:'📋 所有記錄', recP:'查看和管理所有報告',
+    anaH:'📈 統計分析', anaP:'報告數據統計', chartT:'趨勢圖表', topT:'最常損壞/遺失物品',
+    period:'期間：', type:'類型：', status:'狀態：', all:'全部', today:'今日', week:'本週', month:'本月', year:'本年',
+    damage:'損壞', lost:'遺失', noRecs:'暫無記錄', total:'總報告數',
+    reportNo:'報告編號', date:'日期', reporter:'報告人', dept:'部門', item:'物品', loc:'地點', photos:'照片', actions:'操作',
+    detail:'報告詳情', delBtn:'刪除', closeBtn:'關閉', legD:'損壞', legL:'遺失',
+    saved:'報告已儲存！', deleted:'已刪除', exported:'已匯出CSV',
+    confirmDel:'確定刪除此記錄？', confirmClr:'確定清除所有記錄？',
+    errName:'請填寫姓名', errDate:'請選擇日期', errItem:'請至少勾選一項物品或填寫其他',
+    maxPhoto:'最多10張照片', cleared:'已清除所有記錄',
+    searchPh:'🔍 搜索...',
+    apvL:'已批準', rejL:'已拒絕', pndL:'待審核',
+  },
+  en:{
+    hTitle:'VRT Damage/Lost Property Report System', sbMenu:'Menu', sbAna:'Analysis', sbTools:'Tools',
+    dash:'Dashboard', newRep:'New Report', allRec:'All Records', stats:'Statistics',
+    exp:'Export Data', clr:'Clear All', dshH:'📊 Dashboard', dshP:'Overview', recent:'Recent Records', add:'Add New',
+    nwH:'➕ New Report', nwP:'Fill in damage or lost property report', formT:'Report Form', autoId:'Auto-generated ID',
+    statusLbl:'Status', pending:'Pending', approved:'Approved', rejected:'Rejected',
+    uploadT:'Click to Upload Photos', uploadH:'JPG / PNG / GIF · Max 10', photoLbl:'📷 Photo Evidence',
+    saveBtn:'Save Report', clearBtn:'Clear Form',
+    recH:'📋 All Records', recP:'View and manage all reports',
+    anaH:'📈 Analysis', anaP:'Statistics and charts', chartT:'Trend Chart', topT:'Top Damaged/Lost Items',
+    period:'Period:', type:'Type:', status:'Status:', all:'All', today:'Today', week:'This Week', month:'This Month', year:'This Year',
+    damage:'Damage', lost:'Lost', noRecs:'No records found', total:'Total Reports',
+    reportNo:'Report No.', date:'Date', reporter:'Name', dept:'Department', item:'Items', loc:'Location', photos:'Photos', actions:'Actions',
+    detail:'Report Detail', delBtn:'Delete', closeBtn:'Close', legD:'Damage', legL:'Lost',
+    saved:'Report saved!', deleted:'Deleted', exported:'CSV Exported',
+    confirmDel:'Confirm delete this record?', confirmClr:'Confirm clear all records?',
+    errName:'Please enter name', errDate:'Please select date', errItem:'Please check at least one item',
+    maxPhoto:'Maximum 10 photos', cleared:'All records cleared',
+    searchPh:'🔍 Search...',
+    apvL:'Approved', rejL:'Rejected', pndL:'Pending',
+  },
+  km:{
+    hTitle:'ប្រព័ន្ធរបាយការណ៍ខូចខាត/បាត់បង់ទ្រព្យ VRT', sbMenu:'ម៉ឺនុយ', sbAna:'វិភាគ', sbTools:'ឧបករណ៍',
+    dash:'ផ្ទាំងគ្រប់គ្រង', newRep:'របាយការណ៍ថ្មី', allRec:'កំណត់ត្រាទាំងអស់', stats:'ស្ថិតិ',
+    exp:'នាំចេញទិន្នន័យ', clr:'លុបទាំងអស់', dshH:'📊 ផ្ទាំងគ្រប់គ្រង', dshP:'ទិដ្ឋភាពទូទៅ', recent:'កំណត់ត្រាថ្មីៗ', add:'បន្ថែម',
+    nwH:'➕ របាយការណ៍ថ្មី', nwP:'បំពេញរបាយការណ៍ខូចខាត ឬបាត់បង់ទ្រព្យ', formT:'ទម្រង់របាយការណ៍', autoId:'លេខស្វ័យប្រវត្តិ',
+    statusLbl:'ស្ថានភាព', pending:'កំពុងរង់ចាំ', approved:'បានអនុម័ត', rejected:'ត្រូវបានបដិសេធ',
+    uploadT:'ចុចដើម្បីផ្ទុករូបថត', uploadH:'JPG / PNG / GIF · អតិបរមា 10', photoLbl:'📷 រូបថតជាភស្តុតាង',
+    saveBtn:'រក្សាទុករបាយការណ៍', clearBtn:'លុបទម្រង់',
+    recH:'📋 កំណត់ត្រាទាំងអស់', recP:'មើល និងគ្រប់គ្រងរបាយការណ៍',
+    anaH:'📈 វិភាគស្ថិតិ', anaP:'ស្ថិតិ និងតារាង', chartT:'តារាងនិន្នាការ', topT:'ទ្រព្យខូចខាត/បាត់ញឹកញាប់',
+    period:'រយៈពេល:', type:'ប្រភេទ:', status:'ស្ថានភាព:', all:'ទាំងអស់', today:'ថ្ងៃនេះ', week:'សប្តាហ៍នេះ', month:'ខែនេះ', year:'ឆ្នាំនេះ',
+    damage:'ខូចខាត', lost:'បាត់', noRecs:'មិនមានកំណត់ត្រា', total:'របាយការណ៍សរុប',
+    reportNo:'លេខរបាយការណ៍', date:'កាលបរិច្ឆេទ', reporter:'ឈ្មោះ', dept:'នាយកដ្ឋាន', item:'ទ្រព្យ', loc:'ទីតាំង', photos:'រូបថត', actions:'សកម្មភាព',
+    detail:'ព័ត៌មានលម្អិត', delBtn:'លុប', closeBtn:'បិទ', legD:'ខូចខាត', legL:'បាត់',
+    saved:'រក្សាទុករបាយការណ៍ហើយ!', deleted:'លុបហើយ', exported:'នាំចេញ CSV ហើយ',
+    confirmDel:'បញ្ជាក់លុបកំណត់ត្រានេះ?', confirmClr:'បញ្ជាក់លុបកំណត់ត្រាទាំងអស់?',
+    errName:'សូមបញ្ចូលឈ្មោះ', errDate:'សូមជ្រើសរើសកាលបរិច្ឆេទ', errItem:'សូមជ្រើសរើសទ្រព្យយ៉ាងហោចណាស់មួយ',
+    maxPhoto:'អនុញ្ញាតអតិបរមា 10 រូប', cleared:'លុបកំណត់ត្រាទាំងអស់ហើយ',
+    searchPh:'🔍 ស្វែងរក...',
+    apvL:'បានអនុម័ត', rejL:'ត្រូវបានបដិសេធ', pndL:'កំពុងរង់ចាំ',
+  }
+};
+
+let lang = 'zh', records = [], period = 'all', anaPeriod = 'week';
+let photos = [], modalId = null, propLostChecked = false;
+let checkedItems = new Set();
+
+// ────────────────────────────────────────────────────────
+// STORAGE
+// ────────────────────────────────────────────────────────
+async function load() {
+  try { const r = await window.storage.get('vrt_records'); if(r?.value) records = JSON.parse(r.value); } catch(e) {}
+}
+async function save() {
+  try { await window.storage.set('vrt_records', JSON.stringify(records)); } catch(e) {}
+}
+
+// ────────────────────────────────────────────────────────
+// LANG
+// ────────────────────────────────────────────────────────
+const t = k => T[lang][k] || T.zh[k] || k;
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${l}')"]`).classList.add('active');
+  applyLang();
+  renderAll();
+}
+function applyLang() {
+  const ids = {
+    hTitle:'hTitle', 'sb-menu':'sbMenu', 'sb-ana':'sbAna', 'sb-tools':'sbTools',
+    'nb-dash-t':'dash','nb-new-t':'newRep','nb-recs-t':'allRec','nb-ana-t':'stats',
+    'nb-exp-t':'exp','nb-clr-t':'clr',
+    'dsh-h':'dshH','dsh-p':'dshP','dsh-rec':'recent','dsh-add':'add',
+    'nw-h':'nwH','nw-p':'nwP','nw-form-t':'formT','nw-auto':'autoId',
+    'f-status-lbl':'statusLbl','opt-pending':'pending','opt-approved':'approved','opt-rejected':'rejected',
+    'photo-lbl':'photoLbl','upload-t':'uploadT','upload-h':'uploadH',
+    'btn-save-t':'saveBtn','btn-clear-t':'clearBtn',
+    'rec-h':'recH','rec-p':'recP',
+    'ana-h':'anaH','ana-p':'anaP','ana-chart-t':'chartT','ana-top-t':'topT',
+    'fl-period':'period','fl-type':'type','fl-status':'status',
+    'pt-all':'all','pt-day':'today','pt-week':'week','pt-month':'month','pt-year':'year',
+    'apt-week':'week','apt-month':'month','apt-year':'year',
+    'fType-all':'all','fType-dmg':'damage','fType-lst':'lost',
+    'fSt-all':'all','fSt-pnd':'pending','fSt-apv':'approved','fSt-rej':'rejected',
+    'no-rec-t':'noRecs','no-recs-t':'noRecs',
+    's-total-l':'total','s-dmg-l':'damage','s-lst-l':'lost','s-pnd-l':'pending',
+    'a-total-l':'total','a-dmg-l':'damage','a-apv-l':'approved','a-rej-l':'rejected',
+    'm-del-t':'delBtn','m-close-t':'closeBtn','leg-d':'legD','leg-l':'legL',
+  };
+  for(const [id,key] of Object.entries(ids)) {
+    const el = document.getElementById(id);
+    if(el) el.textContent = t(key);
+  }
+  const si = document.getElementById('fSearch'); if(si) si.placeholder = t('searchPh');
+}
+
+// ────────────────────────────────────────────────────────
+// BUILD CHECKBOXES
+// ────────────────────────────────────────────────────────
+function buildCheckboxes() {
+  const lCol = document.getElementById('col-left');
+  const rCol = document.getElementById('col-right');
+  lCol.innerHTML = ITEMS_LEFT.map((item,i) => chkHtml(item, 'L'+i)).join('');
+  rCol.innerHTML = ITEMS_RIGHT.map((item,i) => chkHtml(item, 'R'+i)).join('');
+}
+function chkHtml(item, key) {
+  return `<div class="chk-item" id="chk-${key}" onclick="toggleItem('${key}','${item.en}')">
+    <div class="chk-box" id="chkbox-${key}"></div>
+    <div class="chk-text">
+      <div class="kh">${item.km}</div>
+      <div class="en">${item.en}</div>
+    </div>
+  </div>`;
+}
+function toggleItem(key, name) {
+  const el = document.getElementById('chk-'+key);
+  const box = document.getElementById('chkbox-'+key);
+  if(checkedItems.has(name)) {
+    checkedItems.delete(name);
+    el.classList.remove('checked');
+  } else {
+    checkedItems.add(name);
+    el.classList.add('checked');
+  }
+}
+function togglePropLost() {
+  propLostChecked = !propLostChecked;
+  document.getElementById('chk-prop-lost').classList.toggle('checked', propLostChecked);
+}
+
+// ────────────────────────────────────────────────────────
+// NAVIGATION
+// ────────────────────────────────────────────────────────
+function showPage(p) {
+  ['dash','new','recs','ana'].forEach(x => {
+    document.getElementById('page-'+x).style.display = x===p?'':'none';
+    const nb = document.getElementById('nb-'+x);
+    if(nb) nb.classList.toggle('active',x===p);
+  });
+  if(p==='dash') renderDash();
+  if(p==='recs') renderRecs();
+  if(p==='ana')  renderAna();
+}
+
+// ────────────────────────────────────────────────────────
+// PHOTOS
+// ────────────────────────────────────────────────────────
+function handlePhotos(e) {
+  const files = Array.from(e.target.files);
+  if(photos.length+files.length>10){toast(t('maxPhoto'),'error');return;}
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{photos.push(ev.target.result);renderPreviews();};
+    r.readAsDataURL(f);
+  });
+  e.target.value='';
+}
+function renderPreviews() {
+  document.getElementById('photoPreviews').innerHTML = photos.map((s,i)=>
+    `<div class="photo-thumb"><img src="${s}" onclick="openLb('${s}')"><button class="photo-rm" onclick="rmPhoto(${i})">✕</button></div>`
+  ).join('');
+}
+function rmPhoto(i){ photos.splice(i,1); renderPreviews(); }
+
+// ────────────────────────────────────────────────────────
+// SAVE
+// ────────────────────────────────────────────────────────
+function saveReport() {
+  const name = document.getElementById('f-name').value.trim();
+  const date = document.getElementById('f-date').value;
+  const items = [...checkedItems];
+  const other = document.getElementById('f-other').value.trim();
+
+  if(!name){toast(t('errName'),'error');return;}
+  if(!date){toast(t('errDate'),'error');return;}
+  if(!items.length && !other){toast(t('errItem'),'error');return;}
+
+  const now=new Date();
+  const id='VRT-'+now.getFullYear()+('0'+(now.getMonth()+1)).slice(-2)+('0'+now.getDate()).slice(-2)+'-'+Math.floor(Math.random()*9000+1000);
+  records.unshift({
+    id, date, name,
+    dept: document.getElementById('f-dept').value.trim(),
+    empId: document.getElementById('f-id').value.trim(),
+    items, other,
+    otherDate: document.getElementById('f-other-date').value,
+    propLost: propLostChecked,
+    lostDate: document.getElementById('f-lost-date').value,
+    desc: document.getElementById('f-desc').value.trim(),
+    loc: document.getElementById('f-loc').value.trim(),
+    expl: document.getElementById('f-expl').value.trim(),
+    status: document.getElementById('f-status').value,
+    type: propLostChecked ? 'lost' : 'damage',
+    photos:[...photos],
+    createdAt: now.toISOString()
+  });
+  save();
+  toast(t('saved'),'success');
+  resetForm();
+  showPage('recs');
+}
+function resetForm() {
+  ['f-name','f-dept','f-id','f-other','f-desc','f-loc','f-expl'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  ['f-date','f-other-date','f-lost-date'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('f-status').value='pending';
+  checkedItems.clear();
+  propLostChecked=false;
+  document.querySelectorAll('.chk-item').forEach(el=>el.classList.remove('checked'));
+  photos=[]; renderPreviews();
+}
+
+// ────────────────────────────────────────────────────────
+// DASHBOARD
+// ────────────────────────────────────────────────────────
+function renderDash() {
+  document.getElementById('s-total').textContent=records.length;
+  document.getElementById('s-dmg').textContent=records.filter(r=>r.type==='damage').length;
+  document.getElementById('s-lst').textContent=records.filter(r=>r.type==='lost').length;
+  document.getElementById('s-pnd').textContent=records.filter(r=>r.status==='pending').length;
+  const cols = [t('reportNo'),t('date'),t('reporter'),t('dept'),t('damage')+'/'+t('lost'),t('item'),t('status'),t('actions')];
+  document.getElementById('dashHead').innerHTML=`<tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+  const rows=records.slice(0,8);
+  const body=document.getElementById('dashBody');
+  const empty=document.getElementById('dashEmpty');
+  if(!rows.length){body.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  body.innerHTML=rows.map(r=>rowHtml(r,false)).join('');
+}
+
+// ────────────────────────────────────────────────────────
+// RECORDS
+// ────────────────────────────────────────────────────────
+function setPeriod(p){
+  period=p;
+  document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pt-'+p).classList.add('active');
+  renderRecs();
+}
+function renderRecs() {
+  let recs = filterByPeriod(records, period);
+  const ft=document.getElementById('fType').value;
+  const fs=document.getElementById('fStatus').value;
+  const q=(document.getElementById('fSearch').value||'').toLowerCase();
+  if(ft) recs=recs.filter(r=>r.type===ft);
+  if(fs) recs=recs.filter(r=>r.status===fs);
+  if(q) recs=recs.filter(r=>[r.id,r.name,r.dept,r.loc,...(r.items||[])].join(' ').toLowerCase().includes(q));
+  const cols=[t('reportNo'),t('date'),t('reporter'),t('dept'),t('damage')+'/'+t('lost'),t('item'),t('loc'),t('photos'),t('status'),t('actions')];
+  document.getElementById('recsHead').innerHTML=`<tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+  const body=document.getElementById('recsBody');
+  const empty=document.getElementById('recsEmpty');
+  const count=document.getElementById('recsCount');
+  if(!recs.length){body.innerHTML='';empty.style.display='';count.textContent='';return;}
+  empty.style.display='none';
+  body.innerHTML=recs.map(r=>rowHtml(r,true)).join('');
+  count.textContent=`${t('total')}: ${recs.length}`;
+}
+function rowHtml(r,full) {
+  const tb=r.type==='damage'
+    ?`<span class="badge badge-damage">${t('damage')}</span>`
+    :`<span class="badge badge-lost">${t('lost')}</span>`;
+  const sb=r.status==='approved'
+    ?`<span class="badge badge-approved">${t('apvL')}</span>`
+    :r.status==='rejected'
+    ?`<span class="badge badge-rejected">${t('rejL')}</span>`
+    :`<span class="badge badge-pending">${t('pndL')}</span>`;
+  const itemsStr=(r.items||[]).slice(0,2).join(', ')+(r.items?.length>2?'…':'');
+  const photos=full?`<td>${(r.photos||[]).length?`📷 ${r.photos.length}`:'-'}</td>`:'';
+  const loc=full?`<td>${r.loc||'-'}</td>`:'';
+  const dept=full?`<td>${r.dept||'-'}</td>`:`<td>${r.dept||'-'}</td>`;
+  return `<tr>
+    <td><span class="rid">${r.id}</span></td>
+    <td>${r.date}</td>
+    <td>${r.name}</td>
+    ${dept}
+    <td>${tb}</td>
+    <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(r.items||[]).join(', ')}">${itemsStr||(r.other||'-')}</td>
+    ${loc}${photos}
+    <td>${sb}</td>
+    <td>
+      <button class="btn btn-outline btn-sm" onclick="openDet('${r.id}')">🔍</button>
+      <button class="btn btn-danger btn-sm" onclick="delRec('${r.id}')">🗑️</button>
+    </td>
+  </tr>`;
+}
+
+// ────────────────────────────────────────────────────────
+// ANALYSIS
+// ────────────────────────────────────────────────────────
+function setAnaPeriod(p){
+  anaPeriod=p;
+  ['week','month','year'].forEach(x=>document.getElementById('apt-'+x).classList.toggle('active',x===p));
+  renderChart();
+}
+function renderAna() {
+  document.getElementById('a-total').textContent=records.length;
+  document.getElementById('a-dmg').textContent=records.filter(r=>r.type==='damage').length;
+  document.getElementById('a-apv').textContent=records.filter(r=>r.status==='approved').length;
+  document.getElementById('a-rej').textContent=records.filter(r=>r.status==='rejected').length;
+  renderChart();
+  renderTopItems();
+}
+function renderChart() {
+  const now=new Date();
+  let labels=[],dd=[],dl=[];
+  if(anaPeriod==='week'){
+    for(let i=6;i>=0;i--){
+      const d=new Date(now);d.setDate(now.getDate()-i);
+      const ds=d.toISOString().split('T')[0];
+      const days={zh:['日','一','二','三','四','五','六'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],km:['អា','ច','អ','ព','ព','សុ','ស']};
+      labels.push((lang==='en'?days.en:lang==='km'?days.km:days.zh)[d.getDay()]);
+      dd.push(records.filter(r=>r.date===ds&&r.type==='damage').length);
+      dl.push(records.filter(r=>r.date===ds&&r.type==='lost').length);
+    }
+  } else if(anaPeriod==='month'){
+    const days=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+    for(let i=1;i<=days;i++){
+      const ds=`${now.getFullYear()}-${('0'+(now.getMonth()+1)).slice(-2)}-${('0'+i).slice(-2)}`;
+      labels.push(i+'');
+      dd.push(records.filter(r=>r.date===ds&&r.type==='damage').length);
+      dl.push(records.filter(r=>r.date===ds&&r.type==='lost').length);
+    }
+  } else {
+    const mn={zh:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],km:['មករា','កុម្ភ','មីនា','មេសា','ឧសភ','មិថុ','កក្ក','សីហ','កញ','តុលា','វិច','ធ្នូ']};
+    for(let m=0;m<12;m++){
+      const px=`${now.getFullYear()}-${('0'+(m+1)).slice(-2)}`;
+      labels.push((lang==='km'?mn.km:lang==='en'?mn.en:mn.zh)[m]);
+      dd.push(records.filter(r=>r.date?.startsWith(px)&&r.type==='damage').length);
+      dl.push(records.filter(r=>r.date?.startsWith(px)&&r.type==='lost').length);
+    }
+  }
+  const mx=Math.max(...dd.map((v,i)=>v+dl[i]),1);
+  document.getElementById('chartBars').innerHTML=labels.map((lb,i)=>{
+    const dh=Math.max(dd[i]>0?5:0,(dd[i]/mx)*130);
+    const lh=Math.max(dl[i]>0?5:0,(dl[i]/mx)*130);
+    return `<div class="bar-col">
+      <div class="bar-pair">
+        <div class="bar bar-d" style="height:${dh}px;" title="${t('damage')}: ${dd[i]}"></div>
+        <div class="bar bar-l" style="height:${lh}px;" title="${t('lost')}: ${dl[i]}"></div>
+      </div>
+      <div class="bar-lbl">${lb}</div>
+    </div>`;
+  }).join('');
+}
+function renderTopItems() {
+  const freq={};
+  records.forEach(r=>(r.items||[]).forEach(it=>{freq[it]=(freq[it]||0)+1;}));
+  const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const box=document.getElementById('topItems');
+  if(!sorted.length){box.innerHTML=`<div class="empty"><div class="ico">📊</div><p>${t('noRecs')}</p></div>`;return;}
+  box.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px;">
+    ${sorted.map(([it,cnt])=>`<div style="background:var(--primary-bg);border:1px solid #b8d0ea;border-radius:20px;padding:5px 14px;font-size:12.5px;font-weight:600;color:var(--primary);">${it} <span style="background:var(--primary);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;">${cnt}</span></div>`).join('')}
+  </div>`;
+}
+
+// ────────────────────────────────────────────────────────
+// DETAIL MODAL
+// ────────────────────────────────────────────────────────
+function openDet(id) {
+  const r=records.find(x=>x.id===id);
+  if(!r) return;
+  modalId=id;
+  document.getElementById('mTitle').textContent=t('detail')+' — '+r.id;
+  const sb=r.status==='approved'?`<span class="badge badge-approved">${t('apvL')}</span>`
+    :r.status==='rejected'?`<span class="badge badge-rejected">${t('rejL')}</span>`
+    :`<span class="badge badge-pending">${t('pndL')}</span>`;
+  const tb=r.type==='damage'?`<span class="badge badge-damage">${t('damage')}</span>`:`<span class="badge badge-lost">${t('lost')}</span>`;
+  const itemTags=(r.items||[]).map(it=>`<span class="det-item-tag">${it}</span>`).join('');
+  const photosHtml=(r.photos||[]).length
+    ?`<div class="det-photos">${r.photos.map(p=>`<img class="det-photo" src="${p}" onclick="openLb('${p}')">`).join('')}</div>`
+    :'-';
+  document.getElementById('mBody').innerHTML=`
+    <div class="det-grid">
+      <div class="det-item"><div class="det-lbl">${t('reportNo')}</div><div class="det-val" style="font-family:monospace">${r.id}</div></div>
+      <div class="det-item"><div class="det-lbl">${t('date')}</div><div class="det-val">${r.date}</div></div>
+      <div class="det-item"><div class="det-lbl">${t('reporter')}</div><div class="det-val">${r.name}</div></div>
+      <div class="det-item"><div class="det-lbl">${t('dept')}</div><div class="det-val">${r.dept||'-'}</div></div>
+      <div class="det-item"><div class="det-lbl">ID</div><div class="det-val">${r.empId||'-'}</div></div>
+      <div class="det-item"><div class="det-lbl">${t('damage')}/${t('lost')}</div><div class="det-val">${tb}</div></div>
+      <div class="det-item"><div class="det-lbl">${t('loc')}</div><div class="det-val">${r.loc||'-'}</div></div>
+      <div class="det-item"><div class="det-lbl">${t('status')}</div><div class="det-val">${sb}</div></div>
+    </div>
+    <div class="sec-title">Items / ទ្រព្យ / 物品</div>
+    <div class="det-items-list">${itemTags||(r.other?`<span class="det-item-tag">${r.other}</span>`:'-')}</div>
+    ${r.other?`<div style="margin-top:6px;font-size:12px;color:var(--text3);">Other: ${r.other}</div>`:''}
+    <div class="sec-title">Description / ការពិពណ៌នា</div>
+    <div style="font-size:13.5px;">${r.desc||'-'}</div>
+    <div class="sec-title">Explanation / ពន្យល់</div>
+    <div style="font-size:13.5px;">${r.expl||'-'}</div>
+    <div class="sec-title">Photos / រូបថត</div>
+    ${photosHtml}
+    <div class="sec-title">${t('status')}</div>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button class="btn btn-sm" style="background:var(--yellow-bg);color:#a07b00;border:1px solid #e0c000;" onclick="updStatus('${r.id}','pending')">${t('pending')}</button>
+      <button class="btn btn-sm btn-success" onclick="updStatus('${r.id}','approved')">${t('approved')}</button>
+      <button class="btn btn-sm btn-danger" onclick="updStatus('${r.id}','rejected')">${t('rejected')}</button>
+    </div>
+  `;
+  document.getElementById('detModal').style.display='flex';
+}
+function updStatus(id,st){
+  const r=records.find(x=>x.id===id);
+  if(r){r.status=st;save();openDet(id);renderAll();}
+}
+function delFromModal(){
+  if(modalId&&confirm(t('confirmDel'))){
+    records=records.filter(r=>r.id!==modalId);save();
+    closeM('detModal');toast(t('deleted'),'success');renderAll();
+  }
+}
+function delRec(id){
+  if(confirm(t('confirmDel'))){
+    records=records.filter(r=>r.id!==id);save();toast(t('deleted'),'success');renderAll();
+  }
+}
+function closeM(id){document.getElementById(id).style.display='none';}
+function outsideClose(e,id){if(e.target===document.getElementById(id))closeM(id);}
+
+// ────────────────────────────────────────────────────────
+// EXPORT
+// ────────────────────────────────────────────────────────
+function exportCSV(){
+  const rows=[['ID','Date','Name','Dept','EmpID','Type','Items','Other','Location','Description','Explanation','Status','Photos','CreatedAt']];
+  records.forEach(r=>rows.push([r.id,r.date,r.name,r.dept,r.empId,r.type,(r.items||[]).join(';'),r.other,r.loc,r.desc,r.expl,r.status,(r.photos||[]).length,r.createdAt]));
+  const csv=rows.map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`VRT_Report_${new Date().toISOString().split('T')[0]}.csv`;a.click();
+  toast(t('exported'),'success');
+}
+function confirmClear(){
+  if(confirm(t('confirmClr'))){records=[];save();toast(t('cleared'),'success');renderAll();}
+}
+
+// ────────────────────────────────────────────────────────
+// HELPERS
+// ────────────────────────────────────────────────────────
+function filterByPeriod(recs,p){
+  const now=new Date();
+  return recs.filter(r=>{
+    if(p==='all') return true;
+    const d=new Date(r.date);
+    if(p==='day') return r.date===now.toISOString().split('T')[0];
+    if(p==='week'){const s=new Date(now);s.setDate(now.getDate()-now.getDay());const e=new Date(s);e.setDate(s.getDate()+6);return d>=s&&d<=e;}
+    if(p==='month') return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();
+    if(p==='year') return d.getFullYear()===now.getFullYear();
+    return true;
+  });
+}
+function openLb(src){document.getElementById('lbImg').src=src;document.getElementById('lb').style.display='flex';}
+function closeLb(){document.getElementById('lb').style.display='none';}
+function toast(msg,type=''){
+  const c=document.getElementById('toasts');
+  const el=document.createElement('div');el.className='toast '+type;el.textContent=msg;c.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+function renderAll(){
+  const active=['dash','new','recs','ana'].find(p=>document.getElementById('page-'+p).style.display!=='none');
+  if(active==='dash') renderDash();
+  if(active==='recs') renderRecs();
+  if(active==='ana')  renderAna();
+}
+
+// ────────────────────────────────────────────────────────
+// INIT
+// ────────────────────────────────────────────────────────
+async function init(){
+  await load();
+  buildCheckboxes();
+  document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+  applyLang();
+  renderDash();
+}
+init();
+</script>
+</body>
+</html>
