@@ -527,14 +527,12 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
   <div class="set-sec">
     <div class="set-ttl" data-i18n="set.tg.ttl">📱 Telegram Bot 設定</div>
     <div class="set-row">
-      <label data-i18n="set.tg.token">Bot Token</label>
-      <input type="text" id="tg-token" placeholder="123456:ABC-DEF..." style="flex:1;max-width:400px" oninput="saveTgCfg()">
+      <span class="conn-na" style="background:#fff7ed;color:#9a5b00">由 GAS Script Properties 管理</span>
+      <button class="btn" onclick="testTelegram()">🔧 測試 Telegram</button>
     </div>
-    <div class="set-row">
-      <label data-i18n="set.tg.chat">群組 Chat ID</label>
-      <input type="text" id="tg-chatid" placeholder="-1001234567890" style="flex:1;max-width:240px" oninput="saveTgCfg()">
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.7">
+      Bot Token 不再存放於 HTML / localStorage。請在 Apps Script「專案設定 → 指令碼屬性」設定 <b>BOT_TOKEN</b>、<b>GROUP_CHAT_ID</b>、<b>DASHBOARD_URL</b>。
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px" data-i18n="set.tg.note">從 @BotFather 取得 Token；Chat ID 為負數（群組）</div>
   </div>
 
   <!-- BACKUP -->
@@ -1161,9 +1159,40 @@ function load(){
     S.library=clone(DEF_LIB);S.opts=clone(DEF_OPTS);
   }
 }
+
+function applyAuditBridge(){
+  try{
+    const raw=localStorage.getItem('ac_training_bridge');
+    if(!raw)return;
+    const b=JSON.parse(raw);
+    if(!b||!b.updatedAt)return;
+    const mark=localStorage.getItem('ac_training_bridge_applied');
+    if(mark&&String(mark)===String(b.updatedAt))return;
+    let changed=0;
+    (b.trainings||[]).forEach(t=>{
+      const i=S.trainings.findIndex(x=>(t.id&&x.id===t.id)||(t.nameZH&&x.nameZH===t.nameZH));
+      if(i>=0)S.trainings[i]=Object.assign({},S.trainings[i],t);else S.trainings.push(t);
+      changed++;
+    });
+    if(b.records){Object.keys(b.records).forEach(month=>{
+      if(!S.records[month])S.records[month]=[];
+      (b.records[month]||[]).forEach(r=>{
+        const exists=S.records[month].some(x=>(r.id&&x.id===r.id)||(x.subject===r.subject&&x.date===r.date&&x.trainer===r.trainer));
+        if(!exists){S.records[month].push(r);changed++;}
+      });
+    });}
+    (b.library||[]).forEach(item=>{
+      const i=S.library.findIndex(x=>(item.id&&x.id===item.id)||(item.nameZH&&x.nameZH===item.nameZH));
+      if(i>=0)S.library[i]=Object.assign({},S.library[i],item);else S.library.push(item);
+      changed++;
+    });
+    localStorage.setItem('ac_training_bridge_applied',String(b.updatedAt));
+    if(changed>0){save();setCfg({needsSync:true});setTimeout(()=>toast('已接收 Audit 匯入中心資料：'+changed+' 筆，請視需要上傳 GAS','ok'),700);}
+  }catch(e){console.warn('Audit bridge import failed',e);}
+}
 function clone(o){return JSON.parse(JSON.stringify(o));}
-function getCfg(){try{const c=JSON.parse(localStorage.getItem('vrt3_cfg')||'{}');if(!c.gasUrl)c.gasUrl='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';return c}catch{return{gasUrl:'https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec'}}}
-function setCfg(o){localStorage.setItem('vrt3_cfg',JSON.stringify({...getCfg(),...o}))}
+function getCfg(){try{const c=JSON.parse(localStorage.getItem('vrt3_cfg')||'{}');delete c.tgToken;delete c.botToken;delete c.token;if(!c.gasUrl)c.gasUrl='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';return c}catch{return{gasUrl:'https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec'}}}
+function setCfg(o){const n={...getCfg(),...o};delete n.tgToken;delete n.botToken;delete n.token;localStorage.setItem('vrt3_cfg',JSON.stringify(n))}
 function saveGasUrl(){const u=gv('gas-url').trim();setCfg({gasUrl:u});updSyncBadge();}
 function updSyncBadge(){
   const {gasUrl,lastSync,needsSync}=getCfg();
@@ -1602,20 +1631,14 @@ function renderStats(){
 // =====================================================
 function renderSettings(){
   ['trainers','depts','durations','participants'].forEach(k=>renderOptList(k));
-  const {gasUrl='',tgToken='',tgChatId=''}=getCfg();
+  const {gasUrl=''}=getCfg();
   document.getElementById('gas-url').value=gasUrl;
-  if(document.getElementById('tg-token')) document.getElementById('tg-token').value=tgToken;
-  if(document.getElementById('tg-chatid')) document.getElementById('tg-chatid').value=tgChatId;
   updStorInfo();
   document.getElementById('gas-code').textContent=GAS_CODE;
   applyI18n();
   updSyncBadge(); // must run AFTER applyI18n
 }
-function saveTgCfg(){
-  const token=(document.getElementById('tg-token')||{}).value||'';
-  const chatId=(document.getElementById('tg-chatid')||{}).value||'';
-  setCfg({tgToken:token,tgChatId:chatId});
-}
+function saveTgCfg(){setCfg({});}
 function renderOptList(k){
   const el=document.getElementById('opt-'+k);
   if(!el) return;
@@ -2191,7 +2214,7 @@ async function syncToGAS(){
   loading(true);
   try{
     const payload={action:'saveAll',trainings:S.trainings,records:S.records,library:S.library};
-    const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain'}});
+    const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}});
     const d=await res.json();
     if(d.status==='ok'){
       const ts=new Date().toLocaleString('zh-TW',{hour12:false}).slice(0,16);
@@ -2261,6 +2284,17 @@ async function testGAS(){
   catch(e){toast('無法連線：'+e.message,'err');}
   loading(false);
 }
+async function testTelegram(){
+  const {gasUrl}=getCfg();if(!gasUrl){toast('請先填入 GAS URL','err');return;}
+  loading(true);
+  try{
+    const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify({action:'tgTest'}),headers:{'Content-Type':'text/plain;charset=utf-8'}});
+    const d=await res.json();
+    if(d.status==='ok'||d.ok===true) toast('Telegram 測試訊息已送出 ✓','ok');
+    else toast('Telegram 測試失敗：'+(d.msg||d.error||''),'err');
+  }catch(e){toast('Telegram 測試失敗：'+e.message,'err');}
+  loading(false);
+}
 
 // =====================================================
 //  BACKUP / RESTORE
@@ -2289,7 +2323,7 @@ function restoreJSON(inp){
 // =====================================================
 //  TELEGRAM SUMMARY
 // =====================================================
-function sendTgSummary(){
+async function sendTgSummary(){
   const {gasUrl}=getCfg();
   if(!gasUrl){toast(str('toast.tg.nocfg'),'warn');return;}
   const m=S.month,key=`${CURRENT_YEAR}-${String(m).padStart(2,'0')}`;
@@ -2306,7 +2340,7 @@ function sendTgSummary(){
   const payload={
     action:'sendSummary',
     month:key,
-    monthLabel:`${MONTHS_EN[m-1]} 2026`,
+    monthLabel:`${MONTHS_EN[m-1]} ${CURRENT_YEAR}`,
     totalPlanned:planned.length,
     doneCount:doneItems.length,
     pendingCount:pendingItems.length,
@@ -2317,88 +2351,374 @@ function sendTgSummary(){
     cancelledItems:cancelledItems.map(t=>t.nameZH+(t.nameEN?' / '+t.nameEN:''))
   };
   loading(true);
-  fetch(gasUrl,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain'}})
-    .then(r=>r.json())
-    .then(d=>{loading(false);if(d.status==='ok') toast(str('toast.tg.ok'),'ok');else toast(str('toast.tg.err')+(d.msg||d.error||''),'err');})
-    .catch(e=>{loading(false);toast(str('toast.tg.err')+e.message,'err');});
+  try{
+    const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain;charset=utf-8'}});
+    const d=await res.json();
+    if(d.status==='ok'||d.ok===true) toast(str('toast.tg.ok'),'ok');
+    else toast('Telegram 失敗：'+(d.msg||d.error||'Unknown error'),'err');
+  }catch(e){toast(str('toast.tg.err')+e.message,'err');}
+  loading(false);
 }
 
 // =====================================================
 //  GAS CODE
 // =====================================================
-const GAS_CODE=`// VRT HR Training System v3 - GAS Backend
-// 部署：Apps Script → 部署 → 新增部署 → 網頁應用程式
-// 執行身分：我；存取：任何知道連結的人
+const GAS_CODE=`// ═══════════════════════════════════════════════════════════════════
+// VRT_Training_Bot.gs — Google Apps Script
+// VRT 人資培訓系統後端 + Telegram Bot
+// 2026 patched: tgTest + strict Telegram error reporting + no token in browser
+// ═══════════════════════════════════════════════════════════════════
+// Script Properties 必填：
+// BOT_TOKEN      = Telegram BotFather token
+// GROUP_CHAT_ID  = Telegram group chat id, e.g. -1001234567890
+// DASHBOARD_URL  = GitHub Pages training page URL
+// SS_ID          = optional; empty will auto-create a Sheet
+// SECRET_KEY     = optional; reserved
 
-function getOrCreateSS() {
-  const id = PropertiesService.getScriptProperties().getProperty('SS_ID');
-  if (id) return SpreadsheetApp.openById(id);
-  const ss = SpreadsheetApp.create('VRT_Training_2026');
-  PropertiesService.getScriptProperties().setProperty('SS_ID', ss.getId());
-  ['Trainings','Records','Library','Log'].forEach(n => { if (!ss.getSheetByName(n)) ss.insertSheet(n); });
-  return ss;
+function CFG(key) {
+  return PropertiesService.getScriptProperties().getProperty(key) || '';
+}
+
+function API() {
+  return 'https://api.telegram.org/bot' + CFG('BOT_TOKEN');
+}
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doGet(e) {
-  const action = (e.parameter || {}).action || '';
-  let result = {};
   try {
-    if (action === 'ping') result = { pong: true, version: '3.0', time: new Date().toISOString() };
-    else if (action === 'getAll') result = getAllData();
-    else result = { error: 'Unknown action: ' + action };
-  } catch(err) { result = { error: err.message }; }
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    var params = e && e.parameter ? e.parameter : {};
+    var action = params.action || '';
+    if (action === 'ping') return jsonOut({ pong: true, version: '4.2', time: new Date().toISOString() });
+    if (action === 'getAll') return jsonOut(getAllData());
+    return jsonOut({ ok: true, message: 'VRT Training Bot v4.2 online' });
+  } catch (err) {
+    return jsonOut({ error: err.message });
+  }
 }
 
 function doPost(e) {
-  let result = {};
   try {
-    const data = JSON.parse(e.postData.contents);
-    if (data.action === 'saveAll') { saveAllData(data); logAction('SAVE'); result = { status: 'ok', time: new Date().toISOString() }; }
-    else result = { status: 'error', msg: 'Unknown action' };
-  } catch(err) { result = { status: 'error', msg: err.message }; }
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    var raw = e && e.postData && e.postData.contents ? e.postData.contents : '{}';
+    var data = JSON.parse(raw);
+    var action = data.action || '';
+
+    if (action === 'ping' || action === 'test') {
+      return jsonOut({ status: 'ok', message: 'GAS Connection OK', time: new Date().toISOString() });
+    }
+
+    if (action === 'tgTest') {
+      var cfgErr = telegramConfigError_();
+      if (cfgErr) return jsonOut({ status: 'error', msg: cfgErr });
+      var result = sendMessage(CFG('GROUP_CHAT_ID'), '🔧 <b>VRT Training Bot — Test</b>\n✅ Telegram connection OK\n🕐 ' + Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss'), { parse_mode: 'HTML' });
+      if (!result || result.ok !== true) return jsonOut({ status: 'error', msg: telegramErrorMessage_(result) });
+      logAction('TG_TEST', 'Telegram test message sent');
+      return jsonOut({ status: 'ok', msg: 'Telegram test sent' });
+    }
+
+    if (action === 'saveAll') {
+      saveAllData(data);
+      logAction('SAVE_ALL', 'Synced: ' + ((data.trainings || []).length) + ' trainings, ' + countRecords(data.records) + ' records');
+      return jsonOut({ status: 'ok', time: new Date().toISOString() });
+    }
+
+    if (action === 'sendSummary') {
+      var cfgErr2 = telegramConfigError_();
+      if (cfgErr2) return jsonOut({ status: 'error', msg: cfgErr2 });
+      var msg = buildTrainingSummaryMsg(data);
+      var sent = sendMessage(CFG('GROUP_CHAT_ID'), msg, { parse_mode: 'HTML' });
+      if (!sent || sent.ok !== true) return jsonOut({ status: 'error', msg: telegramErrorMessage_(sent), tg: sent || null });
+      saveSummarySnapshot(data);
+      logAction('SEND_SUMMARY', 'Month: ' + data.month + ', Done: ' + data.doneCount + '/' + data.totalPlanned);
+      return jsonOut({ status: 'ok', msg: 'Telegram summary sent' });
+    }
+
+    return jsonOut({ status: 'error', msg: 'Unknown action: ' + action });
+  } catch (err) {
+    logAction('ERROR', err.message);
+    return jsonOut({ status: 'error', msg: err.message });
+  }
+}
+
+function telegramConfigError_() {
+  if (!CFG('BOT_TOKEN')) return 'BOT_TOKEN not configured in Script Properties';
+  if (!CFG('GROUP_CHAT_ID')) return 'GROUP_CHAT_ID not configured in Script Properties';
+  return '';
+}
+
+function telegramErrorMessage_(result) {
+  if (!result) return 'Telegram API no response. Check Apps Script UrlFetch permission and network.';
+  var desc = result.description || JSON.stringify(result);
+  if (String(desc).indexOf('Unauthorized') >= 0 || result.error_code === 401) return '401 Unauthorized: BOT_TOKEN is invalid or revoked.';
+  if (String(desc).indexOf('chat not found') >= 0 || result.error_code === 400) return '400 chat not found: GROUP_CHAT_ID is wrong or the bot is not in the group.';
+  if (String(desc).indexOf('Forbidden') >= 0 || result.error_code === 403) return '403 Forbidden: bot was removed, blocked, or has no permission in the group.';
+  return desc;
+}
+
+function getOrCreateSS() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('SS_ID');
+  if (id) {
+    try { return SpreadsheetApp.openById(id); } catch(e) { props.deleteProperty('SS_ID'); }
+  }
+  var ss = SpreadsheetApp.create('VRT_Training_2026');
+  props.setProperty('SS_ID', ss.getId());
+  initSheets(ss);
+  return ss;
+}
+
+function initSheets(ss) {
+  var sheets = ['Trainings', 'Records', 'Library', 'Log', 'Summary'];
+  sheets.forEach(function(name) { if (!ss.getSheetByName(name)) ss.insertSheet(name); });
+
+  var s1 = ss.getSheetByName('Trainings');
+  if (s1.getLastRow() === 0) {
+    s1.appendRow(['ID','Category','NameZH','NameEN','NameKH','Trainer','Hours','TraineeZH','TraineeEN','Frequency','Months_JSON','Remarks','Type','Organizer','OutlineZH','OutlineEN']);
+    s1.getRange(1,1,1,16).setFontWeight('bold').setBackground('#e8f3ed');
+  }
+  var s2 = ss.getSheetByName('Records');
+  if (s2.getLastRow() === 0) {
+    s2.appendRow(['Month','ID','Seq','Subject','Dept','Trainer','Date','Time','Duration','Participant','Attendees','Absences','Remarks']);
+    s2.getRange(1,1,1,13).setFontWeight('bold').setBackground('#e8f3ed');
+  }
+  var s3 = ss.getSheetByName('Library');
+  if (s3.getLastRow() === 0) {
+    s3.appendRow(['ID','Category','NameZH','NameEN','NameKH','Type','Organizer','Trainer','TraineeZH','TraineeEN','OutlineZH','OutlineEN']);
+    s3.getRange(1,1,1,12).setFontWeight('bold').setBackground('#e8f3ed');
+  }
 }
 
 function getAllData() {
-  const ss = getOrCreateSS();
-  const trainings = sheetToObj(ss.getSheetByName('Trainings'));
-  const records_raw = sheetToObj(ss.getSheetByName('Records'));
-  const library = sheetToObj(ss.getSheetByName('Library'));
-  trainings.forEach(t => { try { t.months = JSON.parse(t.Months || '{}'); } catch { t.months = {}; } t.id = +t.ID || 0; t.hours = +t.Hours || 0; });
-  const records = {};
-  records_raw.forEach(r => { if (!records[r.Month]) records[r.Month] = []; records[r.Month].push({ id: r.ID, seq: +r.Seq || 0, subject: r.Subject, dept: r.Dept, trainer: r.Trainer, date: r.Date, time: r.Time, duration: r.Duration, participant: r.Participant, attendees: +r.Attendees || 0, absences: +r.Absences || 0, remarks: r.Remarks }); });
-  library.forEach(item => { item.id = +item.ID || 0; });
-  return { trainings, records, library };
+  var ss = getOrCreateSS();
+  var trainings = sheetToObj(ss.getSheetByName('Trainings'));
+  var recordsRaw = sheetToObj(ss.getSheetByName('Records'));
+  var library = sheetToObj(ss.getSheetByName('Library'));
+
+  trainings.forEach(function(t) {
+    try { t.months = JSON.parse(t.Months_JSON || t.Months || '{}'); } catch(e) { t.months = {}; }
+    t.id = Number(t.ID) || 0;
+    t.hours = Number(t.Hours) || 0;
+    t.category = t.Category || '';
+    t.nameZH = t.NameZH || '';
+    t.nameEN = t.NameEN || '';
+    t.nameKH = t.NameKH || '';
+    t.trainer = t.Trainer || '';
+    t.traineeZH = t.TraineeZH || '';
+    t.traineeEN = t.TraineeEN || '';
+    t.frequency = t.Frequency || '';
+    t.remarks = t.Remarks || '';
+    t.type = t.Type || 'internal';
+    t.organizer = t.Organizer || '';
+    t.outlineZH = t.OutlineZH || '';
+    t.outlineEN = t.OutlineEN || '';
+    ['ID','Category','NameZH','NameEN','NameKH','Trainer','Hours','TraineeZH','TraineeEN','Frequency','Months_JSON','Months','Remarks','Type','Organizer','OutlineZH','OutlineEN'].forEach(function(k){ delete t[k]; });
+  });
+
+  var records = {};
+  recordsRaw.forEach(function(r) {
+    var monthKey = normalMonth_(r.Month || r.month);
+    if (!monthKey || monthKey === 'Month' || monthKey === '0') return;
+    var dateStr = normalDate_(r.Date || r.date);
+    if (!records[monthKey]) records[monthKey] = [];
+    records[monthKey].push({
+      id: String(r.ID || r.id || ''), seq: Number(r.Seq || r.seq) || 0, subject: String(r.Subject || r.subject || ''),
+      dept: String(r.Dept || r.dept || ''), trainer: String(r.Trainer || r.trainer || ''), date: dateStr,
+      time: String(r.Time || r.time || ''), duration: String(r.Duration || r.duration || ''),
+      participant: String(r.Participant || r.participant || ''), attendees: Number(r.Attendees || r.attendees) || 0,
+      absences: Number(r.Absences || r.absences) || 0, remarks: String(r.Remarks || r.remarks || '')
+    });
+  });
+
+  library.forEach(function(item) {
+    item.id = Number(item.ID) || 0;
+    item.category = item.Category || '';
+    item.nameZH = item.NameZH || '';
+    item.nameEN = item.NameEN || '';
+    item.nameKH = item.NameKH || '';
+    item.type = item.Type || 'internal';
+    item.organizer = item.Organizer || '';
+    item.trainer = item.Trainer || '';
+    item.traineeZH = item.TraineeZH || '';
+    item.traineeEN = item.TraineeEN || '';
+    item.outlineZH = item.OutlineZH || '';
+    item.outlineEN = item.OutlineEN || '';
+    ['ID','Category','NameZH','NameEN','NameKH','Type','Organizer','Trainer','TraineeZH','TraineeEN','OutlineZH','OutlineEN'].forEach(function(k){ delete item[k]; });
+  });
+
+  return { trainings: trainings, records: records, library: library };
 }
 
 function saveAllData(data) {
-  const ss = getOrCreateSS();
-  const s1 = ss.getSheetByName('Trainings') || ss.insertSheet('Trainings');
+  var ss = getOrCreateSS();
+  initSheets(ss);
+
+  var s1 = ss.getSheetByName('Trainings');
   s1.clearContents();
-  s1.appendRow(['ID','Category','NameZH','NameEN','NameKH','Trainer','Hours','TraineeZH','TraineeEN','Frequency','Months','Remarks','Type','Organizer']);
-  (data.trainings || []).forEach(t => s1.appendRow([t.id, t.category, t.nameZH, t.nameEN, t.nameKH, t.trainer, t.hours, t.traineeZH, t.traineeEN, t.frequency, JSON.stringify(t.months || {}), t.remarks, t.type, t.organizer]));
-  const s2 = ss.getSheetByName('Records') || ss.insertSheet('Records');
+  s1.appendRow(['ID','Category','NameZH','NameEN','NameKH','Trainer','Hours','TraineeZH','TraineeEN','Frequency','Months_JSON','Remarks','Type','Organizer','OutlineZH','OutlineEN']);
+  (data.trainings || []).forEach(function(t) {
+    s1.appendRow([t.id, t.category, t.nameZH, t.nameEN || '', t.nameKH || '', t.trainer || '', t.hours || 1, t.traineeZH || '', t.traineeEN || '', t.frequency || '', JSON.stringify(t.months || {}), t.remarks || '', t.type || 'internal', t.organizer || '', t.outlineZH || '', t.outlineEN || '']);
+  });
+
+  var s2 = ss.getSheetByName('Records');
   s2.clearContents();
   s2.appendRow(['Month','ID','Seq','Subject','Dept','Trainer','Date','Time','Duration','Participant','Attendees','Absences','Remarks']);
-  Object.entries(data.records || {}).forEach(([month, recs]) => recs.forEach(r => s2.appendRow([month, r.id, r.seq, r.subject, r.dept, r.trainer, r.date, r.time, r.duration, r.participant, r.attendees, r.absences || 0, r.remarks])));
-  const s3 = ss.getSheetByName('Library') || ss.insertSheet('Library');
+  s2.getRange('A:A').setNumberFormat('@');
+  s2.getRange('G:G').setNumberFormat('@');
+  var rec = data.records || {};
+  Object.keys(rec).sort().forEach(function(monthKey) {
+    (rec[monthKey] || []).forEach(function(r) {
+      s2.appendRow([String(monthKey), String(r.id || ''), r.seq || 0, r.subject || '', r.dept || '', r.trainer || '', String(r.date || ''), r.time || '', r.duration || '', r.participant || '', r.attendees || 0, r.absences || 0, r.remarks || '']);
+    });
+  });
+
+  var s3 = ss.getSheetByName('Library');
   s3.clearContents();
   s3.appendRow(['ID','Category','NameZH','NameEN','NameKH','Type','Organizer','Trainer','TraineeZH','TraineeEN','OutlineZH','OutlineEN']);
-  (data.library || []).forEach(item => s3.appendRow([item.id, item.category, item.nameZH, item.nameEN, item.nameKH || '', item.type, item.organizer, item.trainer, item.traineeZH, item.traineeEN, item.outlineZH, item.outlineEN]));
+  (data.library || []).forEach(function(item) {
+    s3.appendRow([item.id, item.category, item.nameZH, item.nameEN || '', item.nameKH || '', item.type || 'internal', item.organizer || '', item.trainer || '', item.traineeZH || '', item.traineeEN || '', item.outlineZH || '', item.outlineEN || '']);
+  });
+
+  [s1,s2,s3].forEach(function(s) { if (s.getLastRow() > 0) s.getRange(1, 1, 1, s.getLastColumn()).setFontWeight('bold').setBackground('#e8f3ed'); });
+}
+
+function buildTrainingSummaryMsg(data) {
+  var dashUrl = CFG('DASHBOARD_URL') || '';
+  var month = data.monthLabel || data.month || '';
+  var total = Number(data.totalPlanned) || 0;
+  var done = Number(data.doneCount) || 0;
+  var pending = Number(data.pendingCount) || 0;
+  var cancelled = Number(data.cancelledCount) || 0;
+  var records = Number(data.recordCount) || 0;
+  var pct = total > 0 ? Math.round(done / total * 100) : 0;
+  var filled = Math.round(pct / 10);
+  var bar = Array(filled + 1).join('█') + Array(10 - filled + 1).join('░');
+  var msg = '📚 <b>VRT 培訓月報 | ' + month + '</b>\n';
+  msg += '━━━━━━━━━━━━━━━━━━━━\n';
+  msg += '📊 完成率 Completion Rate\n';
+  msg += '<code>[' + bar + '] ' + pct + '%</code>\n\n';
+  msg += '📋 計劃項目 Planned: <b>' + total + '</b>\n';
+  msg += '✅ 已完成 Done: <b>' + done + '</b>\n';
+  msg += '⏳ 待執行 Pending: <b>' + pending + '</b>\n';
+  msg += '❌ 取消/延後 Cancelled: <b>' + cancelled + '</b>\n';
+  msg += '📝 記錄筆數 Records: <b>' + records + '</b>\n\n';
+  msg += listItems_('✅ <b>已完成 Completed:</b>', data.doneItems || [], 8);
+  msg += listItems_('⏳ <b>未完成 Pending:</b>', data.pendingItems || [], 6);
+  msg += listItems_('❌ <b>取消/延後 Cancelled:</b>', data.cancelledItems || [], 4);
+  msg += '━━━━━━━━━━━━━━━━━━━━\n';
+  msg += '🕐 ' + Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm');
+  if (dashUrl) msg += '\n📊 <a href="' + dashUrl + '">開啟 Dashboard</a>';
+  return msg;
+}
+
+function listItems_(title, arr, limit) {
+  if (!arr || arr.length === 0) return '';
+  var msg = title + '\n';
+  arr.slice(0, limit).forEach(function(name, i) { msg += '  ' + (i + 1) + '. ' + name + '\n'; });
+  if (arr.length > limit) msg += '  ···等 ' + arr.length + ' 項\n';
+  return msg + '\n';
+}
+
+function sendMessage(chatId, text, options) {
+  var payload = Object.assign({ chat_id: chatId, text: text }, options || {});
+  return callApi('sendMessage', payload);
+}
+
+function callApi(method, payload) {
+  var url = API() + '/' + method;
+  var opts = { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true };
+  try {
+    var res = UrlFetchApp.fetch(url, opts);
+    return JSON.parse(res.getContentText());
+  } catch(e) {
+    Logger.log('Telegram API error: ' + e.message);
+    return null;
+  }
+}
+
+function saveSummarySnapshot(data) {
+  var props = PropertiesService.getScriptProperties();
+  var snapshot = {
+    month: data.month, monthLabel: data.monthLabel, totalPlanned: data.totalPlanned,
+    doneCount: data.doneCount, pendingCount: data.pendingCount, cancelledCount: data.cancelledCount,
+    recordCount: data.recordCount, doneItems: data.doneItems || [], pendingItems: data.pendingItems || [],
+    cancelledItems: data.cancelledItems || [], savedAt: new Date().toISOString()
+  };
+  props.setProperty('last_summary', JSON.stringify(snapshot));
+
+  var ss = getOrCreateSS();
+  var s = ss.getSheetByName('Summary') || ss.insertSheet('Summary');
+  if (s.getLastRow() === 0) {
+    s.appendRow(['Saved At','Month','Total','Done','Pending','Cancelled','Records','Done Items','Pending Items']);
+    s.getRange(1,1,1,9).setFontWeight('bold').setBackground('#e8f3ed');
+  }
+  s.appendRow([new Date().toISOString(), data.monthLabel || data.month, data.totalPlanned, data.doneCount, data.pendingCount, data.cancelledCount, data.recordCount, (data.doneItems || []).join(' | '), (data.pendingItems || []).join(' | ')]);
 }
 
 function sheetToObj(sheet) {
   if (!sheet) return [];
-  const data = sheet.getDataRange().getValues();
+  var data = sheet.getDataRange().getValues();
   if (data.length < 2) return [];
-  const h = data[0];
-  return data.slice(1).map(row => { const o = {}; h.forEach((k, i) => o[k] = row[i]); return o; }).filter(r => Object.values(r).some(v => v !== ''));
+  var headers = data[0];
+  return data.slice(1).map(function(row) {
+    var obj = {};
+    headers.forEach(function(h, i) {
+      var v = row[i];
+      if (v instanceof Date) {
+        var hdr = String(h).toLowerCase();
+        obj[String(h).trim()] = hdr.indexOf('month') >= 0 ? Utilities.formatDate(v, 'UTC', 'yyyy-MM') : Utilities.formatDate(v, 'UTC', 'yyyy-MM-dd');
+      } else {
+        obj[String(h).trim()] = v;
+      }
+    });
+    return obj;
+  }).filter(function(r) { return Object.values(r).some(function(v) { return v !== '' && v !== null && v !== undefined; }); });
 }
 
-function logAction(type) {
-  try { const ss = getOrCreateSS(); const ls = ss.getSheetByName('Log') || ss.insertSheet('Log'); if (ls.getLastRow() === 0) ls.appendRow(['Time','Type']); ls.appendRow([new Date().toISOString(), type]); } catch(e) {}
-}`;
+function normalMonth_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, 'UTC', 'yyyy-MM');
+  var s = String(v || '').trim();
+  var m = s.match(/^(\d{4})-(\d)$/);
+  return m ? m[1] + '-0' + m[2] : s;
+}
+
+function normalDate_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, 'UTC', 'yyyy-MM-dd');
+  return String(v || '').trim();
+}
+
+function countRecords(records) {
+  if (!records) return 0;
+  return Object.values(records).reduce(function(a, b) { return a + (b ? b.length : 0); }, 0);
+}
+
+function logAction(type, detail) {
+  try {
+    var ss = getOrCreateSS();
+    var ls = ss.getSheetByName('Log') || ss.insertSheet('Log');
+    if (ls.getLastRow() === 0) {
+      ls.appendRow(['Time (PNH)','Type','Detail']);
+      ls.getRange(1,1,1,3).setFontWeight('bold').setBackground('#e8f3ed');
+    }
+    var ts = Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss');
+    ls.appendRow([ts, type, detail || '']);
+    PropertiesService.getScriptProperties().setProperty('last_log_time', ts);
+  } catch(e) { Logger.log('Log error: ' + e.message); }
+}
+
+function testSendMessage() {
+  var cfgErr = telegramConfigError_();
+  if (cfgErr) { Logger.log(cfgErr); return; }
+  var result = sendMessage(CFG('GROUP_CHAT_ID'), '🔧 <b>VRT Training Bot — Manual Test</b>\n✅ Connection OK\n🕐 ' + Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss'), { parse_mode: 'HTML' });
+  Logger.log(JSON.stringify(result));
+}
+
+function testGetMe() {
+  var result = callApi('getMe', {});
+  Logger.log(JSON.stringify(result));
+}
+`;
 
 function copyGAS(){
   navigator.clipboard.writeText(GAS_CODE).then(()=>toast('程式碼已複製','ok')).catch(()=>{const ta=document.createElement('textarea');ta.value=GAS_CODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('已複製','ok');});
@@ -2468,6 +2788,7 @@ let CURRENT_YEAR=2026;
 try{const sy=localStorage.getItem('vrt3_year');if(sy) CURRENT_YEAR=parseInt(sy)||2026;}catch(e){}
 
 load();
+applyAuditBridge();
 rebuildDataLists();
 applyI18n();
 updSyncBadge();

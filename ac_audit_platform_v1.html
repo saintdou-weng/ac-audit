@@ -213,6 +213,7 @@ table.dt tbody tr:hover{background:rgba(168,146,114,.07);cursor:pointer}
 <input type="file" id="jsonFile" accept=".json" style="display:none">
 <input type="file" id="photoFile" accept="image/*" multiple style="display:none">
 <input type="file" id="msgFile" accept=".msg,.eml,.txt" style="display:none">
+<input type="file" id="impFile" accept=".xlsx,.xls,.csv,.msg,.eml,.txt,.json" multiple style="display:none">
 
 <script>
 /* =====================================================================
@@ -241,6 +242,8 @@ const T={
  incidents:{zh:'事故中心',en:'Incident Center',km:'មជ្ឈមណ្ឌលឧប្បត្តិហេតុ'},
  policies:{zh:'政策中心',en:'Policy Center',km:'មជ្ឈមណ្ឌលគោលការណ៍'},
  msg:{zh:'MSG 處理器',en:'MSG Processor',km:'ដំណើរការ MSG'},
+ training:{zh:'培訓管理',en:'Training',km:'ការបណ្តុះបណ្តាល'},
+ imp:{zh:'匯入中心',en:'Import Center',km:'មជ្ឈមណ្ឌលនាំចូល'},
  settings:{zh:'設定',en:'Settings',km:'ការកំណត់'},
  grpMain:{zh:'總覽',en:'Overview',km:'ទិដ្ឋភាពរួម'},
  grpAudit:{zh:'稽核作業',en:'Audit Operations',km:'ប្រតិបត្តិការសវនកម្ម'},
@@ -354,10 +357,10 @@ function loadDB(){
   return {meta:{version:1,updatedAt:Date.now(),lastSync:0,seq:{}},
     settings:{auditTypes:DEFAULT_TYPES.slice()},
     audits:[],caps:[],grs_certs:[],grs_tc:[],grs_suppliers:[],grs_trace:[],
-    documents:[],incidents:[],policies:[],msg:[],activities:[]};
+    documents:[],incidents:[],policies:[],msg:[],training:[],activities:[]};
 }
 function migrate(d){
-  ['audits','caps','grs_certs','grs_tc','grs_suppliers','grs_trace','documents','incidents','policies','msg','activities'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
+  ['audits','caps','grs_certs','grs_tc','grs_suppliers','grs_trace','documents','incidents','policies','msg','training','activities'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
   d.settings=d.settings||{};if(!Array.isArray(d.settings.auditTypes)||!d.settings.auditTypes.length)d.settings.auditTypes=DEFAULT_TYPES.slice();
   d.meta.seq=d.meta.seq||{};return d;
 }
@@ -376,6 +379,18 @@ function logAct(text){
    schema，Sidebar / CRUD / 匯入匯出 / 雲端 / 搜尋 全部自動生效。
 ===================================================================== */
 const OPT={
+ trainCat:[
+  {v:'orientation',c:'b-info',L:{zh:'新人培訓',en:'Orientation',km:'បណ្តុះបណ្តាលថ្មី'}},
+  {v:'skill',c:'b-info',L:{zh:'技能培訓',en:'Skill',km:'ជំនាញ'}},
+  {v:'safety',c:'b-warn',L:{zh:'安全消防',en:'Safety & Fire',km:'សុវត្ថិភាព'}},
+  {v:'compliance',c:'b-ok',L:{zh:'合規/社會責任',en:'Compliance / Social',km:'អនុលោមភាព'}},
+  {v:'quality',c:'b-info',L:{zh:'品質',en:'Quality',km:'គុណភាព'}},
+  {v:'chemical',c:'b-warn',L:{zh:'化學品',en:'Chemical',km:'គីមី'}},
+  {v:'other',c:'b-mute',L:{zh:'其他',en:'Other',km:'ផ្សេងៗ'}}],
+ trainStatus:[
+  {v:'planned',c:'b-info',L:{zh:'已排程',en:'Planned',km:'បានគ្រោង'}},
+  {v:'done',c:'b-ok',L:{zh:'已完成',en:'Completed',km:'បានបញ្ចប់'}},
+  {v:'overdue',c:'b-danger',L:{zh:'逾期',en:'Overdue',km:'ហួសកំណត់'}}],
  auditStatus:[
   {v:'planned',c:'b-info',L:{zh:'已排程',en:'Planned',km:'បានគ្រោង'}},
   {v:'inprogress',c:'b-warn',L:{zh:'進行中',en:'In Progress',km:'កំពុងដំណើរការ'}},
@@ -653,6 +668,24 @@ const MODULES={
   cols:['id','date','from','subject','msgType','convertedTo'],
   filter:'msgType',
   rowActions:[{ico:'⚠',tip:{zh:'轉為 CAP Finding',en:'To CAP',km:'ទៅ CAP'},fn:'msgToCAP'}]
+ },
+ training:{icon:'🎓',prefix:'TRN',group:'grpOther',
+  fields:[
+   F.txt('course','課程名稱','Course Name','ឈ្មោះវគ្គ',1),
+   F.sel('category','trainCat','類別','Category','ប្រភេទ',1),
+   F.date('date','培訓日期','Training Date','កាលបរិច្ឆេទ',1),
+   F.sel('status','trainStatus','狀態','Status','ស្ថានភាព',1),
+   F.txt('trainer','講師 / 單位','Trainer','គ្រូបណ្តុះបណ្តាល'),
+   F.dept(),
+   F.num('attendees','出席人數','Attendees','ចំនួនអ្នកចូលរួម'),
+   F.num('hours','時數','Hours','ម៉ោង'),
+   F.num('passRate','合格率 %','Pass Rate %','អត្រាជាប់ %'),
+   {k:'auditId',t:'refselect',ref:'audits',refLabel:'auditName',L:{zh:'關聯稽核',en:'Related Audit',km:'សវនកម្មពាក់ព័ន្ធ'}},
+   F.ta('notes','內容 / 備註','Content / Notes','ខ្លឹមសារ'),
+   F.photos()],
+  cols:['id','course','category','date','status','department','attendees','passRate'],
+  filter:'status',
+  rowActions:[{ico:'⚠',tip:{zh:'轉為 CAP（培訓不足）',en:'To CAP',km:'ទៅ CAP'},fn:'trainToCAP'}]
  }
 };
 const MODULE_KEYS=Object.keys(MODULES);
@@ -662,19 +695,13 @@ const MODULE_KEYS=Object.keys(MODULES);
 ===================================================================== */
 let CURRENT='dashboard', GRS_CUR='grs_certs';
 const GRS_SUBS=['grs_certs','grs_tc','grs_suppliers','grs_trace'];
-const TAB_ORDER=['dashboard','analytics','audits','caps','grs','documents','incidents','policies','msg','subsys','settings'];
-const PAGE_ICONS={dashboard:'◧',analytics:'📈',settings:'⚙',grs:'🏅',subsys:'📚'};
+const TAB_ORDER=['dashboard','analytics','audits','caps','grs','documents','incidents','policies','training','msg','imp','settings'];
+const PAGE_ICONS={dashboard:'◧',analytics:'📈',settings:'⚙',grs:'🏅',imp:'📥'};
 const SUBSYS_LINKS=[
- {u:'vrt_training_v1.html',i:'🎓',zh:'培訓計劃系統',en:'Training System'},
- {u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment'},
  {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules'},
- {u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law'},
- {u:'vrt_damage_report.html',i:'📝',zh:'損壞/遺失報告表',en:'Damage Report Form'},
- {u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 舊版（資料可遷移）',en:'DCC Legacy'},
- {u:'MSG_Processor.html',i:'📨',zh:'外來文件管制（舊版）',en:'Ext. Doc Legacy'}];
+ {u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law'}];
 function tabLabel(k){
   if(k==='grs')return 'GRS';
-  if(k==='subsys')return LANG==='zh'?'子系統':(LANG==='km'?'ប្រព័ន្ធរង':'Subsystems');
   return t(k);
 }
 function renderNav(){   // 上方 Tabs
@@ -706,14 +733,6 @@ function goGrs(sub){
   const m=$('#main');if(m)m.scrollTop=0;
   renderModule(sub);
 }
-function renderSubsys(){
-  $('#main').innerHTML='<div class="pgtitle"><h2>📚 '+(LANG==='zh'?'子系統 / 參考':(LANG==='km'?'ប្រព័ន្ធរង':'Subsystems / Reference'))+'</h2>'+
-    '<div class="sub">'+(LANG==='zh'?'獨立頁面，於新分頁開啟':'Opens in a new tab')+'</div></div>'+
-    '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr))">'+
-    SUBSYS_LINKS.map(s=>'<a class="card" href="'+s.u+'" target="_blank" rel="noopener" style="text-decoration:none;display:flex;gap:12px;align-items:center">'+
-      '<span style="font-size:26px;flex-shrink:0">'+s.i+'</span><div style="min-width:0"><div style="font-weight:600;color:var(--ink)">'+esc(LANG==='zh'?s.zh:s.en)+'</div>'+
-      '<div style="font-size:11px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(s.u)+' ↗</div></div></a>').join('')+'</div>';
-}
 function go(k){
   if(k==='grs')return goGrs(GRS_CUR);
   if(GRS_SUBS.includes(k))return goGrs(k);
@@ -724,7 +743,7 @@ function go(k){
   if(k==='dashboard')return renderDashboard();
   if(k==='analytics')return renderAnalytics();
   if(k==='settings')return renderSettings();
-  if(k==='subsys')return renderSubsys();
+  if(k==='imp')return renderImport();
   if(MODULES[k])return renderModule(k);
   renderDashboard();
 }
@@ -1256,6 +1275,204 @@ function parseHeaders(){
   if(!$('#mp_date').value)$('#mp_date').value=todayStr();
 }
 function parsePasted(){parseHeaders();toast('🔍 '+t('parse')+' ✓')}
+
+function trainToCAP(id){
+  const m=DB.training.find(x=>x.id===id);if(!m)return;
+  const rec={id:uid('CAP'),_created:Date.now(),_updated:Date.now(),auditId:m.auditId||'',
+    source:'Training: '+(m.course||''),
+    description:'培訓缺口 / Training gap\n課程 Course: '+(m.course||'')+'\n日期 Date: '+(m.date||'')+
+      '\n出席 Attendees: '+(m.attendees||0)+'\n合格率 Pass rate: '+(m.passRate||0)+'%',
+    rootCause:'',priority:(Number(m.passRate||0)<70?'high':'medium'),riskLevel:'medium',
+    department:m.department||'',owner:m.trainer||'',dueDate:'',status:'open',photos:[]};
+  DB.caps.push(rec);logAct('＋ CAP from Training · '+rec.id);saveDB();go('caps');openForm('caps',rec.id);
+}
+window.trainToCAP=trainToCAP;
+
+/* =====================================================================
+   統一匯入中心 — 拖放 Excel/CSV/MSG/EML/JSON，自動判斷模組、預覽、分析、寫入
+===================================================================== */
+let IMPQ=[];   // 待匯入佇列 [{file,target,rows,analysis,kind}]
+const IMP_TARGETS=['audits','caps','grs_certs','grs_tc','grs_suppliers','grs_trace',
+                   'documents','incidents','policies','msg','training'];
+/* 依檔名 + 表頭 猜模組 */
+const IMP_HINT={
+ audits:['audit','稽核','sedex','wrap','slcp','higg','bsci','iso'],
+ caps:['cap','capa','car','corrective','finding','矯正','缺失'],
+ grs_certs:['grs','scope certificate','證書'],
+ grs_tc:['tc','transaction'],
+ grs_suppliers:['supplier','供應商','vendor'],
+ grs_trace:['trace','追溯','material'],
+ documents:['dcc','document','文件','doc control'],
+ incidents:['incident','damage','lost','事故','損壞','遺失','injury','fire'],
+ policies:['policy','政策','rule','廠規','regulation','sop','wi'],
+ msg:['msg','email','mail','外來文件','ext'],
+ training:['train','培訓','course','課程','教育']
+};
+function guessTarget(fname,headers){
+  const hay=(fname+' '+(headers||[]).join(' ')).toLowerCase();
+  let best='',score=0;
+  IMP_TARGETS.forEach(k=>{
+    let s=0;(IMP_HINT[k]||[]).forEach(w=>{if(hay.indexOf(w)>=0)s+=2});
+    // 表頭與模組欄位吻合度
+    const M=MODULES[k];(headers||[]).forEach(h=>{const hh=String(h).trim().toLowerCase();
+      if(M.fields.some(f=>f.k.toLowerCase()===hh||f.L.en.toLowerCase()===hh||f.L.zh===String(h).trim()))s+=1});
+    if(s>score){score=s;best=k}
+  });
+  return best||'audits';
+}
+function renderImport(){
+  $('#main').innerHTML=
+   '<div class="pgtitle"><h2>📥 '+esc(t('imp'))+'</h2>'+
+   '<div class="sub">'+(LANG==='zh'
+     ?'把 Excel / CSV / .msg / .eml / JSON 直接拖進來，系統自動判斷該進哪個模組，預覽確認後再寫入。'
+     :'Drop Excel / CSV / .msg / .eml / JSON here. Target module is auto-detected; preview before writing.')+'</div></div>'+
+   '<div id="dropzone" style="border:2px dashed var(--line);border-radius:12px;padding:34px;text-align:center;'+
+     'background:var(--white);cursor:pointer" onclick="$(\'#impFile\').click()">'+
+     '<div style="font-size:34px">📥</div>'+
+     '<div style="margin-top:8px;font-weight:600">'+(LANG==='zh'?'拖曳檔案到這裡，或點擊選擇':'Drag files here, or click to browse')+'</div>'+
+     '<div class="hint" style="margin-top:5px">.xlsx · .xls · .csv · .msg · .eml · .txt · .json</div></div>'+
+   '<div id="impResult" style="margin-top:16px"></div>';
+  const dz=$('#dropzone');
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();
+    dz.style.borderColor='var(--khaki)';dz.style.background='var(--linen)'}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();
+    dz.style.borderColor='var(--line)';dz.style.background='var(--white)'}));
+  dz.addEventListener('drop',e=>{if(e.dataTransfer.files.length)handleImpFiles(e.dataTransfer.files)});
+  $('#impFile').onchange=e=>{if(e.target.files.length)handleImpFiles(e.target.files);e.target.value=''};
+  if(IMPQ.length)drawImpQueue();
+}
+function handleImpFiles(files){
+  Array.from(files).forEach(f=>{
+    const ext=f.name.toLowerCase().split('.').pop();
+    const fr=new FileReader();
+    if(ext==='json'){
+      fr.onload=ev=>{try{const d=JSON.parse(ev.target.result);
+        if(d&&d.meta&&MODULE_KEYS.some(k=>Array.isArray(d[k]))){
+          if(!confirm(LANG==='zh'?'這是整庫備份，將覆蓋現有資料。確定？':'Full backup — overwrite all data?'))return;
+          DB=migrate(d);saveDB();renderNavCounts();toast('🗂 Restore ✓');go('dashboard');
+        }else toast('⚠ 非本平台備份格式');
+      }catch(err){toast('⚠ JSON error')}};
+      fr.readAsText(f);return;
+    }
+    if(ext==='msg'||ext==='eml'||ext==='txt'){
+      const done=txt=>{
+        const grab=re=>{const m=txt.match(re);return m?m[1].trim():''};
+        const from=grab(/^From:\s*(.+)$/mi)||grab(/寄件者[:：]\s*(.+)$/mi);
+        const subj=grab(/^Subject:\s*(.+)$/mi)||grab(/主旨[:：]\s*(.+)$/mi)||f.name.replace(/\.[^.]+$/,'');
+        const dt=grab(/^Date:\s*(.+)$/mi)||grab(/日期[:：]\s*(.+)$/mi);
+        let d=todayStr();if(dt){const x=new Date(dt);if(!isNaN(x))d=fmtDate(x)}
+        const body=txt.slice(0,8000);
+        const urgent=/urgent|緊急|immediate|non-?conformity|不符合|violation|deadline|逾期/i.test(txt);
+        IMPQ.push({name:f.name,kind:'msg',target:'msg',
+          rows:[{date:d,from:from,subject:subj,msgType:urgent?'issue':'evidence',content:body}],
+          analysis:(LANG==='zh'
+            ?('📨 郵件解析：寄件人「'+(from||'未偵測')+'」，主旨「'+subj+'」，日期 '+d+'。'+
+              (urgent?'⚠ 內文出現「緊急／不符合／逾期」等關鍵字，已標為 issue，建議匯入後直接轉 CAP。':'內文未偵測到緊急關鍵字，歸類為證據。'))
+            :('Email parsed: from "'+(from||'n/a')+'", subject "'+subj+'". '+(urgent?'Urgent keywords found → flagged as issue.':'No urgent keywords → evidence.')))});
+        drawImpQueue();
+      };
+      if(ext==='msg'){fr.onload=ev=>done(extractMsgText(new Uint8Array(ev.target.result)));fr.readAsArrayBuffer(f)}
+      else{fr.onload=ev=>done(ev.target.result);fr.readAsText(f)}
+      return;
+    }
+    // Excel / CSV
+    fr.onload=ev=>{
+      try{
+        const wb=XLSX.read(ev.target.result,{type:'array',cellDates:false,raw:true});
+        const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+        if(!rows.length)return toast('⚠ '+f.name+' 沒有資料');
+        const headers=Object.keys(rows[0]);
+        const tgt=guessTarget(f.name,headers);
+        IMPQ.push({name:f.name,kind:'sheet',target:tgt,rows:rows,headers:headers,
+                   analysis:analyzeSheet(tgt,rows,headers)});
+        drawImpQueue();
+      }catch(err){toast('⚠ '+f.name+': '+err.message)}
+    };
+    fr.readAsArrayBuffer(f);
+  });
+}
+/* 智慧分析：欄位吻合度、日期區間、狀態分布、重複 ID、風險提示 */
+function analyzeSheet(tgt,rows,headers){
+  const M=MODULES[tgt],out=[];
+  const matched=M.fields.filter(fd=>headers.some(h=>{const hh=String(h).trim().toLowerCase();
+    return hh===fd.k.toLowerCase()||hh===fd.L.en.toLowerCase()||String(h).trim()===fd.L.zh}));
+  const rate=Math.round(matched.length/M.fields.length*100);
+  out.push((LANG==='zh'?'📊 共 ':'📊 ')+rows.length+(LANG==='zh'?' 列，欄位吻合度 ':' rows, field match ')+rate+'%（'+matched.length+'/'+M.fields.length+'）');
+  const unmatched=headers.filter(h=>!M.fields.some(fd=>{const hh=String(h).trim().toLowerCase();
+    return hh===fd.k.toLowerCase()||hh===fd.L.en.toLowerCase()||String(h).trim()===fd.L.zh}));
+  if(unmatched.length)out.push((LANG==='zh'?'⚠ 無法對應的欄位（將被忽略）：':'⚠ Unmapped columns (ignored): ')+unmatched.slice(0,8).join('、'));
+  // 日期區間
+  const dk=(M.fields.find(f=>f.t==='date')||{}).k;
+  if(dk){const ds=rows.map(r=>{const h=headers.find(x=>String(x).trim().toLowerCase()===dk.toLowerCase());
+      let v=h?r[h]:'';if(typeof v==='number')v=fmtDate(new Date(Math.round((v-25569)*86400000)));
+      return String(v).slice(0,10)}).filter(v=>/^\d{4}-\d{2}-\d{2}$/.test(v)).sort();
+    if(ds.length)out.push((LANG==='zh'?'📅 日期區間：':'📅 Date range: ')+ds[0]+' → '+ds[ds.length-1]);}
+  // 重複 ID
+  const idh=headers.find(h=>String(h).trim().toUpperCase()==='ID');
+  if(idh){const ids=rows.map(r=>String(r[idh]).trim()).filter(Boolean);
+    const dup=ids.filter(x=>DB[tgt].some(r=>r.id===x));
+    if(dup.length)out.push((LANG==='zh'?'🔁 其中 ':'🔁 ')+dup.length+(LANG==='zh'?' 筆 ID 已存在，將「更新」而非新增。':' existing IDs will be updated, not added.'));}
+  else out.push(LANG==='zh'?'🆕 無 ID 欄，全部視為新增（系統自動編號）。':'🆕 No ID column — all treated as new records.');
+  return out.join('\n');
+}
+function drawImpQueue(){
+  const box=$('#impResult');if(!box)return;
+  if(!IMPQ.length){box.innerHTML='';return}
+  box.innerHTML=IMPQ.map((q,i)=>{
+    const M=MODULES[q.target];
+    const cols=(q.kind==='sheet'?q.headers:Object.keys(q.rows[0])).slice(0,6);
+    const body=q.rows.slice(0,5).map(r=>'<tr>'+cols.map(c=>'<td>'+esc(String(r[c]==null?'':r[c]).slice(0,60))+'</td>').join('')+'</tr>').join('');
+    return '<div class="panel" style="margin-bottom:14px">'+
+      '<h3>'+esc(q.name)+'<span class="rule"></span>'+
+      '<span class="hint">'+q.rows.length+' rows</span></h3>'+
+      '<div class="toolbar" style="margin-bottom:10px">'+
+       '<label class="hint">'+(LANG==='zh'?'匯入到：':'Import into: ')+'</label>'+
+       '<select onchange="setImpTarget('+i+',this.value)" style="width:auto">'+
+        IMP_TARGETS.map(k=>'<option value="'+k+'" '+(q.target===k?'selected':'')+'>'+MODULES[k].icon+' '+esc(t(k))+'</option>').join('')+
+       '</select>'+
+       '<button class="btn pri" onclick="commitImp('+i+')">✅ '+(LANG==='zh'?'確認寫入':'Confirm import')+'</button>'+
+       '<button class="btn" onclick="dropImp('+i+')">✕ '+(LANG==='zh'?'移除':'Remove')+'</button></div>'+
+      '<pre style="white-space:pre-wrap;background:var(--linen);border:1px solid var(--line);border-radius:8px;'+
+        'padding:10px;font-size:12px;line-height:1.7;margin:0 0 10px">'+esc(q.analysis)+'</pre>'+
+      '<div style="overflow:auto"><table><thead><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+
+        '</tr></thead><tbody>'+body+'</tbody></table></div>'+
+      (q.rows.length>5?'<div class="hint" style="margin-top:6px">… '+(LANG==='zh'?'僅預覽前 5 列':'preview first 5 rows')+'</div>':'')+
+      '</div>';
+  }).join('');
+}
+function setImpTarget(i,k){
+  IMPQ[i].target=k;
+  if(IMPQ[i].kind==='sheet')IMPQ[i].analysis=analyzeSheet(k,IMPQ[i].rows,IMPQ[i].headers);
+  drawImpQueue();
+}
+function dropImp(i){IMPQ.splice(i,1);drawImpQueue()}
+function commitImp(i){
+  const q=IMPQ[i],k=q.target,M=MODULES[k];let n=0;
+  q.rows.forEach(row=>{
+    const rec={id:'',_created:Date.now(),_updated:Date.now(),photos:[]};
+    const keys=Object.keys(row);
+    M.fields.forEach(fd=>{
+      if(fd.t==='photos')return;
+      const hit=keys.find(h=>{const hh=String(h).trim().toLowerCase();
+        return hh===fd.k.toLowerCase()||hh===fd.L.en.toLowerCase()||String(h).trim()===fd.L.zh});
+      if(hit!=null){let v=row[hit];
+        if(fd.t==='date'&&typeof v==='number')v=fmtDate(new Date(Math.round((v-25569)*86400000)));
+        rec[fd.k]=fd.t==='number'?(v===''?'':Number(v)):String(v==null?'':v).trim();}
+    });
+    const idKey=keys.find(h=>String(h).trim().toUpperCase()==='ID');
+    rec.id=(idKey&&String(row[idKey]).trim())||uid(M.prefix);
+    const ex=DB[k].findIndex(r=>r.id===rec.id);
+    if(ex>=0)DB[k][ex]=Object.assign(DB[k][ex],rec,{_updated:Date.now()});else DB[k].push(rec);
+    n++;
+  });
+  logAct('📥 Import · '+t(k)+' × '+n+' ('+q.name+')');
+  DB.meta.updatedAt=Date.now();saveDB();renderNavCounts();
+  IMPQ.splice(i,1);drawImpQueue();
+  toast('✅ '+t(k)+' ← '+n+' rows');
+}
+window.renderImport=renderImport;window.setImpTarget=setImpTarget;
+window.dropImp=dropImp;window.commitImp=commitImp;window.handleImpFiles=handleImpFiles;
+
 function saveParsed(){
   const subj=$('#mp_subject').value.trim();
   if(!subj)return toast(t('reqMiss')+'Subject');
@@ -1309,10 +1526,20 @@ function renderSettings(){
    '<div class="panel setsec"><h4>🔁 '+(LANG==='zh'?'舊系統資料遷移':'Legacy Data Migration')+'</h4>'+
      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
      '<button class="btn" onclick="migrateDCC()">🗄 DCC v2 → '+esc(t('documents'))+'</button>'+
-     '<button class="btn" onclick="migrateMSG()">📨 MSG Processor → '+esc(t('msg'))+'</button></div>'+
+     '<button class="btn" onclick="migrateMSG()">📨 MSG Processor → '+esc(t('msg'))+'</button>'+
+     '<button class="btn" onclick="migrateTRAIN()">🎓 '+(LANG==='zh'?'舊培訓系統':'Legacy Training')+' → '+esc(t('training'))+'</button></div>'+
      '<p class="hint" style="margin-top:8px">'+(LANG==='zh'
-       ?'需在 saintdou-weng.github.io 同網域下開啟本平台，才能讀取 vrt_dcc_v2 / msgProcessor_data 舊資料（同編號/同檔名不會重複匯入）。WSE 稽核評估請用其「匯出 CSV」再由 CAP 模組 Excel 匯入。'
-       :'Open this platform on the same origin (saintdou-weng.github.io) to read legacy keys vrt_dcc_v2 / msgProcessor_data. Duplicates are skipped. For WSE, export CSV then import into CAP module.')+'</p></div>'+
+       ?'一次性搬移舊系統本機資料（需與舊頁面同網域）。日後新資料請直接用「📥 匯入中心」拖檔即可。'
+       :'One-off migration of legacy local data (same origin required). For new data, use the Import Center.')+'</p></div>'+
+   '<div class="panel setsec"><h4>🔔 '+(LANG==='zh'?'Telegram 測試':'Telegram Test')+'</h4>'+
+     '<button class="btn pri" onclick="tgTest()">📤 '+(LANG==='zh'?'發送測試訊息到群組':'Send test message')+'</button>'+
+     '<p class="hint" style="margin-top:8px">'+(LANG==='zh'
+       ?'透過 GAS 轉發，Token 不存在本檔案中。失敗會顯示原因（401 Token 錯 / 400 Chat ID 錯 / 403 Bot 被移出群組）。'
+       :'Relayed via GAS. Errors are shown with cause (401 token / 400 chat id / 403 bot removed).')+'</p></div>'+
+   '<div class="panel setsec"><h4>📚 '+(LANG==='zh'?'參考文件':'Reference')+'</h4>'+
+     '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+     SUBSYS_LINKS.map(s=>'<a class="btn" href="'+s.u+'" target="_blank" rel="noopener">'+s.i+' '+esc(LANG==='zh'?s.zh:s.en)+' ↗</a>').join('')+
+     '</div></div>'+
    '</div>';
 }
 /* ── 舊系統資料遷移（vrt_dcc_v2 / msgProcessor_data）── */
@@ -1361,6 +1588,34 @@ function migrateMSG(){
   toast((LANG==='zh'?'MSG 遷移完成：':'MSG migrated: ')+n)}
 window.migrateDCC=migrateDCC;window.migrateMSG=migrateMSG;
 
+function migrateTRAIN(){
+  let raw=localStorage.getItem('vrt3_tr'),rc=localStorage.getItem('vrt3_rc');
+  if(!raw)return toast(LANG==='zh'?'找不到舊培訓資料 vrt3_tr（需同網域）':'vrt3_tr not found');
+  let L,R;try{L=JSON.parse(raw);R=JSON.parse(rc||'{}')}catch(e){return toast('vrt3_tr JSON error')}
+  let n=0;
+  (Array.isArray(L)?L:[]).forEach(x=>{
+    const name=x.name||x.title||x.course||'';if(!name)return;
+    const dt=_nd(x.date||x.planDate||x.start);
+    if(DB.training.some(r=>r.course===name&&r.date===dt))return;
+    const recs=(R&&R[x.id])||{};const att=Object.keys(recs).length;
+    DB.training.push({id:uid('TRN'),course:name,category:'other',date:dt||todayStr(),
+      status:(String(x.status||'').toLowerCase()==='done'||att>0)?'done':'planned',
+      trainer:x.trainer||x.lecturer||'',department:x.dept||x.department||'',
+      attendees:att||Number(x.attendees||0)||'',hours:Number(x.hours||0)||'',passRate:'',
+      auditId:'',notes:x.notes||x.remark||'',photos:[],_created:Date.now(),_updated:Date.now()});
+    n++;});
+  DB.meta.updatedAt=Date.now();saveDB();renderNavCounts();
+  toast((LANG==='zh'?'培訓遷移完成：':'Training migrated: ')+n);
+}
+async function tgTest(){
+  try{
+    toast('📤 …');
+    const r=await gasCall({action:'tg',text:'🔧 <b>AC Audit Platform</b>\n✅ Telegram 測試成功\n🕐 '+fmtDT(new Date())});
+    toast('✅ '+(LANG==='zh'?'已送出，請看群組':'Sent — check the group'));
+  }catch(e){toast('⚠ '+e.message,5200)}
+}
+window.migrateTRAIN=migrateTRAIN;window.tgTest=tgTest;
+
 function saveCloudSet(){
   CFG.gasUrl=$('#set_gas').value.trim();CFG.chatId=$('#set_chat').value.trim();
   saveCFG();toast(t('saved'));pingCloud();
@@ -1385,7 +1640,7 @@ function toggleTheme(){
   document.documentElement.dataset.theme=cur;localStorage.setItem('ac_audit_theme',cur);
 }
 function setLang(v){LANG=v;localStorage.setItem('ac_audit_lang',v);renderNav();go(CURRENT)}
-const ROUTE_OK=k=>MODULES[k]||['dashboard','analytics','settings','subsys','grs'].includes(k);
+const ROUTE_OK=k=>MODULES[k]||['dashboard','analytics','settings','imp','grs'].includes(k);
 window.addEventListener('hashchange',()=>{const k=location.hash.slice(1);
   if(k&&k!==CURRENT&&ROUTE_OK(k))go(k)});
 (function init(){
