@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>VRT 文件管控中心 | Document Control Centre</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#eef1f6;
+  --surface:#ffffff;
+  --surface2:#f4f6fb;
+  --border:#dde3ed;
+  --border2:#c8d0e0;
+  --navy:#1a3a52;
+  --navy2:#234f70;
+  --amber:#e09900;
+  --amber-l:#fff7e0;
+  --amber-b:#f5c842;
+  --green:#16a34a;  --green-l:#f0fdf4;  --green-b:#bbf7d0;
+  --yellow:#b45309; --yellow-l:#fffbeb;  --yellow-b:#fde68a;
+  --red:#dc2626;    --red-l:#fff5f5;     --red-b:#fecaca;
+  --blue:#1d4ed8;   --blue-l:#eff6ff;    --blue-b:#bfdbfe;
+  --purple:#7c3aed; --purple-l:#f5f3ff;  --purple-b:#ddd6fe;
+  --text:#1e293b;   --text2:#475569;     --text3:#94a3b8; --text4:#c8d0e0;
+  --fd:'Barlow Condensed',sans-serif;
+  --fb:'Noto Sans TC',sans-serif;
+  --fm:'IBM Plex Mono',monospace;
+  --r:8px; --r2:12px;
+  --sh:0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+  --sh2:0 2px 8px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── HEADER ── */
+.header{background:var(--navy);color:#fff;padding:0 18px;display:flex;align-items:stretch;height:50px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.brand{font-family:var(--fd);font-size:21px;font-weight:800;color:#fff;letter-spacing:4px;display:flex;align-items:center;gap:10px;margin-right:24px;white-space:nowrap}
+.brand-dot{width:8px;height:8px;background:var(--amber-b);border-radius:50%;display:inline-block}
+.brand sub{color:#7fb3d0;font-size:10px;letter-spacing:1.5px;font-weight:400;font-family:var(--fm);margin-left:4px}
+.tabs{display:flex;align-items:stretch;flex:1}
+.tab-btn{background:none;border:none;color:rgba(255,255,255,.55);font-family:var(--fb);font-size:13px;padding:0 16px;cursor:pointer;display:flex;align-items:center;gap:6px;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab-btn:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.06)}
+.tab-btn.active{color:#fff;border-bottom-color:var(--amber-b)}
+.tab-btn .ic{font-size:15px}
+.tab-cnt{font-size:10px;background:rgba(255,255,255,.15);border-radius:99px;padding:1px 6px;margin-left:2px;font-family:var(--fm)}
+.tab-btn.active .tab-cnt{background:var(--amber-b);color:var(--navy)}
+.hdr-right{display:flex;align-items:center;gap:6px;margin-left:10px}
+
+/* ── MAIN ── */
+.main{flex:1;overflow:hidden;position:relative}
+.tab-panel{display:none;height:100%;flex-direction:column;overflow:hidden}
+.tab-panel.active{display:flex}
+
+/* ── TOOLBAR ── */
+.toolbar{padding:10px 18px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;flex-wrap:wrap;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.tb-title{font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:.8px;color:var(--navy);margin-right:4px}
+.spacer{flex:1}
+.sep{width:1px;height:20px;background:var(--border2);margin:0 2px}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--fb);font-size:13px;padding:6px 13px;border-radius:var(--r);border:1px solid var(--border2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .15s;white-space:nowrap;font-weight:500}
+.btn-primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn-primary:hover{background:var(--navy2)}
+.btn-ghost{background:var(--surface);color:var(--text2)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.btn-accent{background:var(--amber-b);border-color:var(--amber);color:var(--navy);font-weight:700}
+.btn-accent:hover{background:#f5d060}
+.btn-danger{background:var(--surface);border-color:var(--red-b);color:var(--red)}
+.btn-danger:hover{background:var(--red-l)}
+.btn-sm{padding:4px 10px;font-size:12px}
+
+/* ── INPUTS ── */
+.input,.select,.textarea{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--fb);font-size:13px;padding:7px 11px;outline:none;transition:border-color .15s;width:100%}
+.input:focus,.select:focus,.textarea:focus{border-color:var(--navy);background:#fff}
+.input::placeholder{color:var(--text3)}
+.select option{background:#fff}
+.textarea{resize:vertical;min-height:90px}
+
+/* ── DROP ZONE ── */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--r2);padding:26px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface);margin:14px 18px 0}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--navy);background:#f0f6ff}
+.drop-icon{font-size:32px;margin-bottom:6px}
+.drop-text{color:var(--text2);font-size:13px}
+.drop-text strong{color:var(--navy)}
+
+/* ── STATS ROW ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;padding:12px 18px 0;flex-shrink:0}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:12px 15px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px}
+.stat-val{font-family:var(--fd);font-size:28px;font-weight:700;line-height:1.1}
+.c-navy{color:var(--navy)} .c-green{color:var(--green)} .c-yellow{color:var(--yellow)}
+.c-amber{color:var(--amber)} .c-red{color:var(--red)} .c-blue{color:var(--blue)} .c-text{color:var(--text)}
+
+/* ── TABLE ── */
+.table-wrap{flex:1;overflow-y:auto;padding:12px 18px 16px}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--navy);color:rgba(255,255,255,.9);padding:9px 11px;text-align:left;font-family:var(--fd);font-size:11px;font-weight:700;letter-spacing:.6px;white-space:nowrap;position:sticky;top:0;z-index:1;text-transform:uppercase;border-right:1px solid rgba(255,255,255,.1)}
+thead th:last-child{border-right:none}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:nth-child(even){background:#fafbfd}
+tbody tr:hover{background:#eef6ff}
+tbody td{padding:9px 11px;font-size:13px;vertical-align:middle}
+.mono{font-family:var(--fm);font-size:11px;color:var(--text2)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-icon{font-size:42px;margin-bottom:10px}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;font-family:var(--fd);letter-spacing:.4px;white-space:nowrap}
+.b-valid{background:var(--green-l);color:var(--green);border:1px solid var(--green-b)}
+.b-warn{background:var(--yellow-l);color:var(--yellow);border:1px solid var(--yellow-b)}
+.b-urgent{background:var(--amber-l);color:var(--amber);border:1px solid var(--amber-b)}
+.b-exp{background:var(--red-l);color:var(--red);border:1px solid var(--red-b)}
+.b-blue{background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-b)}
+.b-navy{background:rgba(26,58,82,.1);color:var(--navy);border:1px solid rgba(26,58,82,.2)}
+.b-gray{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.b-purple{background:var(--purple-l);color:var(--purple);border:1px solid var(--purple-b)}
+.b-amber{background:var(--amber-l);color:#92400e;border:1px solid var(--amber-b)}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);width:min(640px,96vw);max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:var(--r2) var(--r2) 0 0}
+.modal-title{font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:1px;color:var(--navy)}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:var(--surface2);border-radius:0 0 var(--r2) var(--r2)}
+
+/* ── FORM ── */
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg-full{grid-column:1/-1}
+.fl{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.star{color:var(--red)}
+
+/* ── MEETINGS ── */
+.parse-area{padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.parse-result{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-top:10px;display:none}
+.parse-result.show{display:block}
+.pr-row{display:flex;gap:10px;margin-bottom:6px;align-items:flex-start}
+.pr-key{font-size:11px;color:var(--text3);min-width:100px;padding-top:2px;font-family:var(--fm);font-weight:500}
+.pr-val{font-size:13px;flex:1;color:var(--text)}
+.mtg-list{flex:1;overflow-y:auto;padding:14px 18px}
+.mtg-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.mtg-card-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.mtg-subj{font-weight:600;font-size:14px;flex:1;margin-right:12px;color:var(--navy)}
+.mtg-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text2)}
+.mtg-mi{display:flex;align-items:center;gap:4px}
+.att-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.att-chip{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:2px 9px;font-size:11px;color:var(--text2);font-family:var(--fm);cursor:pointer;transition:all .1s}
+.att-chip:hover{background:var(--blue-l);color:var(--blue);border-color:var(--blue-b)}
+.att-chip.reg{background:var(--green-l);color:var(--green);border-color:var(--green-b)}
+
+/* ── EXTERNAL DOCS (MSG) ── */
+.ext-drop{border:2px dashed var(--border2);border-radius:var(--r2);margin:12px 18px 0;padding:22px;text-align:center;background:var(--surface);cursor:pointer;transition:all .2s}
+.ext-drop:hover,.ext-drop.dragover{border-color:var(--navy);background:#f0f6ff}
+.ext-drop-inner{display:flex;align-items:center;justify-content:center;gap:16px}
+.ext-drop-ico{font-size:36px}
+.ext-drop-text strong{font-size:14px;color:var(--navy);display:block}
+.ext-drop-text span{font-size:12px;color:var(--text3)}
+.prog-wrap{display:none;margin:0 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px}
+.prog-lbl{font-size:12px;color:var(--blue);font-weight:600;margin-bottom:5px}
+.prog-bar{background:var(--border);border-radius:99px;height:5px;overflow:hidden}
+.prog-fill{background:var(--navy);height:100%;width:0;transition:width .3s;border-radius:99px}
+.month-tabs{background:var(--surface);border-bottom:2px solid var(--border);display:flex;flex-wrap:wrap;flex-shrink:0;overflow-x:auto}
+.month-tab{padding:8px 16px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;border:none;background:transparent;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;font-family:var(--fb)}
+.month-tab:hover{background:var(--surface2);color:var(--navy)}
+.month-tab.on{color:var(--navy);border-bottom-color:var(--amber-b);background:#fffdf0}
+.month-tab .tc{font-size:9px;background:var(--border);color:var(--text2);border-radius:99px;padding:1px 5px;margin-left:3px;font-family:var(--fm)}
+.month-tab.on .tc{background:var(--amber-b);color:var(--navy)}
+.cat-chips{background:var(--surface);padding:7px 16px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:5px;align-items:center;flex-shrink:0}
+.cat-chip{padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid transparent;transition:all .15s;font-family:var(--fd);letter-spacing:.4px}
+.cat-chip:hover{opacity:.85}
+.cat-chip.on{border-color:currentColor}
+/* ext table */
+.ext-table{width:100%;border-collapse:collapse;font-size:12px;min-width:820px}
+.ext-table th{padding:8px 10px;font-weight:700;font-size:10px;color:#fff;border:1px solid rgba(255,255,255,.15);text-align:center;background:var(--navy);white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+.ext-table th .sub{font-size:9px;font-weight:400;display:block;color:#7fb3d0;letter-spacing:0}
+.ext-table td{padding:8px 10px;border:1px solid var(--border);vertical-align:top}
+.ext-table tr:nth-child(even) td{background:#fafbfd}
+.ext-table tr:hover td{background:#eef6ff}
+.ext-code{text-align:center;font-family:var(--fm);font-size:10px;color:var(--text2)}
+.ext-dt{text-align:center;white-space:nowrap;color:var(--text2);font-family:var(--fm);font-size:11px}
+.ext-ttl{font-weight:600;color:var(--navy);min-width:160px}
+.ext-sub{color:var(--text2);font-size:11px;font-weight:400;margin-top:2px;line-height:1.4}
+.ext-sum{color:var(--text);line-height:1.5;min-width:200px;max-width:300px;font-size:12px}
+.ext-org .otag{display:inline-block;padding:2px 7px;border-radius:5px;font-size:10px;font-weight:600;background:var(--blue-l);color:var(--blue);border:1px solid var(--blue-b)}
+.ctag{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;font-family:var(--fd);letter-spacing:.3px}
+.ext-att-col{min-width:140px}
+.att-tag{display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:10px;color:var(--text2);margin:1px;font-family:var(--fm);cursor:pointer;transition:all .1s}
+.att-tag:hover{background:var(--blue-l);color:var(--blue);border-color:var(--blue-b)}
+.att-tag.registered{background:var(--green-l);color:var(--green);border-color:var(--green-b)}
+
+/* ── DASHBOARD ── */
+.dash-scroll{flex:1;overflow-y:auto;padding:12px 18px 20px}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.chart-card.fw{grid-column:1/-1}
+.chart-title{font-family:var(--fd);font-size:12px;font-weight:700;letter-spacing:.7px;color:var(--navy);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.chart-wrap{position:relative;height:185px}
+
+/* ── TOAST ── */
+.toast-wrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:200}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px;box-shadow:var(--sh2);animation:toastIn .2s ease;min-width:240px;color:var(--text)}
+@keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+.t-ok{border-left:3px solid var(--green)} .t-err{border-left:3px solid var(--red)} .t-warn{border-left:3px solid var(--amber)}
+
+/* ── MAPPER ── */
+.mapper-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:center;margin-bottom:9px}
+.mapper-label{font-size:13px;color:var(--text)}
+
+/* ── CONFIRM ── */
+.confirm-msg{font-size:14px;color:var(--text);margin-bottom:6px}
+.confirm-sub{font-size:12px;color:var(--text2)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+input[type=file]{display:none}
+
+/* notification */
+.notif{background:var(--green-l);border:1px solid var(--green-b);border-radius:var(--r);padding:8px 14px;font-size:12px;color:var(--green);margin:0 18px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="brand"><span class="brand-dot"></span>DCC<sub>VRT · v2.0</sub></div>
+  <nav class="tabs">
+    <button class="tab-btn active" onclick="switchTab('ext')" id="tbn-ext">
+      <span class="ic">📋</span>外來文件 <span class="tab-cnt" id="cnt-ext">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('docs')" id="tbn-docs">
+      <span class="ic">📂</span>文件記錄 <span class="tab-cnt" id="cnt-docs">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('certs')" id="tbn-certs">
+      <span class="ic">🪪</span>證件追蹤 <span class="tab-cnt" id="cnt-certs">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('mtgs')" id="tbn-mtgs">
+      <span class="ic">📨</span>會議通知 <span class="tab-cnt" id="cnt-mtgs">0</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('dash')" id="tbn-dash">
+      <span class="ic">📊</span>分析總覽
+    </button>
+  </nav>
+  <div class="hdr-right">
+    <button class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,.2)" onclick="exportAllJSON()">⬇ 匯出</button>
+    <button class="btn btn-ghost btn-sm" style="color:#f87171;border-color:rgba(248,113,113,.3)" onclick="confirmClearAll()">🗑</button>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- ====== EXTERNAL DOCS TAB (MSG) ====== -->
+  <section class="tab-panel active" id="panel-ext">
+    <div id="extDropZone" class="ext-drop" onclick="document.getElementById('extMsgInput').click()" ondragover="extDragOver(event)" ondragleave="extDragLeave()" ondrop="extDrop(event)">
+      <div class="ext-drop-inner">
+        <div class="ext-drop-ico">📧</div>
+        <div class="ext-drop-text">
+          <strong>拖入 .msg / .eml 檔案（可多選批次）</strong>
+          <span>Drop Outlook .msg or .eml files · 自動解析主旨、日期、來源機構、附件、類別</span>
+        </div>
+      </div>
+      <input type="file" id="extMsgInput" multiple accept=".msg,.eml,.txt" onchange="extGo(this.files)">
+    </div>
+    <div class="prog-wrap" id="extProg">
+      <div class="prog-lbl" id="extProgLbl">處理中…</div>
+      <div class="prog-bar"><div class="prog-fill" id="extProgFill"></div></div>
+    </div>
+    <div class="toolbar" style="margin-top:0;border-top:1px solid var(--border)">
+      <span class="tb-title">外來文件管制</span>
+      <input class="input" style="width:180px" id="extSearch" placeholder="🔍 搜索…" oninput="extRender()">
+      <div class="spacer"></div>
+      <button class="btn btn-ghost btn-sm" onclick="exportExtCSV()">📥 匯出 CSV</button>
+      <button class="btn btn-ghost btn-sm" onclick="extLoadJSON()">📂 還原備份</button>
+      <button class="btn btn-ghost btn-sm" onclick="extSaveJSON()">💾 備份</button>
+      <input type="file" id="extJsonInput" accept=".json" onchange="extLoadJSONFile(this)">
+    </div>
+    <div class="month-tabs" id="extMonthTabs"></div>
+    <div class="cat-chips" id="extCatChips" style="display:none"></div>
+    <div class="table-wrap" id="extTableWrap" style="display:none">
+      <table class="ext-table">
+        <thead><tr>
+          <th style="width:32px">No.</th>
+          <th>文件編號<span class="sub">Doc. Code</span></th>
+          <th>收件日期<span class="sub">Date Received</span></th>
+          <th>文件標題<span class="sub">Title</span></th>
+          <th>摘要<span class="sub">Summary</span></th>
+          <th>來源機構<span class="sub">Source Org.</span></th>
+          <th>附件<span class="sub">Attachments</span></th>
+          <th>類別<span class="sub">Category</span></th>
+        </tr></thead>
+        <tbody id="extTbody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="extEmpty">
+      <div class="empty-icon">📧</div>
+      <p>拖入 .msg 檔案開始處理</p>
+      <p style="font-size:12px;margin-top:6px">Drop Outlook .msg files to auto-parse & classify</p>
+    </div>
+  </section>
+
+  <!-- ====== DOCS TAB ====== -->
+  <section class="tab-panel" id="panel-docs">
+    <div class="toolbar">
+      <span class="tb-title">文件制度記錄</span>
+      <input class="input" style="width:190px" id="docSearch" placeholder="🔍 搜索文件…" oninput="renderDocs()">
+      <select class="select" style="width:130px" id="docCatFilter" onchange="renderDocs()">
+        <option value="">全部類別</option>
+        <option>SOP</option><option>Policy</option><option>Form</option><option>Record</option><option>Report</option><option>Other</option>
+      </select>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost btn-sm" onclick="triggerFile('docXlsx')">📊 匯入 Excel</button>
+      <button class="btn btn-ghost btn-sm" onclick="triggerFile('docDocx')">📄 匯入 Word</button>
+      <button class="btn btn-primary btn-sm" onclick="openDocModal()">＋ 新增文件</button>
+      <input type="file" id="docXlsx" accept=".xlsx,.xls,.csv" onchange="handleDocExcel(this)">
+      <input type="file" id="docDocx" accept=".docx" onchange="handleDocWord(this)">
+    </div>
+    <div class="table-wrap" id="docTableWrap">
+      <table id="docTable">
+        <thead><tr>
+          <th>文件編號 Doc#</th><th>標題 Title</th><th>類別</th><th>版次</th><th>負責人</th><th>更新日期</th><th>狀態</th><th style="width:80px"></th>
+        </tr></thead>
+        <tbody id="docTbody"></tbody>
+      </table>
+      <div class="empty-state" id="docEmpty" style="display:none">
+        <div class="empty-icon">📂</div>
+        <p>尚無文件記錄</p>
+        <p style="font-size:12px;margin-top:6px">拖曳 Excel/Word 或點擊「新增文件」</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== CERTS TAB ====== -->
+  <section class="tab-panel" id="panel-certs">
+    <div class="stats-row" id="certStats"></div>
+    <div class="toolbar" style="margin-top:10px">
+      <span class="tb-title">證件到期追蹤</span>
+      <input class="input" style="width:170px" id="certSearch" placeholder="🔍 搜索…" oninput="renderCerts()">
+      <select class="select" style="width:130px" id="certStatusFilter" onchange="renderCerts()">
+        <option value="">全部狀態</option>
+        <option value="expired">已過期 Expired</option>
+        <option value="urgent">緊急 ≤30天</option>
+        <option value="warning">注意 ≤60天</option>
+        <option value="valid">有效 Valid</option>
+      </select>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost btn-sm" onclick="triggerFile('certXlsx')">📊 匯入 Excel</button>
+      <button class="btn btn-primary btn-sm" onclick="openCertModal()">＋ 新增證件</button>
+      <input type="file" id="certXlsx" accept=".xlsx,.xls" onchange="handleCertExcel(this)">
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>持有人 Holder</th><th>證件類型 Type</th><th>文件號碼</th><th>國籍</th><th>簽發日</th><th>到期日 Expiry</th><th>剩餘天數</th><th>狀態</th><th style="width:80px"></th>
+        </tr></thead>
+        <tbody id="certTbody"></tbody>
+      </table>
+      <div class="empty-state" id="certEmpty" style="display:none">
+        <div class="empty-icon">🪪</div><p>尚無證件記錄</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== MEETINGS TAB ====== -->
+  <section class="tab-panel" id="panel-mtgs">
+    <div class="parse-area">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span class="tb-title">會議通知解析</span>
+        <button class="btn btn-ghost btn-sm" onclick="triggerFile('emlFile')">📎 上傳 .eml / .msg</button>
+        <button class="btn btn-primary btn-sm" onclick="openMtgModal()">＋ 手動新增</button>
+        <input type="file" id="emlFile" accept=".eml,.msg,.txt" onchange="handleEmlFile(this)">
+        <span style="font-size:11px;color:var(--text3)">或直接將 .msg 拖入下方框</span>
+      </div>
+      <textarea class="textarea" id="emailPaste" placeholder="貼上 Email 原文（From: / Subject: / Date: / Location: / To:）或拖入 .msg 檔案到此區域…" style="height:76px;font-family:var(--fm);font-size:12px"
+        ondragover="event.preventDefault()" ondrop="mtgDrop(event)"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-accent btn-sm" onclick="parseEmail()">⚡ 解析 Parse</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearEmailPaste()">清除</button>
+      </div>
+      <div class="parse-result" id="parseResult">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <strong style="font-size:12px;color:var(--navy);font-family:var(--fd);letter-spacing:.5px">EXTRACTED FIELDS 解析結果</strong>
+          <button class="btn btn-primary btn-sm" onclick="saveParsedMeeting()">✓ 儲存此會議</button>
+        </div>
+        <div id="parseFields"></div>
+        <div id="parsedAttachments" style="margin-top:8px;display:none">
+          <div style="font-size:11px;color:var(--text3);font-family:var(--fm);margin-bottom:4px">附件 ATTACHMENTS — 點擊登記為文件記錄</div>
+          <div class="att-list" id="attChipList"></div>
+        </div>
+      </div>
+    </div>
+    <div class="mtg-list" id="mtgList">
+      <div class="empty-state" id="mtgEmpty">
+        <div class="empty-icon">📨</div><p>尚無會議記錄</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== DASHBOARD ====== -->
+  <section class="tab-panel" id="panel-dash">
+    <div class="stats-row" id="dashStats"></div>
+    <div class="dash-scroll">
+      <div class="dash-grid">
+        <div class="chart-card">
+          <div class="chart-title">📂 文件類別分佈</div>
+          <div class="chart-wrap"><canvas id="chartDocCat"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">🪪 證件狀態</div>
+          <div class="chart-wrap"><canvas id="chartCertStatus"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">📋 外來文件類別</div>
+          <div class="chart-wrap"><canvas id="chartExtCat"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">📈 外來文件月份分佈</div>
+          <div class="chart-wrap"><canvas id="chartExtMonth"></canvas></div>
+        </div>
+        <div class="chart-card fw">
+          <div class="chart-title">⚠️ 近90天到期證件 / Expiring Certificates</div>
+          <div id="expiryTimeline" style="max-height:220px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ====== MODALS ====== -->
+
+<!-- Doc Modal -->
+<div class="overlay" id="docOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title" id="docModalTitle">新增文件 / Add Document</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('docOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg-grid">
+        <div class="fg"><label class="fl">文件編號 Doc# <span class="star">*</span></label><input class="input" id="dDocNum" placeholder="e.g. SOP-GA-001"></div>
+        <div class="fg"><label class="fl">類別 Category <span class="star">*</span></label>
+          <select class="select" id="dCat"><option>SOP</option><option>Policy</option><option>Form</option><option>Record</option><option>Report</option><option>Other</option></select>
+        </div>
+        <div class="fg fg-full"><label class="fl">標題 Title <span class="star">*</span></label><input class="input" id="dTitle" placeholder="文件名稱"></div>
+        <div class="fg"><label class="fl">版次 Version</label><input class="input" id="dVer" placeholder="v1.0"></div>
+        <div class="fg"><label class="fl">負責人 Owner</label><input class="input" id="dOwner" placeholder="姓名"></div>
+        <div class="fg"><label class="fl">更新日期</label><input class="input" type="date" id="dDate"></div>
+        <div class="fg"><label class="fl">狀態</label>
+          <select class="select" id="dStatus"><option value="active">有效 Active</option><option value="draft">草稿 Draft</option><option value="obsolete">廢止</option></select>
+        </div>
+        <div class="fg fg-full"><label class="fl">備注</label><textarea class="textarea" id="dRemarks" style="height:60px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeOverlay('docOverlay')">取消</button>
+      <button class="btn btn-primary" onclick="saveDoc()">儲存 Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cert Modal -->
+<div class="overlay" id="certOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title" id="certModalTitle">新增證件</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('certOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg-grid">
+        <div class="fg"><label class="fl">持有人 <span class="star">*</span></label><input class="input" id="cHolder" placeholder="姓名"></div>
+        <div class="fg"><label class="fl">類型 <span class="star">*</span></label>
+          <select class="select" id="cType">
+            <option>Work Permit</option><option>Business Visa</option><option>E-Visa</option><option>Passport</option><option>ID Card</option><option>Certificate</option><option>License</option><option>Other</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">文件號碼</label><input class="input" id="cDocNo"></div>
+        <div class="fg"><label class="fl">國籍</label><input class="input" id="cNat" placeholder="CN / KH / TW"></div>
+        <div class="fg"><label class="fl">簽發日</label><input class="input" type="date" id="cIssue"></div>
+        <div class="fg"><label class="fl">到期日 <span class="star">*</span></label><input class="input" type="date" id="cExpiry"></div>
+        <div class="fg fg-full"><label class="fl">備注</label><textarea class="textarea" id="cRemarks" style="height:55px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeOverlay('certOverlay')">取消</button>
+      <button class="btn btn-primary" onclick="saveCert()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Meeting Manual Modal -->
+<div class="overlay" id="mtgOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title">新增會議</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('mtgOverlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg-grid">
+        <div class="fg fg-full"><label class="fl">主旨 <span class="star">*</span></label><input class="input" id="mSubj"></div>
+        <div class="fg"><label class="fl">日期</label><input class="input" type="date" id="mDate"></div>
+        <div class="fg"><label class="fl">時間</label><input class="input" type="time" id="mTime"></div>
+        <div class="fg"><label class="fl">地點</label><input class="input" id="mLoc"></div>
+        <div class="fg"><label class="fl">主辦人</label><input class="input" id="mOrg"></div>
+        <div class="fg fg-full"><label class="fl">出席人員</label><input class="input" id="mAtt" placeholder="逗號分隔"></div>
+        <div class="fg fg-full"><label class="fl">備注</label><textarea class="textarea" id="mNotes" style="height:65px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeOverlay('mtgOverlay')">取消</button>
+      <button class="btn btn-primary" onclick="saveMtgManual()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Column Mapper -->
+<div class="overlay" id="mapOverlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <span class="modal-title" id="mapTitle">欄位對應 / Column Mapping</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeOverlay('mapOverlay')">✕</button>
+    </div>
+    <div class="modal-body" id="mapBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeOverlay('mapOverlay')">取消</button>
+      <button class="btn btn-primary" onclick="confirmImport()">匯入 Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal" style="width:360px;max-width:96vw">
+    <div class="modal-hdr"><span class="modal-title" id="confirmTitle">確認</span></div>
+    <div class="modal-body">
+      <div class="confirm-msg" id="confirmMsg"></div>
+      <div class="confirm-sub" id="confirmSub"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeOverlay('confirmOverlay')">取消</button>
+      <button class="btn btn-danger" id="confirmBtn">確認</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ==========================================================
+// STATE
+// ==========================================================
+let S = { docs:[], certs:[], mtgs:[], ext:[] };
+let editId = null;
+let pendingImport = null;
+let chartInstances = {};
+let parsedMtg = null;
+let parsedAtts = [];
+let extAM = 'all', extAC = 'all', extSeq = 1;
+
+const CAT_COLORS_DOC = {SOP:'#1d4ed8',Policy:'#7c3aed',Form:'#059669',Record:'#d97706',Report:'#db2777',Other:'#64748b'};
+
+// MSG classification config (from MSG_Processor)
+let CATS = [
+  {id:'prakas',label:'Prakas',code:'PK',color:'#1d4ed8',kw:'prakas,sub-decree,sub decree,anukret,legislation,legal notice,law no,royal decree'},
+  {id:'workshop',label:'Workshop',code:'WS',color:'#be185d',kw:'workshop,seminar,forum,roundtable,round table,consultation meeting'},
+  {id:'taftac training',label:'TAFTAC Training',code:'TR',color:'#065f46',kw:'training,refresher,course,refresher course,capacity building,taftac training'},
+  {id:'events',label:'Events',code:'EV',color:'#7c3aed',kw:'event,ceremony,exhibition,expo,fair,gala,award,inauguration,launch,opening'},
+  {id:'notice',label:'Notice',code:'NT',color:'#b45309',kw:'notice,notification,circular,official letter,reminder,memo,inform'},
+  {id:'environment',label:'Environment',code:'EN',color:'#15803d',kw:'environment,environmental,pollution,emission,waste,carbon,climate,green,EHS,fire safety,burning,fabric waste'},
+  {id:'tax',label:'Tax',code:'TX',color:'#92400e',kw:'tax,taxation,GDT,VAT,customs,tariff,duty,revenue,fiscal,patent tax'},
+  {id:'compliance calendar',label:'Compliance Cal.',code:'CC',color:'#dc2626',kw:'compliance calendar,compliance schedule,monthly compliance,obligation calendar'},
+  {id:'newsletter',label:'Newsletter',code:'NL',color:'#0369a1',kw:'newsletter,bulletin,update,digest,weekly update,monthly update,news letter'},
+  {id:'survey',label:'Survey',code:'SV',color:'#6d28d9',kw:'survey,questionnaire,feedback,poll,assessment,evaluation form'},
+  {id:'summit',label:'Summit',code:'SM',color:'#0e7490',kw:'summit,high-level,ministerial,G20,ASEAN meeting,bilateral meeting'},
+  {id:'announcement',label:'Announcement',code:'AN',color:'#d97706',kw:'announcement,announce,press release,public notice,publication,guidebook,guide,handbook'},
+  {id:'donation',label:'Donation',code:'DO',color:'#ec4899',kw:'donation,charity,CSR,philanthropy,fund,contribution,sponsor'},
+  {id:'update',label:'Update',code:'UP',color:'#475569',kw:'update,news,information,FYI,for your information,sharing'},
+];
+
+const ORG_MAP = [
+  {kw:['ministry of commerce','moc','business registration'],en:'Ministry of Commerce',zh:'商業部'},
+  {kw:['ministry of labour','mlvt','labor','labour','worker','employment','occupational','workplace safety'],en:'Ministry of Labour',zh:'勞工部'},
+  {kw:['ministry of environment','moe','environmental','pollution','emission'],en:'Ministry of Environment',zh:'環境部'},
+  {kw:['general department of taxation','gdt','tax department','vat','income tax','patent'],en:'GDT',zh:'稅務總局'},
+  {kw:['nssf','national social security','social security fund'],en:'NSSF',zh:'社保基金'},
+  {kw:['ministry of interior','fire','fire safety','civil protection'],en:'Ministry of Interior',zh:'內政部'},
+  {kw:['ministry of industry','mih','industrial','factory inspection'],en:'Ministry of Industry',zh:'工業部'},
+  {kw:['ilo','international labour organization'],en:'ILO',zh:'國際勞工組織'},
+  {kw:['taftac','textile apparel','footwear'],en:'TAFTAC',zh:'TAFTAC'},
+];
+
+const MTHS={january:'01',february:'02',march:'03',april:'04',may:'05',june:'06',july:'07',august:'08',september:'09',october:'10',november:'11',december:'12'};
+const MZ=['','1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+// ==========================================================
+// STORAGE
+// ==========================================================
+function load(){
+  try{
+    const raw = localStorage.getItem('vrt_dcc_v2');
+    if(raw){ const d=JSON.parse(raw); S=d.S||S; extSeq=d.extSeq||1; }
+  }catch(e){}
+  if(!S.docs)S.docs=[];if(!S.certs)S.certs=[];if(!S.mtgs)S.mtgs=[];if(!S.ext)S.ext=[];
+}
+function save(){
+  try{ localStorage.setItem('vrt_dcc_v2',JSON.stringify({S,extSeq})); }catch(e){}
+}
+function genId(p){return p+'-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substr(2,3).toUpperCase();}
+function fmtDate(d){if(!d)return'—';const dt=new Date(d);return isNaN(dt)?d:dt.toISOString().slice(0,10);}
+function daysUntil(s){if(!s)return null;const d=new Date(s);return isNaN(d)?null:Math.ceil((d-new Date())/86400000);}
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ==========================================================
+// TABS
+// ==========================================================
+function switchTab(tab){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  document.getElementById('tbn-'+tab).classList.add('active');
+  if(tab==='dash')renderDash();
+  if(tab==='certs')renderCerts();
+}
+function updateCounts(){
+  document.getElementById('cnt-ext').textContent=S.ext.filter(r=>r.status==='done').length;
+  document.getElementById('cnt-docs').textContent=S.docs.length;
+  document.getElementById('cnt-certs').textContent=S.certs.length;
+  document.getElementById('cnt-mtgs').textContent=S.mtgs.length;
+}
+
+// ==========================================================
+// TOAST
+// ==========================================================
+function toast(msg,type='ok'){
+  const t=document.createElement('div');
+  t.className='toast t-'+type;
+  t.innerHTML=(type==='ok'?'✓':type==='err'?'✕':'⚠')+' <span>'+msg+'</span>';
+  document.getElementById('toastWrap').appendChild(t);
+  setTimeout(()=>t.remove(),3200);
+}
+
+// ==========================================================
+// OVERLAYS
+// ==========================================================
+function closeOverlay(id){document.getElementById(id).classList.remove('open');}
+function openOverlay(id){document.getElementById(id).classList.add('open');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+function showConfirm(title,msg,sub,cb){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmMsg').textContent=msg;
+  document.getElementById('confirmSub').textContent=sub||'';
+  document.getElementById('confirmBtn').onclick=()=>{cb();closeOverlay('confirmOverlay');};
+  openOverlay('confirmOverlay');
+}
+
+// ==========================================================
+// MSG PARSER ENGINE (from MSG_Processor)
+// ==========================================================
+function decodeS(b){
+  for(const e of['utf-16le','utf-8','windows-1252']){
+    try{const s=new TextDecoder(e,{fatal:true}).decode(new Uint8Array(b));const c=s.replace(/\0/g,'').trim();if(c)return c;}catch{}
+  }return'';
+}
+function stripHtml(h){
+  return h.replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'').replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'')
+    .replace(/<br\s*\/?>/gi,'\n').replace(/<\/p>/gi,'\n').replace(/<[^>]+>/g,' ')
+    .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+    .replace(/ {3,}/g,' ').replace(/\n{4,}/g,'\n\n').trim();
+}
+function extractMsg(ab){
+  const r={subject:'',sender:'',senderEmail:'',date:'',body:'',attachments:[]};
+  let cfb;try{cfb=XLSX.CFB.read(new Uint8Array(ab),{type:'array'});}catch{return r;}
+  const pm={'0037':'subject','0C1A':'sender','0C1F':'senderEmail','1000':'body','1013':'htmlBody','0039':'sentOn','0E06':'receivedOn'};
+  const an=[];let html='';
+  for(const f of(cfb.FileIndex||[])){
+    if(!f.content||f.size<2)continue;
+    const nm=(f.name||'').toUpperCase();
+    const m=nm.match(/__SUBSTG1\.0_([0-9A-F]{4})/);
+    if(m){
+      const t=m[1],fd=pm[t];
+      if(fd){const d=decodeS(f.content);if(d){if(fd==='htmlBody')html=d;else if(!r[fd])r[fd]=d;}}
+      if(t==='3704'||t==='3001'){const n=decodeS(f.content);if(n&&n.length<200&&!n.match(/^(image|winmail)\d*\.(png|jpg|gif|dat)$/i))an.push(n);}
+    }
+  }
+  r.attachments=[...new Set(an)];
+  if(!r.body&&html)r.body=stripHtml(html);
+  if(!r.body||r.body.length<30){
+    const ch=[];
+    for(const f of(cfb.FileIndex||[])){
+      if(!f.content||f.size<20||f.size>500000)continue;
+      try{const raw=new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(f.content));const rd=raw.replace(/[^\x20-\x7E\u00A0-\u024F\u4e00-\u9fff\n\r\t]/g,'').trim();if(rd.length>40&&rd.length/raw.length>0.5)ch.push(rd);}catch{}
+    }
+    if(ch.length)r.body=ch.sort((a,b)=>b.length-a.length).slice(0,3).join('\n\n').slice(0,3000);
+  }
+  if(!r.date&&r.sentOn)r.date=r.sentOn;
+  if(!r.date&&r.receivedOn)r.date=r.receivedOn;
+  return r;
+}
+
+function normDate(s){
+  if(!s)return'';s=String(s).trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  const m1=s.match(/(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2}),?\s+(\d{4})/i);
+  if(m1)return`${m1[3]}-${MTHS[m1[1].toLowerCase()]}-${m1[2].padStart(2,'0')}`;
+  const m2=s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if(m2)return`${m2[3]}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`;
+  const m3=s.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(m3)return`${m3[1]}-${m3[2].padStart(2,'0')}-${m3[3].padStart(2,'0')}`;
+  return s;
+}
+
+function classify(ext,fn){
+  const haystack=((ext.subject||'')+' '+(ext.body||'').slice(0,1000)).toLowerCase();
+  let category='other',catCode='OT',catColor='#64748b';
+  for(const c of CATS){
+    const kws=c.kw.split(',').map(k=>k.trim().toLowerCase()).filter(Boolean);
+    if(kws.some(k=>haystack.includes(k))){category=c.id;catCode=c.code;catColor=c.color;break;}
+  }
+  if(category==='other'){
+    const fh=fn.toLowerCase();
+    for(const c of CATS){const kws=c.kw.split(',').map(k=>k.trim().toLowerCase()).filter(Boolean);if(kws.some(k=>fh.includes(k))){category=c.id;catCode=c.code;catColor=c.color;break;}}
+  }
+  let source_org='',source_org_zh='';
+  for(const o of ORG_MAP){if(o.kw.some(k=>haystack.includes(k.toLowerCase()))){source_org=o.en;source_org_zh=o.zh;break;}}
+  if(!source_org)source_org_zh=source_org='TAFTAC';
+  let date='';
+  const dp=[/Sent:\s+\w+,?\s+(\w+ \d{1,2},?\s+\d{4})/i,/(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s+\d{4}/i,/(\d{4}-\d{2}-\d{2})/];
+  for(const p of dp){const m=(ext.body||'').match(p);if(m){date=m[1]||m[0];break;}}
+  if(!date&&ext.date)date=ext.date;
+  date=normDate(date);
+  const lines=(ext.body||'').split('\n').map(l=>l.trim()).filter(l=>l.length>20&&!l.match(/^(From:|To:|Subject:|Sent:|Date:|Cc:)/i));
+  const summary=lines.slice(0,2).join(' ').slice(0,200);
+  const title=(ext.subject||fn.replace(/\.msg$/i,'')).replace(/^(FW:|RE:|Fwd:)\s*/i,'').trim();
+  return{title,date_received:date,summary,source_org,source_org_zh,category,catColor,catCode};
+}
+function genExtCode(code,yr,n){return`EXT-RE-${code}-${yr}-${String(n).padStart(4,'0')}`;}
+
+// ==========================================================
+// EXTERNAL DOCS (MSG TAB)
+// ==========================================================
+function extDragOver(e){e.preventDefault();document.getElementById('extDropZone').classList.add('dragover');}
+function extDragLeave(){document.getElementById('extDropZone').classList.remove('dragover');}
+function extDrop(e){e.preventDefault();extDragLeave();extGo(e.dataTransfer.files);}
+
+async function extGo(files){
+  if(!files||!files.length)return;
+  const all=Array.from(files);
+  const mf=all.filter(f=>/\.(msg|eml)$/i.test(f.name));
+  if(!mf.length){toast('未找到 .msg/.eml 檔案','err');return;}
+  const existing=new Set(S.ext.map(r=>r.fn));
+  const newFiles=mf.filter(f=>!existing.has(f.name));
+  if(!newFiles.length){toast('這些檔案已處理過','warn');return;}
+  const prog=document.getElementById('extProg');
+  const progLbl=document.getElementById('extProgLbl');
+  const progFill=document.getElementById('extProgFill');
+  prog.style.display='block';
+  for(let i=0;i<newFiles.length;i++){
+    const f=newFiles[i];
+    progLbl.textContent=`處理中 ${i+1}/${newFiles.length}：${f.name}`;
+    progFill.style.width=`${((i+1)/newFiles.length)*100}%`;
+    try{
+      const ab=await f.arrayBuffer();
+      const ext=extractMsg(ab);
+      if(!ext.subject)ext.subject=f.name.replace(/\.(msg|eml)$/i,'');
+      const r=classify(ext,f.name);
+      const yr=(r.date_received||String(new Date().getFullYear())).slice(0,4);
+      const catObj=CATS.find(c=>c.id===r.category)||{code:'OT'};
+      const code=genExtCode(catObj.code,yr,extSeq++);
+      S.ext.push({fn:f.name,status:'done',doc_code:code,attachments:ext.attachments||[],...r});
+    }catch(err){S.ext.push({fn:f.name,status:'error',error:err.message,doc_code:'—',attachments:[]});}
+    save(); extRender();
+  }
+  prog.style.display='none';
+  toast(`已處理 ${newFiles.length} 個檔案 Processed`,'ok');
+  updateCounts();
+}
+
+function extRender(){
+  const q=(document.getElementById('extSearch')?.value||'').toLowerCase();
+  const done=S.ext.filter(r=>r.status==='done');
+  const errs=S.ext.filter(r=>r.status==='error');
+  const empty=document.getElementById('extEmpty');
+  const wrap=document.getElementById('extTableWrap');
+  if(!S.ext.length){wrap.style.display='none';empty.style.display='block';document.getElementById('extMonthTabs').innerHTML='';document.getElementById('extCatChips').style.display='none';return;}
+  empty.style.display='none';wrap.style.display='block';
+
+  // Month tabs
+  const mc={};done.forEach(r=>{const m=r.date_received?r.date_received.slice(0,7):'unknown';mc[m]=(mc[m]||0)+1;});
+  const ms=Object.keys(mc).sort();
+  let th=`<button class="month-tab ${extAM==='all'?'on':''}" onclick="extSetM('all')">全部<span class="tc">${done.length}</span></button>`;
+  ms.forEach(m=>{const[y,mo]=m.split('-');const lb=m==='unknown'?'未知':`${y} ${MZ[parseInt(mo)||0]}`;th+=`<button class="month-tab ${extAM===m?'on':''}" onclick="extSetM('${m}')">${lb}<span class="tc">${mc[m]}</span></button>`;});
+  document.getElementById('extMonthTabs').innerHTML=th;
+
+  // Filtered rows
+  const mf2=extAM==='all'?done:done.filter(r=>(r.date_received||'').startsWith(extAM));
+  const cc={};mf2.forEach(r=>{const c=r.category||'other';cc[c]=(cc[c]||0)+1;});
+  const cats=Object.keys(cc).sort();
+  const chipsEl=document.getElementById('extCatChips');
+  let chHtml=`<span style="font-size:11px;font-weight:700;color:var(--text3);margin-right:4px">類別</span>
+    <span class="cat-chip ${extAC==='all'?'on':''}" style="background:var(--surface2);color:var(--text2)" onclick="extSetC('all')">全部 (${mf2.length})</span>`;
+  cats.forEach(c=>{
+    const co=CATS.find(x=>x.id===c);const col=co?co.color:'#64748b';const ia=extAC===c;
+    chHtml+=`<span class="cat-chip ${ia?'on':''}" style="background:${col}18;color:${col}" onclick="extSetC('${c}')">${co?co.label:c} (${cc[c]})</span>`;
+  });
+  chipsEl.innerHTML=chHtml;
+  chipsEl.style.display=cats.length>0?'flex':'none';
+
+  // Rows
+  const fl=mf2.filter(r=>extAC==='all'||(r.category||'other')===extAC).filter(r=>!q||[r.doc_code,r.title,r.source_org,r.source_org_zh,r.summary,(r.attachments||[]).join(' ')].join(' ').toLowerCase().includes(q));
+  const tbody=document.getElementById('extTbody');
+  let html='';
+  fl.forEach((r,i)=>{
+    const catObj=CATS.find(x=>x.id===r.category);
+    const col=catObj?catObj.color:'#64748b';
+    const label=catObj?catObj.label:(r.category||'other');
+    // Attachments
+    const attHtml=(r.attachments||[]).length ? r.attachments.map(a=>{
+      const isReg=S.docs.some(d=>d.title===a||d.remarks?.includes(a));
+      return `<span class="att-tag ${isReg?'registered':''}" onclick="registerAttachment('${esc(a)}','${esc(r.doc_code)}')" title="${isReg?'已登記':'點擊登記為文件記錄'}">${esc(a)}</span>`;
+    }).join('') : '<span style="color:var(--text4);font-size:11px">—</span>';
+    html+=`<tr>
+      <td style="text-align:center;color:var(--text3);font-size:11px">${i+1}</td>
+      <td class="ext-code">${esc(r.doc_code||'—')}</td>
+      <td class="ext-dt">${esc(r.date_received||'—')}</td>
+      <td class="ext-ttl">${esc(r.title||r.fn)}<div class="ext-sub mono">${esc(r.fn)}</div></td>
+      <td class="ext-sum">${esc((r.summary||'').slice(0,180))}</td>
+      <td class="ext-org">${r.source_org_zh?`<div><span class="otag">${esc(r.source_org_zh)}</span></div><div style="font-size:10px;color:var(--text3);margin-top:2px">${esc(r.source_org)}</div>`:esc(r.source_org||'—')}</td>
+      <td class="ext-att-col">${attHtml}</td>
+      <td style="text-align:center"><span class="ctag" style="background:${col}18;color:${col}">${esc(label)}</span></td>
+    </tr>`;
+  });
+  errs.forEach(r=>{html+=`<tr style="background:var(--red-l)"><td>—</td><td colspan="7" style="color:var(--red);font-size:12px">❌ ${esc(r.fn)} — ${esc(r.error)}</td></tr>`;});
+  tbody.innerHTML=html||`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px">此篩選條件下無資料</td></tr>`;
+}
+
+function extSetM(m){extAM=m;extAC='all';extRender();}
+function extSetC(c){extAC=c;extRender();}
+
+function registerAttachment(name, docCode){
+  editId=null;
+  document.getElementById('dDocNum').value=docCode?docCode+'-ATT':'';
+  document.getElementById('dTitle').value=name;
+  document.getElementById('dCat').value='Record';
+  document.getElementById('dVer').value='';
+  document.getElementById('dOwner').value='';
+  document.getElementById('dDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('dStatus').value='active';
+  document.getElementById('dRemarks').value='來自外來文件附件 From external doc '+docCode;
+  document.getElementById('docModalTitle').textContent='登記附件為文件記錄';
+  openOverlay('docOverlay');
+  switchTab('docs');
+}
+
+function exportExtCSV(){
+  if(!S.ext.length){toast('尚無資料','warn');return;}
+  const h=['No.','文件編號','收件日期','標題','摘要','來源機構(中)','來源機構(英)','附件','類別'];
+  const rows=S.ext.filter(r=>r.status==='done').map((r,i)=>[i+1,r.doc_code||'',r.date_received||'',r.title||'',r.summary||'',r.source_org_zh||'',r.source_org||'',(r.attachments||[]).join('; '),r.category||'']);
+  const csv=[h,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download=`外來文件管制表_${new Date().toLocaleDateString('zh-TW').replace(/\//g,'-')}.csv`;a.click();
+  toast('CSV 已匯出','ok');
+}
+function extSaveJSON(){
+  if(!S.ext.length){toast('尚無資料','warn');return;}
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify({ext:S.ext,extSeq},null,2));
+  a.download='外來文件備份_'+new Date().toISOString().slice(0,10)+'.json';a.click();
+}
+function extLoadJSON(){document.getElementById('extJsonInput').click();}
+function extLoadJSONFile(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d.ext)throw new Error('格式不對');
+      if(S.ext.length>0&&!confirm(`目前有 ${S.ext.length} 筆，確定取代？\n取消=合併`)){
+        const ex=new Set(S.ext.map(x=>x.fn));
+        S.ext.push(...d.ext.filter(x=>!ex.has(x.fn)));
+      }else{S.ext=d.ext;extSeq=d.extSeq||1;}
+      save();extRender();updateCounts();toast(`載入 ${S.ext.length} 筆記錄`,'ok');
+    }catch(err){toast('載入失敗 '+err.message,'err');}
+  };r.readAsText(f);input.value='';
+}
+
+// ==========================================================
+// DOCUMENTS
+// ==========================================================
+function triggerFile(id){document.getElementById(id).value='';document.getElementById(id).click();}
+function openDocModal(id){
+  editId=id||null;
+  document.getElementById('docModalTitle').textContent=id?'編輯文件':'新增文件 / Add Document';
+  const doc=id?S.docs.find(d=>d.id===id):null;
+  document.getElementById('dDocNum').value=doc?.docNum||'';
+  document.getElementById('dCat').value=doc?.cat||'SOP';
+  document.getElementById('dTitle').value=doc?.title||'';
+  document.getElementById('dVer').value=doc?.ver||'';
+  document.getElementById('dOwner').value=doc?.owner||'';
+  document.getElementById('dDate').value=doc?.date||'';
+  document.getElementById('dStatus').value=doc?.status||'active';
+  document.getElementById('dRemarks').value=doc?.remarks||'';
+  openOverlay('docOverlay');
+}
+function saveDoc(){
+  const docNum=document.getElementById('dDocNum').value.trim();
+  const title=document.getElementById('dTitle').value.trim();
+  if(!docNum||!title){toast('請填寫必要欄位','err');return;}
+  const obj={id:editId||genId('DOC'),docNum,title,cat:document.getElementById('dCat').value,ver:document.getElementById('dVer').value.trim(),owner:document.getElementById('dOwner').value.trim(),date:document.getElementById('dDate').value,status:document.getElementById('dStatus').value,remarks:document.getElementById('dRemarks').value.trim(),createdAt:editId?(S.docs.find(d=>d.id===editId)?.createdAt||new Date().toISOString()):new Date().toISOString()};
+  if(editId){const i=S.docs.findIndex(d=>d.id===editId);S.docs[i]=obj;}else S.docs.push(obj);
+  save();renderDocs();closeOverlay('docOverlay');updateCounts();toast(editId?'已更新':'已新增 Document saved','ok');
+}
+function deleteDoc(id){showConfirm('刪除文件','確定刪除此文件記錄？','無法復原',()=>{S.docs=S.docs.filter(d=>d.id!==id);save();renderDocs();updateCounts();toast('已刪除','warn');});}
+function renderDocs(){
+  const q=document.getElementById('docSearch').value.toLowerCase();
+  const cf=document.getElementById('docCatFilter').value;
+  let rows=S.docs.filter(d=>{const match=!q||[d.docNum,d.title,d.owner,d.cat].join(' ').toLowerCase().includes(q);return match&&(!cf||d.cat===cf);}).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const tbody=document.getElementById('docTbody');const empty=document.getElementById('docEmpty');tbody.innerHTML='';
+  if(!rows.length){tbody.parentElement.style.display='none';empty.style.display='block';return;}
+  tbody.parentElement.style.display='';empty.style.display='none';
+  rows.forEach(d=>{
+    const statusBadge=d.status==='active'?'<span class="badge b-valid">有效 Active</span>':d.status==='draft'?'<span class="badge b-blue">草稿</span>':'<span class="badge b-gray">廢止</span>';
+    const col=CAT_COLORS_DOC[d.cat]||'#64748b';
+    tbody.innerHTML+=`<tr><td class="mono">${esc(d.docNum)}</td><td><strong>${esc(d.title)}</strong>${d.remarks?`<br><span style="color:var(--text2);font-size:11px">${esc(d.remarks.slice(0,60))}</span>`:''}</td>
+    <td><span class="badge" style="background:${col}18;color:${col};border-color:${col}40">${d.cat}</span></td>
+    <td class="mono">${d.ver||'—'}</td><td>${esc(d.owner||'—')}</td><td class="mono">${d.date||'—'}</td><td>${statusBadge}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="openDocModal('${d.id}')">✎</button> <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteDoc('${d.id}')">🗑</button></td></tr>`;
+  });
+}
+function handleDocExcel(input){
+  if(!input.files[0])return;
+  readExcel(input.files[0],rows=>{
+    if(rows.length<2){toast('Excel 無資料','err');return;}
+    const headers=rows[0].map(h=>String(h||''));
+    pendingImport={type:'docs',rows:rows.slice(1),headers};
+    showMapper('docOverlay','文件欄位對應',[
+      {key:'docNum',lbl:'文件編號 Doc#',req:true},{key:'title',lbl:'標題 Title',req:true},
+      {key:'cat',lbl:'類別'},{key:'ver',lbl:'版次'},{key:'owner',lbl:'負責人'},
+      {key:'date',lbl:'更新日期'},{key:'status',lbl:'狀態'},
+    ],headers);
+  });
+}
+function handleDocWord(input){
+  if(!input.files[0])return;
+  const file=input.files[0];
+  const reader=new FileReader();
+  reader.onload=e=>{
+    mammoth.extractRawText({arrayBuffer:e.target.result}).then(result=>{
+      editId=null;
+      document.getElementById('dDocNum').value='';
+      document.getElementById('dTitle').value=file.name.replace(/\.docx?$/i,'');
+      document.getElementById('dCat').value='SOP';document.getElementById('dVer').value='';document.getElementById('dOwner').value='';
+      document.getElementById('dDate').value=new Date().toISOString().slice(0,10);
+      document.getElementById('dStatus').value='active';
+      document.getElementById('dRemarks').value=result.value.trim().slice(0,200);
+      document.getElementById('docModalTitle').textContent='從 Word 新增';
+      openOverlay('docOverlay');toast('已讀取 Word 文件','ok');
+    });
+  };reader.readAsArrayBuffer(file);
+}
+
+// ==========================================================
+// CERTIFICATES
+// ==========================================================
+function certStatus(expiry){const d=daysUntil(expiry);if(d===null)return'unknown';if(d<0)return'expired';if(d<=30)return'urgent';if(d<=60)return'warning';return'valid';}
+function certBadge(s){return{expired:'<span class="badge b-exp">已過期</span>',urgent:'<span class="badge b-urgent">緊急 ≤30d</span>',warning:'<span class="badge b-warn">注意 ≤60d</span>',valid:'<span class="badge b-valid">有效 Valid</span>',unknown:'<span class="badge b-gray">未知</span>'}[s]||'';}
+function openCertModal(id){
+  editId=id||null;
+  document.getElementById('certModalTitle').textContent=id?'編輯證件':'新增證件';
+  const c=id?S.certs.find(x=>x.id===id):null;
+  document.getElementById('cHolder').value=c?.holder||'';document.getElementById('cType').value=c?.type||'Work Permit';
+  document.getElementById('cDocNo').value=c?.docNo||'';document.getElementById('cNat').value=c?.nat||'';
+  document.getElementById('cIssue').value=c?.issue||'';document.getElementById('cExpiry').value=c?.expiry||'';
+  document.getElementById('cRemarks').value=c?.remarks||'';openOverlay('certOverlay');
+}
+function saveCert(){
+  const holder=document.getElementById('cHolder').value.trim();const expiry=document.getElementById('cExpiry').value;
+  if(!holder||!expiry){toast('請填寫持有人與到期日','err');return;}
+  const obj={id:editId||genId('CERT'),holder,expiry,type:document.getElementById('cType').value,docNo:document.getElementById('cDocNo').value.trim(),nat:document.getElementById('cNat').value.trim(),issue:document.getElementById('cIssue').value,remarks:document.getElementById('cRemarks').value.trim(),createdAt:editId?(S.certs.find(c=>c.id===editId)?.createdAt||new Date().toISOString()):new Date().toISOString()};
+  if(editId){const i=S.certs.findIndex(c=>c.id===editId);S.certs[i]=obj;}else S.certs.push(obj);
+  save();renderCerts();closeOverlay('certOverlay');updateCounts();toast(editId?'已更新':'已新增','ok');
+}
+function deleteCert(id){showConfirm('刪除證件','確定刪除？','',()=>{S.certs=S.certs.filter(c=>c.id!==id);save();renderCerts();updateCounts();toast('已刪除','warn');});}
+function renderCerts(){
+  const q=(document.getElementById('certSearch')?.value||'').toLowerCase();
+  const sf=document.getElementById('certStatusFilter')?.value||'';
+  let rows=S.certs.filter(c=>{const s=certStatus(c.expiry);const match=!q||[c.holder,c.type,c.docNo,c.nat].join(' ').toLowerCase().includes(q);return match&&(!sf||s===sf);}).sort((a,b)=>new Date(a.expiry)-new Date(b.expiry));
+  const counts={expired:0,urgent:0,warning:0,valid:0};
+  S.certs.forEach(c=>{const s=certStatus(c.expiry);if(counts[s]!==undefined)counts[s]++;});
+  document.getElementById('certStats').innerHTML=`
+    <div class="stat-card"><div class="stat-lbl">總計</div><div class="stat-val c-navy">${S.certs.length}</div></div>
+    <div class="stat-card"><div class="stat-lbl">有效 Valid</div><div class="stat-val c-green">${counts.valid}</div></div>
+    <div class="stat-card"><div class="stat-lbl">注意 ≤60天</div><div class="stat-val c-yellow">${counts.warning}</div></div>
+    <div class="stat-card"><div class="stat-lbl">緊急 ≤30天</div><div class="stat-val c-amber">${counts.urgent}</div></div>
+    <div class="stat-card"><div class="stat-lbl">已過期</div><div class="stat-val c-red">${counts.expired}</div></div>`;
+  const tbody=document.getElementById('certTbody');const empty=document.getElementById('certEmpty');tbody.innerHTML='';
+  if(!rows.length){tbody.parentElement.style.display='none';empty.style.display='block';return;}
+  tbody.parentElement.style.display='';empty.style.display='none';
+  rows.forEach(c=>{
+    const s=certStatus(c.expiry);const d=daysUntil(c.expiry);
+    const daysDisp=d===null?'—':d<0?`<span style="color:var(--red);font-weight:700">${d}天</span>`:`<span style="color:${d<=30?'var(--amber)':d<=60?'var(--yellow)':'var(--green)'};font-weight:600">+${d}天</span>`;
+    tbody.innerHTML+=`<tr><td><strong>${esc(c.holder)}</strong>${c.nat?` <span class="badge b-gray" style="font-size:10px">${esc(c.nat)}</span>`:''}</td>
+    <td>${esc(c.type)}</td><td class="mono">${esc(c.docNo||'—')}</td><td class="mono">${esc(c.nat||'—')}</td>
+    <td class="mono">${c.issue||'—'}</td><td class="mono" style="font-weight:600">${c.expiry||'—'}</td>
+    <td>${daysDisp}</td><td>${certBadge(s)}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="openCertModal('${c.id}')">✎</button> <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteCert('${c.id}')">🗑</button></td></tr>`;
+  });
+}
+function handleCertExcel(input){
+  if(!input.files[0])return;
+  readExcel(input.files[0],rows=>{
+    if(rows.length<2){toast('Excel 無資料','err');return;}
+    const headers=rows[0].map(h=>String(h||''));
+    pendingImport={type:'certs',rows:rows.slice(1),headers};
+    showMapper('certOverlay','證件欄位對應',[
+      {key:'holder',lbl:'持有人',req:true},{key:'type',lbl:'類型'},{key:'docNo',lbl:'文件號碼'},
+      {key:'nat',lbl:'國籍'},{key:'issue',lbl:'簽發日'},{key:'expiry',lbl:'到期日',req:true},{key:'remarks',lbl:'備注'},
+    ],headers);
+  });
+}
+
+// ==========================================================
+// MEETINGS
+// ==========================================================
+let parseFields={};
+function parseEmail(){
+  const txt=document.getElementById('emailPaste').value;
+  if(!txt.trim()){toast('請貼上 Email 內容','warn');return;}
+  parseFields={};parsedAtts=[];
+  const subj=txt.match(/^Subject:\s*(.+)/mi)||txt.match(/^主旨[:：]\s*(.+)/mi);if(subj)parseFields.subject=subj[1].trim();
+  const from=txt.match(/^From:\s*(.+)/mi)||txt.match(/^寄件人[:：]\s*(.+)/mi);if(from)parseFields.organizer=from[1].trim();
+  const to=txt.match(/^To:\s*(.+)/mi)||txt.match(/^收件人[:：]\s*(.+)/mi);if(to)parseFields.attendees=to[1].trim();
+  const cc=txt.match(/^CC?:\s*(.+)/mi)||txt.match(/^副本[:：]\s*(.+)/mi);if(cc)parseFields.attendees=[parseFields.attendees,cc[1].trim()].filter(Boolean).join(', ');
+  const dateRe=/\b(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})\b|\b(\d{1,2}[-\/]\d{1,2}[-\/]\d{4})\b|((?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2},?\s*\d{4})/i;
+  const dm=txt.match(dateRe);if(dm){const dt=new Date(dm[0].replace(/\//g,'-'));if(!isNaN(dt))parseFields.date=dt.toISOString().slice(0,10);else parseFields.date=dm[0];}
+  const tm=txt.match(/\b(\d{1,2}:\d{2}\s*(?:AM|PM)?(?:\s*[-–]\s*\d{1,2}:\d{2}\s*(?:AM|PM)?)?)/i);if(tm)parseFields.time=tm[1].trim();
+  const loc=txt.match(/(?:Location|Venue|Place|地點|場所|會議室|Room)[:：]\s*(.+)/i);if(loc)parseFields.location=loc[1].trim();
+  const ag=txt.match(/(?:Agenda|議程|Notes?)[:：]\s*([\s\S]{0,300})/i);if(ag)parseFields.notes=ag[1].trim().slice(0,200);
+  const el=document.getElementById('parseResult');
+  const pf=document.getElementById('parseFields');
+  const labels={subject:'主旨',organizer:'寄件人',attendees:'收件/副本',date:'日期',time:'時間',location:'地點',notes:'備注'};
+  pf.innerHTML=Object.entries(parseFields).map(([k,v])=>`<div class="pr-row"><div class="pr-key">${labels[k]||k}</div><div class="pr-val">${esc(v)}</div></div>`).join('');
+  if(!Object.keys(parseFields).length)pf.innerHTML='<div style="color:var(--text2);font-size:13px">未能識別欄位，請手動新增</div>';
+  el.classList.add('show');
+  parsedMtg={...parseFields};
+  // Attachments from parsed email
+  const attEl=document.getElementById('parsedAttachments');
+  if(parsedAtts.length){
+    document.getElementById('attChipList').innerHTML=parsedAtts.map(a=>`<span class="att-chip" onclick="registerFromMtg('${esc(a)}')">${esc(a)}</span>`).join('');
+    attEl.style.display='block';
+  }else{attEl.style.display='none';}
+}
+function registerFromMtg(name){
+  const chip=event.target;chip.classList.add('reg');
+  openDocModal();
+  document.getElementById('dTitle').value=name;document.getElementById('dCat').value='Record';
+  document.getElementById('dDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('dRemarks').value='來自會議附件';
+  switchTab('docs');
+}
+function clearEmailPaste(){document.getElementById('emailPaste').value='';document.getElementById('parseResult').classList.remove('show');parsedMtg=null;parsedAtts=[];}
+function saveParsedMeeting(){
+  if(!parsedMtg)return;if(!parsedMtg.subject){toast('至少需要主旨','err');return;}
+  S.mtgs.unshift({id:genId('MTG'),subject:parsedMtg.subject||'',date:parsedMtg.date||'',time:parsedMtg.time||'',location:parsedMtg.location||'',organizer:parsedMtg.organizer||'',attendees:parsedMtg.attendees||'',notes:parsedMtg.notes||'',attachments:parsedAtts,source:'email',createdAt:new Date().toISOString()});
+  save();renderMtgs();clearEmailPaste();updateCounts();toast('會議已儲存','ok');
+}
+function openMtgModal(){
+  ['mSubj','mDate','mTime','mLoc','mOrg','mAtt','mNotes'].forEach(id=>document.getElementById(id).value='');
+  openOverlay('mtgOverlay');
+}
+function saveMtgManual(){
+  const subj=document.getElementById('mSubj').value.trim();if(!subj){toast('請填寫主旨','err');return;}
+  S.mtgs.unshift({id:genId('MTG'),subject:subj,date:document.getElementById('mDate').value,time:document.getElementById('mTime').value,location:document.getElementById('mLoc').value.trim(),organizer:document.getElementById('mOrg').value.trim(),attendees:document.getElementById('mAtt').value.trim(),notes:document.getElementById('mNotes').value.trim(),attachments:[],source:'manual',createdAt:new Date().toISOString()});
+  save();renderMtgs();closeOverlay('mtgOverlay');updateCounts();toast('已新增','ok');
+}
+function deleteMtg(id){showConfirm('刪除會議','確定刪除？','',()=>{S.mtgs=S.mtgs.filter(m=>m.id!==id);save();renderMtgs();updateCounts();toast('已刪除','warn');});}
+function handleEmlFile(input){
+  if(!input.files[0])return;
+  const f=input.files[0];
+  const ext=f.name.split('.').pop().toLowerCase();
+  if(ext==='msg'){
+    const r=new FileReader();r.onload=async e=>{
+      const ex=extractMsg(e.target.result);
+      if(!ex.subject)ex.subject=f.name.replace(/\.msg$/i,'');
+      document.getElementById('emailPaste').value=`Subject: ${ex.subject}\nFrom: ${ex.sender||''}\nDate: ${normDate(ex.date)||''}\n\n${(ex.body||'').slice(0,1500)}`;
+      parsedAtts=ex.attachments||[];
+      parseEmail();toast('已解析 .msg 檔案','ok');
+    };r.readAsArrayBuffer(f);
+  }else{
+    const r=new FileReader();r.onload=e=>{document.getElementById('emailPaste').value=e.target.result.slice(0,2000);parseEmail();toast('已讀取檔案','ok');};r.readAsText(f);
+  }
+}
+function mtgDrop(e){
+  e.preventDefault();
+  const files=Array.from(e.dataTransfer.files);
+  if(!files.length)return;
+  handleEmlFile({files});
+}
+function renderMtgs(){
+  const list=document.getElementById('mtgList');const empty=document.getElementById('mtgEmpty');
+  if(!S.mtgs.length){list.innerHTML='';list.appendChild(empty);empty.style.display='block';return;}
+  empty.style.display='none';
+  list.innerHTML=S.mtgs.map(m=>`
+    <div class="mtg-card">
+      <div class="mtg-card-hdr">
+        <div class="mtg-subj">${esc(m.subject)}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="badge ${m.source==='email'?'b-blue':'b-gray'}">${m.source==='email'?'✉ Email':'✎ Manual'}</span>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteMtg('${m.id}')">🗑</button>
+        </div>
+      </div>
+      <div class="mtg-meta">
+        ${m.date?`<div class="mtg-mi">📅 ${m.date}${m.time?' '+m.time:''}</div>`:''}
+        ${m.location?`<div class="mtg-mi">📍 ${esc(m.location)}</div>`:''}
+        ${m.organizer?`<div class="mtg-mi">👤 ${esc(m.organizer)}</div>`:''}
+        ${m.attendees?`<div class="mtg-mi">👥 ${esc(m.attendees.slice(0,80))}</div>`:''}
+      </div>
+      ${m.notes?`<div style="margin-top:7px;font-size:12px;color:var(--text2);border-top:1px solid var(--border);padding-top:7px">${esc(m.notes.slice(0,200))}</div>`:''}
+      ${(m.attachments||[]).length?`<div class="att-list">${m.attachments.map(a=>`<span class="att-chip" onclick="registerAttachment('${esc(a)}','')" title="點擊登記為文件記錄">📎 ${esc(a)}</span>`).join('')}</div>`:''}
+    </div>`).join('');
+}
+
+// ==========================================================
+// EXCEL / WORD IMPORT HELPERS
+// ==========================================================
+function readExcel(file,cb){
+  const r=new FileReader();
+  r.onload=e=>{const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,dateNF:'yyyy-mm-dd'});cb(rows);};
+  r.readAsArrayBuffer(file);
+}
+function excelDateFix(v){
+  if(!v)return'';if(/^\d{4}-\d{2}-\d{2}/.test(String(v)))return String(v).slice(0,10);
+  if(typeof v==='number'||/^\d+$/.test(String(v))){const d=XLSX.SSF.parse_date_code(Number(v));if(d)return`${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;}
+  const dt=new Date(v);if(!isNaN(dt))return dt.toISOString().slice(0,10);return String(v);
+}
+function smartGuess(headers,key){
+  const patterns={holder:['holder','姓名','持有人','員工','name','person'],type:['type','類型','证件','cert','visa','permit'],docNo:['doc','號碼','number','no','証號'],nat:['nat','國籍','country'],issue:['issue','發行','issued','start'],expiry:['expir','到期','expire','valid','due','end','截止'],remarks:['remark','備','note','comment'],docNum:['doc','編號','number','no','id'],title:['title','標題','名稱','name','subject'],cat:['cat','類別','category','type'],ver:['ver','version','版次','版本','rev'],owner:['owner','負責','responsible','person'],date:['date','日期','updated','update','modify'],status:['status','狀態','state']};
+  const pats=patterns[key]||[];
+  for(let i=0;i<headers.length;i++){const h=headers[i].toLowerCase();if(pats.some(p=>h.includes(p)))return i;}return-1;
+}
+function showMapper(closeRef,title,fields,headers){
+  document.getElementById('mapTitle').textContent=title;
+  const opts=['<option value="-1">-- 不匯入 --</option>',...headers.map((h,i)=>`<option value="${i}">${h}</option>`)].join('');
+  let html='<div class="mapper-row" style="font-size:11px;color:var(--text3);text-transform:uppercase;font-weight:600"><div>欄位</div><div>Excel 列</div></div>';
+  fields.forEach(f=>{
+    const guess=smartGuess(headers,f.key);
+    html+=`<div class="mapper-row"><div class="mapper-label">${f.lbl}${f.req?'<span class="star"> *</span>':''}</div><select class="select" id="map_${f.key}">${opts}</select></div>`;
+  });
+  html+=`<div style="margin-top:10px;font-size:12px;color:var(--text2)">共 ${pendingImport.rows.length} 行資料</div>`;
+  document.getElementById('mapBody').innerHTML=html;
+  fields.forEach(f=>{const guess=smartGuess(headers,f.key);if(guess>=0)document.getElementById('map_'+f.key).value=guess;});
+  openOverlay('mapOverlay');
+}
+function confirmImport(){
+  const{type,rows}=pendingImport;let count=0;
+  if(type==='docs'){
+    const keys=['docNum','title','cat','ver','owner','date','status','remarks'];
+    const mapping={};keys.forEach(k=>{mapping[k]=parseInt(document.getElementById('map_'+k)?.value??-1);});
+    if(mapping.docNum<0||mapping.title<0){toast('請對應必要欄位','err');return;}
+    rows.forEach(row=>{if(!row.length)return;const get=k=>mapping[k]>=0?String(row[mapping[k]]||'').trim():'';const docNum=get('docNum');const title=get('title');if(!docNum&&!title)return;S.docs.push({id:genId('DOC'),docNum,title,cat:get('cat')||'SOP',ver:get('ver'),owner:get('owner'),date:excelDateFix(get('date')),status:get('status')||'active',remarks:get('remarks'),createdAt:new Date().toISOString()});count++;});
+    save();renderDocs();
+  }else{
+    const keys=['holder','type','docNo','nat','issue','expiry','remarks'];
+    const mapping={};keys.forEach(k=>{mapping[k]=parseInt(document.getElementById('map_'+k)?.value??-1);});
+    if(mapping.holder<0||mapping.expiry<0){toast('請對應必要欄位','err');return;}
+    rows.forEach(row=>{if(!row.length)return;const get=k=>mapping[k]>=0?String(row[mapping[k]]||'').trim():'';const holder=get('holder');const expiry=excelDateFix(get('expiry'));if(!holder)return;S.certs.push({id:genId('CERT'),holder,expiry,type:get('type')||'Other',docNo:get('docNo'),nat:get('nat'),issue:excelDateFix(get('issue')),remarks:get('remarks'),createdAt:new Date().toISOString()});count++;});
+    save();renderCerts();
+  }
+  closeOverlay('mapOverlay');updateCounts();toast(`已匯入 ${count} 筆記錄`,'ok');
+}
+
+// ==========================================================
+// DASHBOARD
+// ==========================================================
+function renderDash(){
+  const cStats={expired:0,urgent:0,warning:0,valid:0};
+  S.certs.forEach(c=>{const s=certStatus(c.expiry);if(cStats[s]!==undefined)cStats[s]++;});
+  const extDone=S.ext.filter(r=>r.status==='done');
+  document.getElementById('dashStats').innerHTML=`
+    <div class="stat-card"><div class="stat-lbl">外來文件 External</div><div class="stat-val c-blue">${extDone.length}</div></div>
+    <div class="stat-card"><div class="stat-lbl">文件制度 Docs</div><div class="stat-val c-navy">${S.docs.length}</div></div>
+    <div class="stat-card"><div class="stat-lbl">證件 Certs</div><div class="stat-val c-text">${S.certs.length}</div></div>
+    <div class="stat-card"><div class="stat-lbl">到期警示 Alerts</div><div class="stat-val c-red">${cStats.expired+cStats.urgent}</div></div>
+    <div class="stat-card"><div class="stat-lbl">會議 Meetings</div><div class="stat-val c-amber">${S.mtgs.length}</div></div>`;
+  Chart.defaults.color='#475569';Chart.defaults.font.family="'Noto Sans TC', sans-serif";Chart.defaults.font.size=12;
+  Object.values(chartInstances).forEach(c=>c&&c.destroy&&c.destroy());chartInstances={};
+  const gridColor='#e9eef6';
+  // 1. Docs by cat
+  const catCounts={};S.docs.forEach(d=>{catCounts[d.cat]=(catCounts[d.cat]||0)+1;});
+  const catKeys=Object.keys(catCounts);
+  if(catKeys.length){chartInstances.docCat=new Chart(document.getElementById('chartDocCat'),{type:'bar',data:{labels:catKeys,datasets:[{data:catKeys.map(k=>catCounts[k]),backgroundColor:catKeys.map(k=>CAT_COLORS_DOC[k]||'#64748b'),borderRadius:5,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridColor}},y:{grid:{color:gridColor},ticks:{stepSize:1}}}}});}
+  // 2. Cert status
+  chartInstances.certStatus=new Chart(document.getElementById('chartCertStatus'),{type:'doughnut',data:{labels:['有效','注意','緊急','已過期'],datasets:[{data:[cStats.valid,cStats.warning,cStats.urgent,cStats.expired],backgroundColor:['#16a34a','#b45309','#e09900','#dc2626'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:12,padding:10}}},cutout:'65%'}});
+  // 3. Ext cat
+  const extCat={};extDone.forEach(r=>{const l=(CATS.find(c=>c.id===r.category)||{label:'Other'}).label;extCat[l]=(extCat[l]||0)+1;});
+  const extKeys=Object.keys(extCat);
+  if(extKeys.length){chartInstances.extCat=new Chart(document.getElementById('chartExtCat'),{type:'bar',data:{labels:extKeys,datasets:[{data:extKeys.map(k=>extCat[k]),backgroundColor:extKeys.map(k=>{const c=CATS.find(x=>x.label===k);return c?c.color:'#64748b';}),borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridColor},ticks:{maxRotation:30}},y:{grid:{color:gridColor},ticks:{stepSize:1}}}}});}
+  // 4. Ext by month
+  const extMon={};extDone.forEach(r=>{const m=(r.date_received||'').slice(0,7)||'unknown';extMon[m]=(extMon[m]||0)+1;});
+  const mKeys=Object.keys(extMon).sort().slice(-9);
+  if(mKeys.length){chartInstances.extMonth=new Chart(document.getElementById('chartExtMonth'),{type:'bar',data:{labels:mKeys.map(k=>{const[y,m]=k.split('-');return k==='unknown'?'未知':`${y}/${m}`;}),datasets:[{data:mKeys.map(k=>extMon[k]),backgroundColor:'rgba(29,78,216,.7)',borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridColor}},y:{grid:{color:gridColor},ticks:{stepSize:1}}}}});}
+  // 5. Expiry timeline
+  const soon=S.certs.filter(c=>{const d=daysUntil(c.expiry);return d!==null&&d<=90;}).sort((a,b)=>new Date(a.expiry)-new Date(b.expiry));
+  const tl=document.getElementById('expiryTimeline');
+  if(soon.length){
+    tl.innerHTML=soon.slice(0,15).map(c=>{
+      const d=daysUntil(c.expiry);const s=certStatus(c.expiry);
+      const barW=Math.max(0,Math.min(100,(90-Math.max(0,d))/90*100));
+      const col=s==='expired'?'var(--red)':s==='urgent'?'var(--amber)':'var(--yellow)';
+      return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:13px">
+        <div style="min-width:120px;color:var(--text);font-weight:500">${esc(c.holder)}</div>
+        <div style="min-width:110px;color:var(--text2);font-size:12px">${esc(c.type.split(' ')[0])}</div>
+        <div style="flex:1;background:var(--border);border-radius:3px;height:7px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${col};border-radius:3px"></div></div>
+        <div class="mono" style="min-width:88px;text-align:right;color:${col}">${c.expiry}</div>
+        ${certBadge(s)}
+      </div>`;
+    }).join('');
+  }else{tl.innerHTML='<div style="text-align:center;color:var(--text3);padding:28px 0;font-size:13px">90天內無到期證件 🎉</div>';}
+}
+
+// ==========================================================
+// EXPORT / CLEAR
+// ==========================================================
+function exportAllJSON(){
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify({S,extSeq},null,2));
+  a.download='VRT_DCC_Export_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('已匯出 JSON','ok');
+}
+function confirmClearAll(){
+  showConfirm('⚠ 清除所有資料','確定清除全部資料？','此操作無法復原',()=>{S={docs:[],certs:[],mtgs:[],ext:[]};extSeq=1;save();renderDocs();renderCerts();renderMtgs();extRender();updateCounts();toast('已清除','warn');});
+}
+
+// ==========================================================
+// GLOBAL DRAG & DROP
+// ==========================================================
+let dragTarget=null;
+document.addEventListener('dragenter',e=>{dragTarget=e.target;});
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',e=>{
+  e.preventDefault();
+  const files=Array.from(e.dataTransfer.files);
+  if(!files.length)return;
+  const activeTab=document.querySelector('.tab-btn.active')?.id||'';
+  files.forEach(f=>{
+    const ext=f.name.split('.').pop().toLowerCase();
+    if(ext==='msg'||ext==='eml'){
+      if(activeTab==='tbn-mtgs'||activeTab==='tbn-ext'){
+        // Handled by their own drop handlers already; if not, process here
+        if(activeTab==='tbn-ext')extGo([f]);
+        else handleEmlFile({files:[f]});
+      }else{
+        // Default: go to ext tab and process
+        switchTab('ext');setTimeout(()=>extGo([f]),100);
+      }
+    }else if(ext==='xlsx'||ext==='xls'){
+      if(activeTab==='tbn-certs'){const dt=new DataTransfer();dt.items.add(f);document.getElementById('certXlsx').files=dt.files;handleCertExcel(document.getElementById('certXlsx'));}
+      else{switchTab('docs');setTimeout(()=>{const dt=new DataTransfer();dt.items.add(f);document.getElementById('docXlsx').files=dt.files;handleDocExcel(document.getElementById('docXlsx'));},100);}
+    }else if(ext==='docx'){
+      switchTab('docs');setTimeout(()=>{const dt=new DataTransfer();dt.items.add(f);document.getElementById('docDocx').files=dt.files;handleDocWord(document.getElementById('docDocx'));},100);
+    }
+  });
+  if(files.length)toast(`偵測到 ${files.length} 個檔案 / File(s) detected`,'ok');
+});
+
+// ==========================================================
+// INIT
+// ==========================================================
+load();renderDocs();renderCerts();renderMtgs();extRender();updateCounts();
+if(S.ext.length||S.docs.length||S.certs.length||S.mtgs.length){
+  const n=document.createElement('div');n.className='notif';
+  const total=S.ext.length+S.docs.length+S.certs.length+S.mtgs.length;
+  n.innerHTML=`<span>📂 已載入上次記錄：共 <strong>${total}</strong> 筆資料</span><button onclick="this.parentElement.remove()" style="border:none;background:transparent;cursor:pointer;color:var(--green);font-size:16px">✕</button>`;
+  document.querySelector('.main').prepend(n);
+}
+</script>
+</body>
+</html>
