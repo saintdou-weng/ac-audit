@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>外來文件匯入管理 v2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f5f4f0;--surface:#fff;--txt:#1a1a1a;--txt2:#4a4a44;--muted:#8a8a80;
+--border:#dddad2;--khaki:#b8a888;--khaki-d:#8a7a5a;--linen:#efece4;
+--ok:#2e7d32;--warn:#b45309;--err:#c62828;--r:12px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI','Noto Sans TC',sans-serif}
+body{background:var(--bg);color:var(--txt);padding-bottom:90px}
+.hdr{background:#1a1a1a;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr a{color:#b8a888;text-decoration:none;font-size:13px;min-height:44px;display:flex;align-items:center}
+.hdr h1{font-size:15px;font-weight:700;flex:1}
+.sync{display:flex;align-items:center;gap:7px}
+.dot{width:9px;height:9px;border-radius:50%;background:#94a3b8}
+.smsg{font-size:10px;color:#c9c4b8;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ibtn{min-width:44px;min-height:44px;border:none;border-radius:9px;background:#33322e;color:#fff;
+font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ibtn:active{background:var(--khaki-d)}
+.wrap{max-width:1000px;margin:0 auto;padding:14px}
+.drop{border:2px dashed var(--khaki);border-radius:var(--r);background:var(--linen);
+padding:26px 14px;text-align:center;cursor:pointer;margin-bottom:12px}
+.drop.on{background:#e8e2d2;border-color:var(--khaki-d)}
+.drop .t1{font-size:14px;font-weight:700;color:var(--txt2)}
+.drop .t2{font-size:11px;color:var(--muted);margin-top:4px}
+.btn{min-height:44px;padding:9px 15px;border:none;border-radius:9px;font-size:13px;font-weight:700;
+cursor:pointer;background:var(--linen);color:var(--txt2)}
+.btn-p{background:#1a1a1a;color:#fff}
+.btn-d{background:#fde8e8;color:var(--err)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.cnt{font-size:12px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:12px}
+.pttl{font-size:13px;font-weight:700;margin-bottom:9px;color:var(--khaki-d)}
+.ai{font-size:12px;line-height:1.9;color:var(--txt2)}
+.ai b{color:var(--txt)}
+.ai .hot{color:var(--err);font-weight:700}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px;margin-bottom:10px}
+.stat{background:var(--linen);border-radius:9px;padding:9px;text-align:center}
+.stat .n{font-size:19px;font-weight:800}
+.stat .l{font-size:10px;color:var(--muted);margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 13px;margin-bottom:9px}
+.card.skip{opacity:.45}
+.crow{display:flex;gap:10px;align-items:flex-start}
+.crow input[type=checkbox]{width:20px;height:20px;margin-top:2px;flex-shrink:0;accent-color:var(--khaki-d)}
+.cbody{flex:1;min-width:0}
+.ttl{font-size:13px;font-weight:700;word-break:break-word}
+.meta{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.pill{font-size:10px;padding:2px 8px;border-radius:99px;background:var(--linen);color:var(--txt2);font-weight:700}
+.pill.cat{color:#fff}
+.pill.act{background:#fde8e8;color:var(--err)}
+.sumbox textarea{width:100%;border:1px solid var(--border);background:var(--linen);font-size:12px;
+line-height:1.6;color:var(--txt);resize:vertical;min-height:48px;font-family:inherit;border-radius:8px;padding:8px 10px}
+.sumbox textarea:focus{outline:none;border-color:var(--khaki);background:#fff}
+.dup{font-size:10px;color:var(--warn);font-weight:700;margin-top:5px}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 0}
+.tabs{display:flex;gap:6px;margin:14px 0 10px}
+.tab{min-height:44px;padding:8px 16px;border:none;border-radius:9px;background:var(--linen);
+color:var(--txt2);font-size:13px;font-weight:700;cursor:pointer}
+.tab.on{background:#1a1a1a;color:#fff}
+.rc-top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.rc-top input,.rc-top select{min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:9px;font-size:13px;background:#fff}
+.rc-top input{flex:1;min-width:140px}
+.del{min-width:44px;min-height:36px;border:none;border-radius:8px;background:#fde8e8;color:var(--err);font-weight:700;cursor:pointer;font-size:12px}
+#toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;
+padding:11px 20px;border-radius:99px;font-size:13px;display:none;z-index:99;max-width:90vw}
+.foot{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);
+padding:10px 14px;display:none;justify-content:center;gap:9px;z-index:50;flex-wrap:wrap}
+.foot.on{display:flex}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:120;padding:14px}
+.ov.on{display:flex}
+.modal{background:#fff;border-radius:var(--r);padding:17px;width:100%;max-width:430px;max-height:88vh;overflow:auto}
+.modal h3{font-size:14px;margin-bottom:12px}
+.fg{margin-bottom:9px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:4px}
+.fg input,.fg select,.fg textarea{width:100%;min-height:42px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit}
+.fg textarea{min-height:60px;resize:vertical}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <a href="ac_audit_intake_portal_v1.html">←</a>
+  <h1>📨 外來文件匯入管理</h1>
+  <div class="sync"><span class="dot" id="dot"></span><span class="smsg" id="smsg">連線中…</span></div>
+  <button class="ibtn" onclick="gasLoad()" title="從雲端下載">☁️⬇</button>
+  <button class="ibtn" onclick="gasSave()" title="上傳到雲端">☁️⬆</button>
+</div>
+<div class="wrap">
+  <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
+    <div class="t1">📨 拖入 Outlook .msg 檔案（可多檔），或點此選取</div>
+    <div class="t2">自動解析 → 精簡中文重點 → 預覽勾選 → 寫入並通知 Telegram</div>
+  </div>
+  <input type="file" id="fi" accept=".msg" multiple style="display:none" onchange="handleFiles(this.files);this.value=''">
+
+  <div id="ai-panel" class="panel" style="display:none">
+    <div class="pttl">🤖 智慧解讀</div>
+    <div class="ai" id="ai-body"></div>
+  </div>
+
+  <div class="bar" id="selbar" style="display:none">
+    <button class="btn" onclick="selAll(true)">全選</button>
+    <button class="btn" onclick="selAll(false)">全不選</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div id="pending"></div>
+
+  <div class="tabs">
+    <button class="tab on" id="tab-rc" onclick="showTab('rc')">📚 已存記錄</button>
+    <button class="tab" id="tab-st" onclick="showTab('st')">📊 統計</button>
+  </div>
+
+  <div id="v-rc">
+    <div class="rc-top">
+      <input id="q" placeholder="🔍 搜尋標題 / 摘要 / 編號" oninput="renderRecords()">
+      <select id="fcat" onchange="renderRecords()"><option value="">全部分類</option></select>
+      <select id="fact" onchange="renderRecords()">
+        <option value="">全部</option><option value="1">需辦理</option>
+      </select>
+      <button class="btn" onclick="openAdd()">＋ 新增</button>
+      <button class="btn" onclick="exportXlsx()">⬇ 匯出 Excel</button>
+    </div>
+    <div id="rc-list"></div>
+  </div>
+  <div id="v-st" style="display:none">
+    <div class="stat-grid" id="st-grid"></div>
+    <div class="panel"><div class="pttl">分類分布</div><div class="ai" id="st-cats"></div></div>
+    <div class="panel"><div class="pttl">⏰ 待辦追蹤（需辦理）</div><div class="ai" id="st-todo"></div></div>
+  </div>
+</div>
+
+<div class="foot" id="foot">
+  <button class="btn" onclick="clearPending()">清除</button>
+  <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2)">
+    <input type="checkbox" id="tg-on" checked style="width:18px;height:18px;accent-color:var(--khaki-d)">通知 TG
+  </label>
+  <button class="btn btn-p" id="btn-w" onclick="writeIn()">✓ 確認寫入</button>
+</div>
+
+<div class="ov" id="ov-add">
+  <div class="modal">
+    <h3>＋ 手動新增外來文件</h3>
+    <div class="fg"><label>標題 *</label><input id="a-title"></div>
+    <div class="fg"><label>收文日期</label><input id="a-date" type="date"></div>
+    <div class="fg"><label>來源機構</label><select id="a-org"></select></div>
+    <div class="fg"><label>分類</label><select id="a-cat"></select></div>
+    <div class="fg"><label>中文摘要</label><textarea id="a-sum"></textarea></div>
+    <div class="fg"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="a-need" style="width:18px;height:18px">需辦理</label></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+      <button class="btn" onclick="closeAdd()">取消</button>
+      <button class="btn btn-p" onclick="saveAdd()">儲存</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  外來文件匯入管理 v2 · 儲存鍵 msgProcessor_data（與舊 MSG_Processor、
+//  audit 平台完全相容）· GAS 協定：ping / load / save / tg
+// ══════════════════════════════════════════════════════════════
+const GAS_URL='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
+const STORE_KEY='msgProcessor_data';
+
+const CATS=[
+ {id:'events',zh:'活動',code:'EV',color:'#7c3aed',kw:'event,ceremony,exhibition,expo,fair,gala,award,inauguration,launch,opening'},
+ {id:'notice',zh:'通知',code:'NT',color:'#b45309',kw:'notice,notification,circular,official letter,reminder,memo,inform'},
+ {id:'environment',zh:'環境',code:'EN',color:'#15803d',kw:'environment,environmental,pollution,emission,waste,carbon,climate,green,EHS,fire safety,burning,fabric waste'},
+ {id:'tax',zh:'稅務',code:'TX',color:'#92400e',kw:'tax,taxation,GDT,VAT,customs,tariff,duty,revenue,fiscal,patent tax'},
+ {id:'compliance calendar',zh:'合規日曆',code:'CC',color:'#dc2626',kw:'compliance calendar,compliance schedule,monthly compliance,obligation calendar'},
+ {id:'newsletter',zh:'電子報',code:'NL',color:'#0369a1',kw:'newsletter,bulletin,digest,weekly update,monthly update,news letter'},
+ {id:'survey',zh:'問卷調查',code:'SV',color:'#6d28d9',kw:'survey,questionnaire,feedback,poll,assessment,evaluation form'},
+ {id:'summit',zh:'高峰會議',code:'SM',color:'#0e7490',kw:'summit,high-level,ministerial,G20,ASEAN meeting,bilateral meeting'},
+ {id:'announcement',zh:'公告',code:'AN',color:'#d97706',kw:'announcement,announce,press release,public notice,publication,guidebook,guide,handbook'},
+ {id:'donation',zh:'捐助',code:'DO',color:'#ec4899',kw:'donation,charity,CSR,philanthropy,fund,contribution,sponsor'},
+ {id:'update',zh:'資訊分享',code:'UP',color:'#475569',kw:'update,news,information,FYI,for your information,sharing'},
+ {id:'other',zh:'其他',code:'OT',color:'#6b7280',kw:''}
+];
+const ORG_MAP=[
+ {kw:['ministry of commerce','moc','business registration','prakas 117','company registration'],en:'Ministry of Commerce',zh:'商業部'},
+ {kw:['ministry of labour','mlvt','labor','labour','worker','employment','occupational','workplace safety'],en:'Ministry of Labour and Vocational Training',zh:'勞工和職業培訓部'},
+ {kw:['ministry of environment','moe','environmental','pollution','emission','waste management','green industry'],en:'Ministry of Environment',zh:'環境部'},
+ {kw:['general department of taxation','gdt','tax department','vat','income tax','patent'],en:'General Department of Taxation',zh:'稅務總局'},
+ {kw:['nssf','national social security','social security fund'],en:'NSSF',zh:'國家社會保障基金'},
+ {kw:['ministry of interior','fire','fire safety','civil protection'],en:'Ministry of Interior',zh:'內政部'},
+ {kw:['ministry of industry','mih','industrial','factory inspection'],en:'Ministry of Industry',zh:'工業部'},
+ {kw:['ilo','international labour organization','international labour organisation'],en:'ILO',zh:'國際勞工組織'},
+ {kw:['taftac','textile apparel','footwear'],en:'TAFTAC',zh:'TAFTAC'}
+];
+const MTHS={january:'01',february:'02',march:'03',april:'04',may:'05',june:'06',july:'07',august:'08',september:'09',october:'10',november:'11',december:'12'};
+
+let results=[],seq=1,pending=[];
+
+// ── 本機儲存 ──
+function loadData(){
+  try{const raw=localStorage.getItem(STORE_KEY);
+    if(raw){const d=JSON.parse(raw);results=d.results||[];seq=d.seq||1;}}catch(e){}
+}
+function saveData(){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify({results,seq}));}catch(e){toast('本機儲存失敗：'+e.message);}
+}
+
+// ── .msg 解析（沿用已驗證流程）──
+function decodeS(b){
+  for(const e of['utf-16le','utf-8','windows-1252']){
+    try{const s=new TextDecoder(e,{fatal:true}).decode(new Uint8Array(b));const c=s.replace(/\0/g,'').trim();if(c)return c;}catch(x){}
+  }return'';
+}
+function stripHtml(h){
+  return h.replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'').replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'')
+    .replace(/<br\s*\/?>/gi,'\n').replace(/<\/p>/gi,'\n').replace(/<[^>]+>/g,' ')
+    .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+    .replace(/ {3,}/g,' ').replace(/\n{4,}/g,'\n\n').trim();
+}
+function extractMsg(ab){
+  const r={subject:'',sender:'',senderEmail:'',date:'',body:'',attachments:[]};
+  let cfb;try{cfb=XLSX.CFB.read(new Uint8Array(ab),{type:'array'});}catch(e){return r;}
+  const pm={'0037':'subject','0C1A':'sender','0C1F':'senderEmail','1000':'body','1013':'htmlBody','0039':'sentOn','0E06':'receivedOn'};
+  const an=[];let html='';
+  for(const f of(cfb.FileIndex||[])){
+    if(!f.content||f.size<2)continue;
+    const nm=(f.name||'').toUpperCase();
+    const m=nm.match(/__SUBSTG1\.0_([0-9A-F]{4})/);
+    if(m){
+      const t=m[1],fd=pm[t];
+      if(fd){const d=decodeS(f.content);if(d){if(fd==='htmlBody')html=d;else if(!r[fd])r[fd]=d;}}
+      if(t==='3704'||t==='3001'){const n=decodeS(f.content);if(n&&n.length<200&&!n.match(/^(image|winmail)\d*\.(png|jpg|gif|dat)$/i))an.push(n);}
+    }
+  }
+  r.attachments=[...new Set(an)];
+  if(!r.body&&html)r.body=stripHtml(html);
+  if(!r.body||r.body.length<30){
+    const ch=[];
+    for(const f of(cfb.FileIndex||[])){
+      if(!f.content||f.size<20||f.size>500000)continue;
+      try{const raw=new TextDecoder('utf-8',{fatal:false}).decode(new Uint8Array(f.content));const rd=raw.replace(/[^\x20-\x7E\u00A0-\u024F\u4e00-\u9fff\n\r\t]/g,'').trim();if(rd.length>40&&rd.length/raw.length>0.5)ch.push(rd);}catch(x){}
+    }
+    if(ch.length)r.body=ch.sort((a,b)=>b.length-a.length).slice(0,3).join('\n\n').slice(0,3000);
+  }
+  if(!r.date&&r.sentOn)r.date=r.sentOn;
+  if(!r.date&&r.receivedOn)r.date=r.receivedOn;
+  return r;
+}
+function normDate(s){
+  if(!s)return'';
+  let m=String(s).match(/(\d{4})-(\d{2})-(\d{2})/);if(m)return m[0];
+  m=String(s).match(/(january|february|march|april|may|june|july|august|september|october|november|december)\s+(\d{1,2}),?\s+(\d{4})/i);
+  if(m)return m[3]+'-'+MTHS[m[1].toLowerCase()]+'-'+String(m[2]).padStart(2,'0');
+  m=String(s).match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if(m)return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+  return'';
+}
+
+// ── 精簡中文重點引擎 ──
+function keyPoints(ext){
+  const body=(ext.body||'');
+  const hay=((ext.subject||'')+' '+body.slice(0,1500)).toLowerCase();
+  let cat=CATS.find(c=>c.kw&&c.kw.split(',').some(k=>hay.includes(k.trim().toLowerCase())))||CATS[CATS.length-1];
+  let org=ORG_MAP.find(o=>o.kw.some(k=>hay.includes(k)))||{en:'TAFTAC',zh:'TAFTAC'};
+  let deadline='';
+  const dl=[/deadline[:\s]+([^\n.;]{4,50})/i,/no later than\s+([^\n.;]{4,50})/i,
+    /\bby\s+((january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s*\d{4})/i,
+    /before\s+((january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s*\d{4})/i,
+    /due (?:date|on)?[:\s]+([^\n.;]{4,50})/i];
+  for(const p of dl){const m=body.match(p);if(m){deadline=normDate(m[1])||m[1].trim();break;}}
+  let action='';
+  const sents=body.split(/(?<=[.!?])\s+|\n/).map(s=>s.trim()).filter(s=>s.length>15&&s.length<300);
+  const av=/(please\s+)?(submit|register|attend|provide|complete|comply|pay|renew|apply|report|confirm|respond|reply|join|fill)/i;
+  for(const s of sents){if(av.test(s)&&!/^(from|to|subject|sent|cc):/i.test(s)){action=s.replace(/\s+/g,' ').slice(0,120);break;}}
+  const need=!!(deadline||action);
+  const subj=(ext.subject||'').replace(/^(FW:|RE:|Fwd:)\s*/i,'').trim();
+  let sum='【'+cat.zh+'】'+org.zh+'來函';
+  if(subj)sum+='：'+subj;
+  if(action)sum+='｜要求：'+action;
+  if(deadline)sum+='｜⏰截止：'+deadline;
+  if(!action&&!deadline)sum+='｜供參考，無需辦理事項';
+  if(ext.attachments&&ext.attachments.length)sum+='｜附件'+ext.attachments.length+'份';
+  return {cat,org,deadline,action,need,sum:sum.slice(0,220)};
+}
+function genCode(code,yr,n){return'EXT-RE-'+code+'-'+yr+'-'+String(n).padStart(4,'0');}
+
+// ── 匯入檔案 ──
+async function handleFiles(files){
+  const fs=[...files].filter(f=>/\.msg$/i.test(f.name));
+  if(!fs.length){toast('請選 .msg 檔案');return;}
+  for(const f of fs){
+    try{
+      const ab=await f.arrayBuffer();
+      const ext=extractMsg(ab);
+      const kp=keyPoints(ext);
+      let date=normDate(ext.date);
+      if(!date){const m=(ext.body||'').match(/Sent:\s+\w+,?\s+(\w+ \d{1,2},?\s+\d{4})/i);if(m)date=normDate(m[1]);}
+      const title=(ext.subject||f.name.replace(/\.msg$/i,'')).replace(/^(FW:|RE:|Fwd:)\s*/i,'').trim();
+      const dup=results.some(r=>r.status==='done'&&(r.fn===f.name||(r.title_en===title&&r.date_received===date)));
+      pending.push({sel:!dup,dup,fn:f.name,title,date,kp,
+        summary_en:(ext.body||'').split('\n').map(l=>l.trim()).filter(l=>l.length>20&&!/^(From:|To:|Subject:|Sent:|Date:|Cc:)/i.test(l)).slice(0,2).join(' ').slice(0,200)});
+    }catch(err){pending.push({sel:false,dup:false,fn:f.name,error:err.message});}
+  }
+  renderPending();renderAI();
+}
+
+// ── 智慧解讀面板（本次匯入批次）──
+function renderAI(){
+  const el=document.getElementById('ai-panel'),body=document.getElementById('ai-body');
+  const ok=pending.filter(p=>!p.error);
+  if(!ok.length){el.style.display='none';return;}
+  el.style.display='block';
+  const byCat={};ok.forEach(p=>{byCat[p.kp.cat.zh]=(byCat[p.kp.cat.zh]||0)+1;});
+  const byOrg={};ok.forEach(p=>{byOrg[p.kp.org.zh]=(byOrg[p.kp.org.zh]||0)+1;});
+  const todo=ok.filter(p=>p.kp.need);
+  const dups=pending.filter(p=>p.dup).length;
+  let h='本批共 <b>'+ok.length+'</b> 份文件';
+  if(pending.some(p=>p.error))h+='（'+pending.filter(p=>p.error).length+' 份解析失敗）';
+  h+='。<br>分類：'+Object.entries(byCat).map(([k,v])=>k+' '+v+'份').join('、');
+  h+='。來源：'+Object.entries(byOrg).map(([k,v])=>k+' '+v+'份').join('、')+'。<br>';
+  if(todo.length){
+    h+='<span class="hot">⚠ 其中 '+todo.length+' 份需辦理：</span><br>';
+    todo.forEach(p=>{h+='• '+esc(p.title.slice(0,50))+(p.kp.deadline?'（⏰'+esc(p.kp.deadline)+'）':'')+'<br>';});
+  }else h+='本批皆為參考性文件，無待辦事項。<br>';
+  if(dups)h+='<span style="color:var(--warn)">另有 '+dups+' 份疑似重複，預設不匯入。</span>';
+  body.innerHTML=h;
+}
+
+function renderPending(){
+  const el=document.getElementById('pending');
+  if(!pending.length){el.innerHTML='';
+    document.getElementById('selbar').style.display='none';
+    document.getElementById('foot').classList.remove('on');
+    document.getElementById('ai-panel').style.display='none';return;}
+  document.getElementById('selbar').style.display='flex';
+  document.getElementById('foot').classList.add('on');
+  el.innerHTML=pending.map((it,i)=>{
+    if(it.error)return'<div class="card skip"><div class="ttl">❌ '+esc(it.fn)+'</div><div class="ai">解析失敗：'+esc(it.error)+'</div></div>';
+    return '<div class="card'+(it.sel?'':' skip')+'"><div class="crow">'+
+      '<input type="checkbox" '+(it.sel?'checked':'')+' onchange="pending['+i+'].sel=this.checked;renderPending()">'+
+      '<div class="cbody"><div class="ttl">'+esc(it.title)+'</div>'+
+      '<div class="meta"><span class="pill cat" style="background:'+it.kp.cat.color+'">'+it.kp.cat.zh+'</span>'+
+      '<span class="pill">'+esc(it.kp.org.zh)+'</span>'+
+      (it.date?'<span class="pill">📅 '+it.date+'</span>':'')+
+      (it.kp.need?'<span class="pill act">需辦理</span>':'')+'</div>'+
+      '<div class="sumbox"><textarea onchange="pending['+i+'].kp.sum=this.value">'+esc(it.kp.sum)+'</textarea></div>'+
+      (it.dup?'<div class="dup">⚠ 疑似重複（同檔名或同標題同日期），預設不匯入</div>':'')+
+      '</div></div></div>';
+  }).join('');
+  const n=pending.filter(x=>x.sel).length;
+  document.getElementById('cnt').textContent='已勾選 '+n+' / '+pending.length+' 筆';
+  document.getElementById('btn-w').disabled=!n;
+}
+function selAll(v){pending.forEach(x=>{if(!x.error)x.sel=v;});renderPending();}
+function clearPending(){pending=[];renderPending();renderAI();}
+
+// ── 確認寫入 + TG 通知 ──
+let writing=false;
+function writeIn(){
+  if(writing)return;
+  const picked=pending.filter(x=>x.sel&&!x.error);
+  if(!picked.length)return;
+  writing=true;document.getElementById('btn-w').disabled=true;
+  const d=new Date();
+  const yr=String(d.getFullYear());
+  const added=[];
+  picked.forEach(it=>{
+    const code=genCode(it.kp.cat.code,yr,seq++);
+    results.push({fn:it.fn,status:'done',doc_code:code,
+      title_zh:it.title,title_en:it.title,date_received:it.date||'',
+      summary_zh:it.kp.sum,summary_en:it.summary_en||it.kp.sum,
+      source_org:it.kp.org.en,source_org_zh:it.kp.org.zh,
+      category:it.kp.cat.id,catColor:it.kp.cat.color,
+      action_required:it.kp.need,
+      action_note:(it.kp.action||'')+(it.kp.deadline?('｜截止 '+it.kp.deadline):'')});
+    added.push(it);
+  });
+  saveData();
+  toast('✓ 已寫入 '+added.length+' 筆');
+  if(document.getElementById('tg-on').checked){
+    const lines=['本次匯入 '+added.length+' 份外來文件：'];
+    added.forEach(it=>{lines.push('• '+it.kp.sum.slice(0,90));});
+    const todo=added.filter(it=>it.kp.need);
+    if(todo.length)lines.push('','⚠ 需辦理 '+todo.length+' 件');
+    fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'tg',title:'外來文件登記通知',lines})})
+      .then(r=>r.json()).then(dd=>{if(dd.ok)toast('✓ 已寫入並通知 Telegram');else toast('已寫入，TG 通知失敗：'+(dd.error||''));})
+      .catch(e=>toast('已寫入，TG 通知失敗：'+e.message));
+  }
+  pending=[];writing=false;
+  renderPending();renderAI();renderRecords();renderStats();
+}
+
+// ── 已存記錄管理 ──
+function fillFilters(){
+  const sc=document.getElementById('fcat');
+  sc.innerHTML='<option value="">全部分類</option>'+CATS.map(c=>'<option value="'+c.id+'">'+c.zh+'</option>').join('');
+}
+function renderRecords(){
+  const q=(document.getElementById('q').value||'').toLowerCase();
+  const fc=document.getElementById('fcat').value;
+  const fa=document.getElementById('fact').value;
+  const el=document.getElementById('rc-list');
+  let list=results.filter(r=>r.status==='done');
+  if(fc)list=list.filter(r=>r.category===fc);
+  if(fa)list=list.filter(r=>r.action_required);
+  if(q)list=list.filter(r=>((r.title_zh||'')+(r.summary_zh||'')+(r.doc_code||'')).toLowerCase().includes(q));
+  if(!list.length){el.innerHTML='<div class="empty">無符合記錄</div>';return;}
+  el.innerHTML=list.slice().reverse().map(r=>{
+    const gi=results.indexOf(r);
+    const cat=CATS.find(c=>c.id===r.category)||CATS[CATS.length-1];
+    return '<div class="card"><div class="crow"><div class="cbody">'+
+      '<div class="ttl">'+esc(r.title_zh||r.title_en||'')+'</div>'+
+      '<div class="meta"><span class="pill">'+esc(r.doc_code||'')+'</span>'+
+      '<span class="pill cat" style="background:'+(r.catColor||cat.color)+'">'+cat.zh+'</span>'+
+      '<span class="pill">'+esc(r.source_org_zh||'')+'</span>'+
+      (r.date_received?'<span class="pill">📅 '+esc(r.date_received)+'</span>':'')+
+      (r.action_required?'<span class="pill act">需辦理</span>':'')+'</div>'+
+      '<div class="ai">'+esc(r.summary_zh||'')+'</div>'+
+      '</div><button class="del" onclick="delRec('+gi+')">刪</button></div></div>';
+  }).join('');
+}
+function delRec(i){
+  const r=results[i];if(!r)return;
+  if(!confirm('刪除「'+(r.title_zh||'')+'」？'))return;
+  results.splice(i,1);saveData();renderRecords();renderStats();toast('已刪除');
+}
+
+// ── 手動新增 ──
+function openAdd(){
+  document.getElementById('a-org').innerHTML=ORG_MAP.map(o=>'<option value="'+o.en+'">'+o.zh+'</option>').join('');
+  document.getElementById('a-cat').innerHTML=CATS.map(c=>'<option value="'+c.id+'">'+c.zh+'</option>').join('');
+  document.getElementById('ov-add').classList.add('on');
+}
+function closeAdd(){document.getElementById('ov-add').classList.remove('on');}
+function saveAdd(){
+  const title=document.getElementById('a-title').value.trim();
+  if(!title){toast('請填標題');return;}
+  const catId=document.getElementById('a-cat').value;
+  const cat=CATS.find(c=>c.id===catId)||CATS[CATS.length-1];
+  const orgEn=document.getElementById('a-org').value;
+  const org=ORG_MAP.find(o=>o.en===orgEn)||{en:orgEn,zh:orgEn};
+  const need=document.getElementById('a-need').checked;
+  const d=new Date();
+  results.push({fn:'(手動新增)',status:'done',
+    doc_code:genCode(cat.code,String(d.getFullYear()),seq++),
+    title_zh:title,title_en:title,
+    date_received:document.getElementById('a-date').value||'',
+    summary_zh:document.getElementById('a-sum').value.trim()||('【'+cat.zh+'】'+org.zh+'來函：'+title),
+    summary_en:'',source_org:org.en,source_org_zh:org.zh,
+    category:cat.id,catColor:cat.color,action_required:need,action_note:''});
+  saveData();closeAdd();renderRecords();renderStats();toast('✓ 已新增');
+  ['a-title','a-date','a-sum'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('a-need').checked=false;
+}
+
+// ── 統計 ──
+function renderStats(){
+  const done=results.filter(r=>r.status==='done');
+  const d=new Date();
+  const ym=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  const thisM=done.filter(r=>(r.date_received||'').startsWith(ym)).length;
+  const todo=done.filter(r=>r.action_required);
+  document.getElementById('st-grid').innerHTML=
+    '<div class="stat"><div class="n">'+done.length+'</div><div class="l">總文件</div></div>'+
+    '<div class="stat"><div class="n">'+thisM+'</div><div class="l">本月收文</div></div>'+
+    '<div class="stat"><div class="n" style="color:var(--err)">'+todo.length+'</div><div class="l">需辦理</div></div>';
+  const byCat={};done.forEach(r=>{const c=CATS.find(x=>x.id===r.category)||CATS[CATS.length-1];byCat[c.zh]=(byCat[c.zh]||0)+1;});
+  document.getElementById('st-cats').innerHTML=Object.entries(byCat).sort((a,b)=>b[1]-a[1])
+    .map(([k,v])=>k+'：<b>'+v+'</b> 份').join('<br>')||'—';
+  document.getElementById('st-todo').innerHTML=todo.length?todo.map(r=>
+    '• '+esc(r.title_zh||'')+(r.action_note?'<br>&nbsp;&nbsp;<span style="color:var(--muted)">'+esc(r.action_note)+'</span>':'')).join('<br>'):'目前無待辦 ✓';
+}
+
+// ── 匯出 Excel ──
+function exportXlsx(){
+  const done=results.filter(r=>r.status==='done');
+  if(!done.length){toast('無資料可匯出');return;}
+  const rows=done.map((r,i)=>[i+1,r.doc_code||'',r.date_received||'',r.title_zh||'',r.summary_zh||'',
+    r.source_org_zh||'',r.source_org||'',(CATS.find(c=>c.id===r.category)||{}).zh||r.category||'',r.action_required?'需辦理':'',r.action_note||'']);
+  const ws=XLSX.utils.aoa_to_sheet([['No','文件編號','收文日期','標題','中文摘要','來源機構','Source Org','分類','待辦','待辦說明'],...rows]);
+  ws['!cols']=[{wch:5},{wch:18},{wch:12},{wch:40},{wch:60},{wch:16},{wch:24},{wch:10},{wch:8},{wch:30}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'外來文件');
+  const d=new Date();
+  const stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb,'VRT_外來文件_'+stamp+'.xlsx');
+}
+
+// ── 雲端同步 ──
+function setSync(state,msg){
+  const colors={ok:'#16a34a',err:'#dc2626',loading:'#f59e0b',idle:'#94a3b8'};
+  document.getElementById('dot').style.background=colors[state]||colors.idle;
+  document.getElementById('smsg').textContent=msg;
+}
+async function gasPing(){
+  setSync('loading','連線中…');
+  try{const res=await fetch(GAS_URL+'?action=ping');const d=await res.json();
+    if(d.ok)setSync('ok','已連接雲端');else throw new Error(d.error||'失敗');
+  }catch(e){setSync('err','雲端未連接');}
+}
+async function gasLoad(){
+  setSync('loading','下載中…');
+  try{
+    const res=await fetch(GAS_URL+'?action=load');const d=await res.json();
+    if(d.error)throw new Error(d.error);
+    if(!d.results||!d.results.length){setSync('ok','雲端無資料');toast('☁️ 雲端目前無資料');return;}
+    if(results.length>0){
+      const choice=confirm('雲端 '+d.results.length+' 筆，本機 '+results.length+' 筆。\n確定 = 用雲端取代本機\n取消 = 合併保留兩邊');
+      if(choice){results=d.results;seq=d.seq||1;}
+      else{const ex=new Set(results.map(r=>r.fn+'|'+(r.title_en||'')));
+        results.push(...d.results.filter(r=>!ex.has(r.fn+'|'+(r.title_en||''))));
+        seq=Math.max(seq,d.seq||1);}
+    }else{results=d.results;seq=d.seq||1;}
+    saveData();renderRecords();renderStats();
+    setSync('ok','已載入 '+results.length+' 筆');toast('✓ 雲端下載完成');
+  }catch(e){setSync('err','下載失敗');toast('❌ 下載失敗：'+e.message);}
+}
+async function gasSave(){
+  if(!results.length){toast('尚無資料可上傳');return;}
+  setSync('loading','上傳中…');
+  try{
+    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'save',results,seq})});
+    const d=await res.json();
+    if(d.error)throw new Error(d.error);
+    setSync('ok','已上傳 '+d.count+' 筆');toast('✓ 已同步 '+d.count+' 筆到 Google Sheets');
+  }catch(e){setSync('err','上傳失敗');toast('❌ 上傳失敗：'+e.message);}
+}
+
+// ── 分頁 / 工具 ──
+function showTab(t){
+  document.getElementById('tab-rc').classList.toggle('on',t==='rc');
+  document.getElementById('tab-st').classList.toggle('on',t==='st');
+  document.getElementById('v-rc').style.display=t==='rc'?'block':'none';
+  document.getElementById('v-st').style.display=t==='st'?'block':'none';
+  if(t==='st')renderStats();
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';
+  clearTimeout(t._x);t._x=setTimeout(()=>t.style.display='none',2800);
+}
+const dz=document.getElementById('drop');
+['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('on');}));
+['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('on');}));
+dz.addEventListener('drop',ev=>handleFiles(ev.dataTransfer.files));
+
+window.handleFiles=handleFiles;window.selAll=selAll;window.clearPending=clearPending;
+window.writeIn=writeIn;window.gasLoad=gasLoad;window.gasSave=gasSave;
+window.renderRecords=renderRecords;window.delRec=delRec;window.showTab=showTab;
+window.openAdd=openAdd;window.closeAdd=closeAdd;window.saveAdd=saveAdd;window.exportXlsx=exportXlsx;
+
+loadData();fillFilters();renderRecords();renderStats();gasPing();
+</script>
+</body>
+<!-- ac_audit_intake_msg_v2.html · v2.0 · 2026-07-11 · 鍵 msgProcessor_data · GAS: ping/load/save/tg -->
+</html>

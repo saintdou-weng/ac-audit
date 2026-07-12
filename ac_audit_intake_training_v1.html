@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>培訓記錄匯入 v1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f5f4f0;--surface:#fff;--txt:#1a1a1a;--txt2:#4a4a44;--muted:#8a8a80;
+--border:#dddad2;--khaki:#b8a888;--khaki-d:#8a7a5a;--linen:#efece4;
+--ok:#2e7d32;--warn:#b45309;--err:#c62828;--r:12px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI','Noto Sans TC',sans-serif}
+body{background:var(--bg);color:var(--txt);padding-bottom:90px}
+.hdr{background:#1a1a1a;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.hdr a{color:#b8a888;text-decoration:none;font-size:13px;min-height:44px;display:flex;align-items:center}
+.hdr h1{font-size:15px;font-weight:700;flex:1}
+.wrap{max-width:1080px;margin:0 auto;padding:14px}
+.drop{border:2px dashed var(--khaki);border-radius:var(--r);background:var(--linen);
+padding:26px 14px;text-align:center;cursor:pointer;margin-bottom:12px}
+.drop.on{background:#e8e2d2;border-color:var(--khaki-d)}
+.drop .t1{font-size:14px;font-weight:700;color:var(--txt2)}
+.drop .t2{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6}
+.btn{min-height:44px;padding:9px 15px;border:none;border-radius:9px;font-size:13px;font-weight:700;
+cursor:pointer;background:var(--linen);color:var(--txt2)}
+.btn-p{background:#1a1a1a;color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.cnt{font-size:12px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:12px}
+.pttl{font-size:13px;font-weight:700;margin-bottom:9px;color:var(--khaki-d)}
+.ai{font-size:12px;line-height:1.9;color:var(--txt2)}
+.ai b{color:var(--txt)}
+.ai .hot{color:var(--err);font-weight:700}
+.twrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;margin-bottom:12px}
+table{border-collapse:collapse;width:100%;min-width:860px}
+th{background:var(--linen);font-size:11px;font-weight:700;color:var(--txt2);padding:8px;text-align:left;
+border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0}
+td{font-size:12px;padding:7px 8px;border-bottom:1px solid #eee;vertical-align:middle}
+tr.skip{opacity:.4}
+tr.bad td{background:#fdf3e8}
+td input[type=checkbox]{width:19px;height:19px;accent-color:var(--khaki-d)}
+.warnc{font-size:10px;color:var(--warn);font-weight:700}
+.del{min-width:40px;min-height:34px;border:none;border-radius:8px;background:#fde8e8;color:var(--err);font-weight:700;cursor:pointer;font-size:12px}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 0}
+#toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;
+padding:11px 20px;border-radius:99px;font-size:13px;display:none;z-index:99;max-width:90vw}
+.foot{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);
+padding:10px 14px;display:none;justify-content:center;gap:9px;z-index:50;flex-wrap:wrap}
+.foot.on{display:flex}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <a href="ac_audit_intake_portal_v1.html">←</a>
+  <h1>🎓 培訓記錄匯入（Excel）</h1>
+  <button class="btn" onclick="exportCur()">⬇ 匯出現有記錄</button>
+</div>
+<div class="wrap">
+  <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
+    <div class="t1">📄 拖入培訓記錄 Excel（.xlsx / .xls），或點此選取</div>
+    <div class="t2">欄位自動辨識：No/Subject/Dept/Trainer/Date/Time/Duration/Participant/Attendees/Absences/Remarks（中英皆可）<br>
+    解析 → 智慧分析 → 勾選確認 → 寫入培訓計劃系統（依日期自動歸入各月份）</div>
+  </div>
+  <input type="file" id="fi" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0]);this.value=''">
+
+  <div id="ai-panel" class="panel" style="display:none">
+    <div class="pttl">🤖 智慧解讀</div>
+    <div class="ai" id="ai-body"></div>
+  </div>
+
+  <div class="bar" id="selbar" style="display:none">
+    <button class="btn" onclick="selAll(true)">全選</button>
+    <button class="btn" onclick="selAll(false)">全不選</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div id="tbl"></div>
+</div>
+<div class="foot" id="foot">
+  <button class="btn" onclick="clearAll()">清除</button>
+  <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2)">
+    <input type="checkbox" id="tg-on" checked style="width:18px;height:18px;accent-color:var(--khaki-d)">通知 TG
+  </label>
+  <button class="btn btn-p" id="btn-w" onclick="writeIn()">✓ 確認寫入培訓系統</button>
+</div>
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  培訓記錄匯入 v1 · 寫入鍵：vrt3_rc（vrt_training_v1.html 的記錄庫）
+//  記錄格式：{id,seq,subject,dept,trainer,date,time,duration,
+//            participant,attendees,absences,remarks}，依月份鍵 YYYY-MM 分組
+//  ⚠ 匯入前請先關閉培訓系統頁面；匯入後打開培訓系統 → 按其雲端同步上傳
+//  TG 通知走外來文件 GAS 的 tg 轉發（同一隻 @acauditbot 群組）
+// ══════════════════════════════════════════════════════════════
+const GAS_URL='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
+const RC_KEY='vrt3_rc';
+
+// 欄位別名對照（小寫比對）
+const MAP={
+  seq:['no','no.','seq','序','序號','#'],
+  subject:['subject','主題','培訓主題','課程','training','topic','title'],
+  dept:['dept','department','部門','organizer','主辦'],
+  trainer:['trainer','講師','instructor','teacher'],
+  date:['date','日期','培訓日期'],
+  time:['time','時間'],
+  duration:['duration','時數','hours','hour','時長'],
+  participant:['participant','participants','對象','trainee','trainees','培訓對象'],
+  attendees:['attendees','attendee','出席','出席人數','attendance'],
+  absences:['absences','absence','缺席','缺席人數','absent'],
+  remarks:['remarks','remark','備註','note','notes']
+};
+
+let rows=[]; // {sel,warn,subject,dept,trainer,date,time,duration,participant,attendees,absences,remarks,dup}
+
+function serialToDate(n){
+  // Excel 序列日 → YYYY-MM-DD（UTC 計算避免時區位移）
+  const d=new Date(Date.UTC(1899,11,30)+Math.round(n)*86400000);
+  return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
+}
+function normDate(v){
+  if(v==null||v==='')return'';
+  if(typeof v==='number'&&v>20000&&v<80000)return serialToDate(v);
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(m)return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+  m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if(m)return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0'); // 預設 日/月/年
+  return'';
+}
+
+function handleFile(f){
+  if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false,raw:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+      parseAoa(aoa);
+    }catch(err){toast('讀取失敗：'+err.message);}
+  };
+  rd.readAsArrayBuffer(f);
+}
+
+function parseAoa(aoa){
+  // 找標題列（前 10 列內含 subject/date 對應字的那列）
+  let hi=-1,colMap={};
+  for(let i=0;i<Math.min(10,aoa.length);i++){
+    const cells=(aoa[i]||[]).map(c=>String(c).trim().toLowerCase());
+    const cm={};
+    Object.entries(MAP).forEach(([field,aliases])=>{
+      const ci=cells.findIndex(c=>c&&aliases.includes(c));
+      if(ci>-1)cm[field]=ci;
+    });
+    if(cm.subject!=null&&cm.date!=null){hi=i;colMap=cm;break;}
+  }
+  if(hi<0){toast('找不到標題列（至少需含 Subject/主題 與 Date/日期 欄）');return;}
+
+  const existing=loadRC();
+  const exKeys=new Set();
+  Object.values(existing).forEach(list=>list.forEach(r=>exKeys.add((r.date||'')+'|'+(r.subject||'').toLowerCase()+'|'+(r.trainer||'').toLowerCase())));
+
+  rows=[];
+  for(let i=hi+1;i<aoa.length;i++){
+    const r=aoa[i]||[];
+    const get=f=>colMap[f]!=null?String(r[colMap[f]]==null?'':r[colMap[f]]).trim():'';
+    const subject=get('subject');
+    if(!subject)continue; // 空列/小計列跳過
+    const rawDate=colMap.date!=null?r[colMap.date]:'';
+    const date=normDate(rawDate);
+    const att=parseInt(get('attendees'))||0;
+    const abs=parseInt(get('absences'))||0;
+    const warn=[];
+    if(!date)warn.push('日期無法解析');
+    const dup=date&&exKeys.has(date+'|'+subject.toLowerCase()+'|'+get('trainer').toLowerCase());
+    if(dup)warn.push('疑似重複');
+    rows.push({sel:!warn.length,warn:warn.join('、'),dup,
+      subject,dept:get('dept'),trainer:get('trainer'),date,time:get('time'),
+      duration:get('duration'),participant:get('participant'),
+      attendees:att,absences:abs,remarks:get('remarks')});
+  }
+  if(!rows.length){toast('沒有解析到任何資料列');return;}
+  render();renderAI();
+}
+
+function renderAI(){
+  const el=document.getElementById('ai-panel'),body=document.getElementById('ai-body');
+  if(!rows.length){el.style.display='none';return;}
+  el.style.display='block';
+  const ok=rows.filter(r=>r.date);
+  const byM={};ok.forEach(r=>{const k=r.date.slice(0,7);byM[k]=(byM[k]||0)+1;});
+  const byT={};rows.forEach(r=>{if(r.trainer)byT[r.trainer]=(byT[r.trainer]||0)+1;});
+  const topT=Object.entries(byT).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const totAtt=rows.reduce((a,r)=>a+r.attendees,0);
+  const totAbs=rows.reduce((a,r)=>a+r.absences,0);
+  const bad=rows.filter(r=>!r.date).length;
+  const dups=rows.filter(r=>r.dup).length;
+  let h='共解析 <b>'+rows.length+'</b> 筆培訓記錄，涵蓋月份：'+
+    (Object.entries(byM).sort().map(([k,v])=>k+'（'+v+'筆）').join('、')||'—')+'。<br>';
+  h+='總出席 <b>'+totAtt+'</b> 人次';
+  if(totAbs)h+='、缺席 <b>'+totAbs+'</b> 人次（缺席率 '+Math.round(totAbs/(totAtt+totAbs)*100)+'%）';
+  h+='。';
+  if(topT.length)h+='主要講師：'+topT.map(([k,v])=>k+' '+v+'場').join('、')+'。<br>';
+  if(bad)h+='<span class="hot">⚠ '+bad+' 筆日期無法解析（列已標橘，預設不匯入，可先在 Excel 修正後重丟）。</span><br>';
+  if(dups)h+='<span style="color:var(--warn)">⚠ '+dups+' 筆與培訓系統既有記錄疑似重複（同日期+主題+講師），預設不匯入。</span>';
+  body.innerHTML=h;
+}
+
+function render(){
+  const el=document.getElementById('tbl');
+  if(!rows.length){el.innerHTML='<div class="empty">尚未載入檔案</div>';
+    document.getElementById('selbar').style.display='none';
+    document.getElementById('foot').classList.remove('on');return;}
+  document.getElementById('selbar').style.display='flex';
+  document.getElementById('foot').classList.add('on');
+  el.innerHTML='<div class="twrap"><table><thead><tr>'+
+    '<th></th><th>日期</th><th>主題</th><th>部門</th><th>講師</th><th>時間</th><th>時數</th><th>對象</th><th>出席</th><th>缺席</th><th>備註</th><th>警告</th><th></th>'+
+    '</tr></thead><tbody>'+
+    rows.map((r,i)=>'<tr class="'+(r.sel?'':'skip ')+(r.warn&&!r.dup?'bad':'')+'">'+
+      '<td><input type="checkbox" '+(r.sel?'checked':'')+' onchange="rows['+i+'].sel=this.checked;render()"></td>'+
+      '<td>'+esc(r.date||'—')+'</td><td>'+esc(r.subject)+'</td><td>'+esc(r.dept)+'</td>'+
+      '<td>'+esc(r.trainer)+'</td><td>'+esc(r.time)+'</td><td>'+esc(r.duration)+'</td>'+
+      '<td>'+esc(r.participant)+'</td><td>'+r.attendees+'</td><td>'+r.absences+'</td>'+
+      '<td>'+esc(r.remarks)+'</td><td class="warnc">'+esc(r.warn||'')+'</td>'+
+      '<td><button class="del" onclick="rows.splice('+i+',1);render();renderAI()">刪</button></td></tr>').join('')+
+    '</tbody></table></div>';
+  const n=rows.filter(x=>x.sel).length;
+  document.getElementById('cnt').textContent='已勾選 '+n+' / '+rows.length+' 筆';
+  document.getElementById('btn-w').disabled=!n;
+}
+function selAll(v){rows.forEach(x=>{if(x.date)x.sel=v;});render();}
+function clearAll(){rows=[];render();renderAI();}
+
+// ── 寫入 vrt3_rc ──
+function loadRC(){
+  try{const raw=localStorage.getItem(RC_KEY);if(raw)return JSON.parse(raw)||{};}catch(e){}
+  return{};
+}
+let writing=false;
+function writeIn(){
+  if(writing)return;
+  const picked=rows.filter(x=>x.sel&&x.date);
+  if(!picked.length){toast('勾選的記錄需有有效日期');return;}
+  writing=true;document.getElementById('btn-w').disabled=true;
+  const rc=loadRC();
+  const months={};
+  picked.forEach((r,idx)=>{
+    const key=r.date.slice(0,7);
+    if(!rc[key])rc[key]=[];
+    rc[key].push({id:'r'+Date.now()+'_'+idx,seq:rc[key].length+1,
+      subject:r.subject,dept:r.dept,trainer:r.trainer,date:r.date,time:r.time,
+      duration:r.duration,participant:r.participant,
+      attendees:r.attendees,absences:r.absences,remarks:r.remarks});
+    months[key]=(months[key]||0)+1;
+  });
+  try{
+    localStorage.setItem(RC_KEY,JSON.stringify(rc));
+  }catch(e){toast('寫入失敗：'+e.message);writing=false;return;}
+  toast('✓ 已寫入 '+picked.length+' 筆到培訓系統');
+  if(document.getElementById('tg-on').checked){
+    const lines=['本次匯入 '+picked.length+' 筆培訓記錄：'];
+    Object.entries(months).sort().forEach(([k,v])=>lines.push('• '+k+'：'+v+' 筆'));
+    const totAtt=picked.reduce((a,r)=>a+r.attendees,0);
+    lines.push('','總出席 '+totAtt+' 人次');
+    lines.push('請打開培訓系統執行雲端同步上傳');
+    fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'tg',title:'培訓記錄匯入通知',lines})})
+      .then(r=>r.json()).then(d=>{if(d.ok)toast('✓ 已寫入並通知 Telegram');})
+      .catch(()=>{});
+  }
+  rows=[];writing=false;render();renderAI();
+}
+
+// ── 匯出現有記錄 ──
+function exportCur(){
+  const rc=loadRC();
+  const all=[];
+  Object.entries(rc).sort().forEach(([m,list])=>list.forEach(r=>all.push([m,r.seq,r.subject,r.dept,r.trainer,r.date,r.time,r.duration,r.participant,r.attendees,r.absences,r.remarks])));
+  if(!all.length){toast('培訓系統目前無記錄');return;}
+  const ws=XLSX.utils.aoa_to_sheet([['Month','No','Subject','Dept','Trainer','Date','Time','Duration','Participant','Attendees','Absences','Remarks'],...all]);
+  ws['!cols']=[{wch:9},{wch:5},{wch:40},{wch:18},{wch:16},{wch:11},{wch:12},{wch:8},{wch:20},{wch:8},{wch:8},{wch:20}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'培訓記錄');
+  const d=new Date();
+  const stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb,'VRT_培訓記錄_'+stamp+'.xlsx');
+}
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';
+  clearTimeout(t._x);t._x=setTimeout(()=>t.style.display='none',2800);
+}
+const dz=document.getElementById('drop');
+['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('on');}));
+['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('on');}));
+dz.addEventListener('drop',ev=>handleFile(ev.dataTransfer.files[0]));
+
+window.handleFile=handleFile;window.selAll=selAll;window.clearAll=clearAll;
+window.writeIn=writeIn;window.exportCur=exportCur;window.render=render;window.renderAI=renderAI;
+render();
+</script>
+</body>
+<!-- ac_audit_intake_training_v1.html · v1.0 · 2026-07-11 · 寫入鍵 vrt3_rc -->
+</html>

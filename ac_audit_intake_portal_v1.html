@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AC Audit 匯入中心 v1</title>
+<style>
+:root{--bg:#f5f4f0;--surface:#ffffff;--txt:#1a1a1a;--txt2:#4a4a44;--muted:#8a8a80;
+--border:#dddad2;--khaki:#b8a888;--khaki-d:#8a7a5a;--linen:#efece4;--ok:#2e7d32;--warn:#b45309;--r:12px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI','Noto Sans TC',sans-serif}
+body{background:var(--bg);color:var(--txt);min-height:100vh}
+.hdr{background:#1a1a1a;color:#fff;padding:18px 20px}
+.hdr h1{font-size:18px;font-weight:700;letter-spacing:1px}
+.hdr .sub{font-size:11px;color:#b8a888;margin-top:3px;letter-spacing:.5px}
+.wrap{max-width:860px;margin:0 auto;padding:20px 16px 40px}
+.note{background:var(--linen);border:1px solid var(--border);border-radius:var(--r);
+padding:13px 15px;font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:18px}
+.note b{color:var(--khaki-d)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+a.card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+padding:18px 16px;text-decoration:none;color:var(--txt);transition:all .15s;min-height:110px}
+a.card:active,a.card:hover{border-color:var(--khaki);box-shadow:0 3px 12px rgba(138,122,90,.15);transform:translateY(-1px)}
+a.card.off{opacity:.45;pointer-events:none}
+.ci{font-size:26px;margin-bottom:8px}
+.ct{font-size:14px;font-weight:700;margin-bottom:4px}
+.cd{font-size:11px;color:var(--muted);line-height:1.5}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;margin-top:8px;font-weight:700}
+.tag.ok{background:#e6f2e6;color:var(--ok)}
+.tag.soon{background:#f4ede0;color:var(--warn)}
+.sec{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;margin:22px 0 10px}
+.ft{margin-top:30px;font-size:10px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <h1>📥 AC AUDIT 匯入中心</h1>
+  <div class="sub">Intake Hub · 直接丟檔，免進子系統逐筆輸入 · SAINTDOU</div>
+</div>
+<div class="wrap">
+  <div class="note">
+    <b>使用規則：</b>① 匯入前請先<b>關閉</b>對應子系統的頁面，匯入完成後再打開（避免兩邊同時寫入互蓋）。
+    ② 所有匯入均為「解析 → 智慧分析 → 預覽勾選 → 確認寫入」。
+    ③ 本頁與各匯入模組必須與子系統放在<b>同一個 repo</b>（同網域才共用本機儲存）。
+    ④ 寫入成功會自動推播 Telegram 通知（可在頁面上關閉）。
+  </div>
+
+  <div class="sec">已上線</div>
+  <div class="grid">
+    <a class="card" href="ac_audit_intake_msg_v2.html">
+      <div class="ci">📨</div>
+      <div class="ct">外來文件匯入管理（.msg）</div>
+      <div class="cd">拖入 Outlook 郵件 → 精簡中文重點 → 寫入外來文件管制 · 含雲端同步/匯出/新增刪減/統計</div>
+      <span class="tag ok">可用</span>
+    </a>
+    <a class="card" href="ac_audit_intake_training_v1.html">
+      <div class="ci">🎓</div>
+      <div class="ct">培訓記錄匯入（Excel）</div>
+      <div class="cd">拖入培訓記錄 Excel → 欄位自動對應＋智慧分析 → 寫入培訓計劃系統（依月份歸檔）</div>
+      <span class="tag ok">可用</span>
+    </a>
+  </div>
+
+  <div class="sec">建置中（下一批）</div>
+  <div class="grid">
+    <a class="card off" href="#">
+      <div class="ci">🗄</div>
+      <div class="ct">DCC 文件匯入</div>
+      <div class="cd">Excel / .msg → 文件、證照、會議記錄</div>
+      <span class="tag soon">建置中</span>
+    </a>
+    <a class="card off" href="#">
+      <div class="ci">📋</div>
+      <div class="ct">稽核評估匯入</div>
+      <div class="cd">Excel → 稽核缺失項與改善追蹤</div>
+      <span class="tag soon">建置中</span>
+    </a>
+    <a class="card off" href="#">
+      <div class="ci">📝</div>
+      <div class="ct">損壞/遺失報告匯入</div>
+      <div class="cd">Excel / 訊息 → 報告記錄</div>
+      <span class="tag soon">建置中</span>
+    </a>
+  </div>
+
+  <div class="ft">AC Audit Intake Portal v1.0 · 2026-07-11 · Vantage River Textiles</div>
+</div>
+</body>
+<!-- ac_audit_intake_portal_v1.html · v1.0 · 2026-07-11 -->
+</html>
