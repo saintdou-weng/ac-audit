@@ -963,8 +963,7 @@ function exportPDF(k){
    '<table><tr>'+M.cols.map(c=>'<th>'+esc(colHead(k,c))+'</th>').join('')+'</tr>';
   rows.forEach(r=>{h+='<tr>'+M.cols.map(c=>'<td>'+cellVal(k,r,c)+'</td>').join('')+'</tr>'});
   h+='</table><div class="ft">'+esc(t('printedOn'))+' '+fmtDT(new Date())+' · '+rows.length+' '+esc(t('records'))+' · SAINTDOU</div>'+
-     '<script>window.print()<\/script></body></html>
-<!-- ac_audit_platform_v1.html · 2026-07-12 · 修正子系統連結：damage→v2、MSG→intake_msg_v2、新增匯入中心 -->';
+     '<script>window.print()<\/script></body></html>';
   w.document.write(h);w.document.close();
 }
 function importExcel(k){
@@ -1402,4 +1401,4 @@ window.addEventListener('hashchange',()=>{const k=location.hash.slice(1);
 </script>
 </body>
 </html>
-<!-- ac_audit_platform_v1.html · 2026-07-12 · 修正子系統連結：damage→v2、MSG→intake_msg_v2、新增匯入中心 -->
+<!-- ac_audit_platform_v1.html · 2026-07-12 · 子系統連結修正：damage→v2、MSG→intake_msg_v2、新增匯入中心；其餘未動 -->
