@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DCC 文件匯入 v1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f5f4f0;--surface:#fff;--txt:#1a1a1a;--txt2:#4a4a44;--muted:#8a8a80;
+--border:#dddad2;--khaki:#b8a888;--khaki-d:#8a7a5a;--linen:#efece4;
+--ok:#2e7d32;--warn:#b45309;--err:#c62828;--r:12px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI','Noto Sans TC',sans-serif}
+body{background:var(--bg);color:var(--txt);padding-bottom:90px}
+.hdr{background:#1a1a1a;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.hdr a{color:#b8a888;text-decoration:none;font-size:13px;min-height:44px;display:flex;align-items:center}
+.hdr h1{font-size:15px;font-weight:700;flex:1}
+.wrap{max-width:1080px;margin:0 auto;padding:14px}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{min-height:44px;padding:8px 18px;border:none;border-radius:9px;background:var(--linen);
+color:var(--txt2);font-size:13px;font-weight:700;cursor:pointer}
+.tab.on{background:#1a1a1a;color:#fff}
+.drop{border:2px dashed var(--khaki);border-radius:var(--r);background:var(--linen);
+padding:24px 14px;text-align:center;cursor:pointer;margin-bottom:12px}
+.drop.on{background:#e8e2d2;border-color:var(--khaki-d)}
+.drop .t1{font-size:14px;font-weight:700;color:var(--txt2)}
+.drop .t2{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6}
+.btn{min-height:44px;padding:9px 15px;border:none;border-radius:9px;font-size:13px;font-weight:700;
+cursor:pointer;background:var(--linen);color:var(--txt2)}
+.btn-p{background:#1a1a1a;color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.cnt{font-size:12px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:12px}
+.pttl{font-size:13px;font-weight:700;margin-bottom:9px;color:var(--khaki-d)}
+.ai{font-size:12px;line-height:1.9;color:var(--txt2)}
+.ai b{color:var(--txt)}
+.ai .hot{color:var(--err);font-weight:700}
+.twrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;margin-bottom:12px}
+table{border-collapse:collapse;width:100%;min-width:820px}
+th{background:var(--linen);font-size:11px;font-weight:700;color:var(--txt2);padding:8px;text-align:left;
+border-bottom:1px solid var(--border);white-space:nowrap}
+td{font-size:12px;padding:7px 8px;border-bottom:1px solid #eee}
+tr.skip{opacity:.4}
+tr.bad td{background:#fdf3e8}
+td input[type=checkbox]{width:19px;height:19px;accent-color:var(--khaki-d)}
+.warnc{font-size:10px;color:var(--warn);font-weight:700}
+.del{min-width:40px;min-height:34px;border:none;border-radius:8px;background:#fde8e8;color:var(--err);font-weight:700;cursor:pointer;font-size:12px}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 0}
+#toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;
+padding:11px 20px;border-radius:99px;font-size:13px;display:none;z-index:99;max-width:90vw}
+.foot{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);
+padding:10px 14px;display:none;justify-content:center;gap:9px;z-index:50;flex-wrap:wrap}
+.foot.on{display:flex}
+.pill{font-size:10px;padding:2px 8px;border-radius:99px;background:var(--linen);color:var(--txt2);font-weight:700}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <a href="ac_audit_intake_portal_v1.html">←</a>
+  <h1>🗄 DCC 文件匯入（Excel）</h1>
+  <button class="btn" onclick="exportCur()">⬇ 匯出現有資料</button>
+</div>
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab on" id="t-docs" onclick="setMode('docs')">📄 文件 Documents</button>
+    <button class="tab" id="t-certs" onclick="setMode('certs')">🪪 證照 Certificates</button>
+  </div>
+  <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
+    <div class="t1" id="dz-t1">📄 拖入文件清單 Excel，或點此選取</div>
+    <div class="t2" id="dz-t2">文件欄位：DocNum/文件編號、Title/標題、Cat/分類、Ver/版次、Owner/負責人、Date/日期、Status/狀態、Remarks/備註</div>
+  </div>
+  <input type="file" id="fi" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0]);this.value=''">
+
+  <div id="ai-panel" class="panel" style="display:none">
+    <div class="pttl">🤖 智慧解讀</div>
+    <div class="ai" id="ai-body"></div>
+  </div>
+
+  <div class="bar" id="selbar" style="display:none">
+    <button class="btn" onclick="selAll(true)">全選</button>
+    <button class="btn" onclick="selAll(false)">全不選</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div id="tbl"></div>
+</div>
+<div class="foot" id="foot">
+  <button class="btn" onclick="clearAll()">清除</button>
+  <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2)">
+    <input type="checkbox" id="tg-on" checked style="width:18px;height:18px;accent-color:var(--khaki-d)">通知 TG
+  </label>
+  <button class="btn btn-p" id="btn-w" onclick="writeIn()">✓ 確認寫入 DCC</button>
+</div>
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  DCC 文件匯入 v1 · 寫入鍵：vrt_dcc_v2（VRT_DCC_v2.html 的資料庫）
+//  結構：{S:{docs:[],certs:[],mtgs:[],ext:[]},extSeq}
+//  docs：{id,docNum,title,cat,ver,owner,date,status,remarks,createdAt}
+//  certs：{id,holder,expiry,type,docNo,nat,issue,remarks,createdAt}
+//  ⚠ 匯入前請關閉 DCC 頁面，匯入後再打開
+// ══════════════════════════════════════════════════════════════
+const GAS_URL='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
+const DB_KEY='vrt_dcc_v2';
+
+const DOC_CATS=['SOP','Policy','Form','Record','Report','Other'];
+const CERT_TYPES=['Work Permit','Business Visa','E-Visa','Passport','ID Card','Certificate','License','Other'];
+
+const MAP_DOCS={
+  docNum:['docnum','doc num','doc no','doc no.','document no','文件編號','編號','no','no.'],
+  title:['title','標題','名稱','文件名稱','document title','name'],
+  cat:['cat','category','分類','類別','type'],
+  ver:['ver','version','版次','版本'],
+  owner:['owner','負責人','擁有者','部門'],
+  date:['date','日期','更新日期','updated'],
+  status:['status','狀態'],
+  remarks:['remarks','remark','備註','note','notes']
+};
+const MAP_CERTS={
+  holder:['holder','持有人','姓名','name'],
+  type:['type','類型','證件類型','證照類型'],
+  docNo:['docno','doc no','doc no.','文件號碼','證件號碼','號碼','number'],
+  nat:['nat','nationality','國籍'],
+  issue:['issue','issue date','簽發日','發證日'],
+  expiry:['expiry','expiry date','到期日','有效期','expire','expiration'],
+  remarks:['remarks','remark','備註','note','notes']
+};
+
+let mode='docs',rows=[];
+
+function setMode(m){
+  mode=m;rows=[];render();renderAI();
+  document.getElementById('t-docs').classList.toggle('on',m==='docs');
+  document.getElementById('t-certs').classList.toggle('on',m==='certs');
+  document.getElementById('dz-t1').textContent=m==='docs'?'📄 拖入文件清單 Excel，或點此選取':'🪪 拖入證照清單 Excel，或點此選取';
+  document.getElementById('dz-t2').textContent=m==='docs'
+    ?'文件欄位：DocNum/文件編號、Title/標題、Cat/分類、Ver/版次、Owner/負責人、Date/日期、Status/狀態、Remarks/備註'
+    :'證照欄位：Holder/持有人、Type/類型、DocNo/號碼、Nat/國籍、Issue/簽發日、Expiry/到期日、Remarks/備註';
+}
+
+function genId(p){return p+'-'+Date.now().toString(36).toUpperCase()+Math.random().toString(36).substr(2,3).toUpperCase();}
+function localISO(){
+  const d=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds());
+}
+function serialToDate(n){
+  const d=new Date(Date.UTC(1899,11,30)+Math.round(n)*86400000);
+  return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
+}
+function normDate(v){
+  if(v==null||v==='')return'';
+  if(typeof v==='number'&&v>20000&&v<80000)return serialToDate(v);
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(m)return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+  m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if(m)return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+  return'';
+}
+function daysUntil(s){
+  if(!s)return null;
+  const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return null;
+  const d=new Date(+m[1],+m[2]-1,+m[3]);
+  const now=new Date();const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return Math.ceil((d-today)/86400000);
+}
+
+function loadDB(){
+  try{const raw=localStorage.getItem(DB_KEY);
+    if(raw){const d=JSON.parse(raw);
+      return{S:{docs:d.S?.docs||[],certs:d.S?.certs||[],mtgs:d.S?.mtgs||[],ext:d.S?.ext||[]},extSeq:d.extSeq||1};}}catch(e){}
+  return{S:{docs:[],certs:[],mtgs:[],ext:[]},extSeq:1};
+}
+
+function handleFile(f){
+  if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false,raw:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+      parseAoa(aoa);
+    }catch(err){toast('讀取失敗：'+err.message);}
+  };
+  rd.readAsArrayBuffer(f);
+}
+
+function parseAoa(aoa){
+  const MAP=mode==='docs'?MAP_DOCS:MAP_CERTS;
+  const req=mode==='docs'?['docNum','title']:['holder','expiry'];
+  let hi=-1,colMap={};
+  for(let i=0;i<Math.min(10,aoa.length);i++){
+    const cells=(aoa[i]||[]).map(c=>String(c).trim().toLowerCase());
+    const cm={};
+    Object.entries(MAP).forEach(([field,aliases])=>{
+      const ci=cells.findIndex(c=>c&&aliases.includes(c));
+      if(ci>-1)cm[field]=ci;
+    });
+    if(req.every(f=>cm[f]!=null)){hi=i;colMap=cm;break;}
+  }
+  if(hi<0){toast('找不到標題列（'+(mode==='docs'?'需含 DocNum/文件編號 與 Title/標題':'需含 Holder/持有人 與 Expiry/到期日')+'）');return;}
+
+  const db=loadDB();
+  const exDocs=new Set(db.S.docs.map(d=>(d.docNum||'').toLowerCase()));
+  const exCerts=new Set(db.S.certs.map(c=>((c.holder||'')+'|'+(c.type||'')+'|'+(c.expiry||'')).toLowerCase()));
+
+  rows=[];
+  for(let i=hi+1;i<aoa.length;i++){
+    const r=aoa[i]||[];
+    const get=f=>colMap[f]!=null?String(r[colMap[f]]==null?'':r[colMap[f]]).trim():'';
+    if(mode==='docs'){
+      const docNum=get('docNum'),title=get('title');
+      if(!docNum&&!title)continue;
+      const warn=[];
+      if(!docNum)warn.push('缺文件編號');
+      if(!title)warn.push('缺標題');
+      const dup=docNum&&exDocs.has(docNum.toLowerCase());
+      if(dup)warn.push('編號已存在');
+      let cat=get('cat');cat=DOC_CATS.find(c=>c.toLowerCase()===cat.toLowerCase())||'SOP';
+      let status=get('status').toLowerCase();
+      status=['active','draft','obsolete'].includes(status)?status:
+        (/廢|obsolete/i.test(get('status'))?'obsolete':/草|draft/i.test(get('status'))?'draft':'active');
+      rows.push({sel:!warn.length,warn:warn.join('、'),dup,
+        docNum,title,cat,ver:get('ver'),owner:get('owner'),date:normDate(colMap.date!=null?r[colMap.date]:''),status,remarks:get('remarks')});
+    }else{
+      const holder=get('holder');
+      if(!holder)continue;
+      const expiry=normDate(colMap.expiry!=null?r[colMap.expiry]:'');
+      const warn=[];
+      if(!expiry)warn.push('到期日無法解析');
+      let type=get('type');type=CERT_TYPES.find(t=>t.toLowerCase()===type.toLowerCase())||
+        (type?'Other':'Other');
+      const dup=expiry&&exCerts.has((holder+'|'+type+'|'+expiry).toLowerCase());
+      if(dup)warn.push('疑似重複');
+      rows.push({sel:!warn.length,warn:warn.join('、'),dup,
+        holder,type,docNo:get('docNo'),nat:get('nat'),
+        issue:normDate(colMap.issue!=null?r[colMap.issue]:''),expiry,remarks:get('remarks')});
+    }
+  }
+  if(!rows.length){toast('沒有解析到任何資料列');return;}
+  render();renderAI();
+}
+
+function renderAI(){
+  const el=document.getElementById('ai-panel'),body=document.getElementById('ai-body');
+  if(!rows.length){el.style.display='none';return;}
+  el.style.display='block';
+  let h='共解析 <b>'+rows.length+'</b> 筆'+(mode==='docs'?'文件':'證照')+'。<br>';
+  if(mode==='docs'){
+    const byCat={};rows.forEach(r=>{byCat[r.cat]=(byCat[r.cat]||0)+1;});
+    h+='分類：'+Object.entries(byCat).map(([k,v])=>k+' '+v+'筆').join('、')+'。';
+    const obs=rows.filter(r=>r.status==='obsolete').length;
+    if(obs)h+='其中 '+obs+' 筆為廢止狀態。';
+  }else{
+    let expired=0,urgent=0,warning=0,valid=0;
+    rows.forEach(r=>{const d=daysUntil(r.expiry);
+      if(d==null)return;
+      if(d<0)expired++;else if(d<=30)urgent++;else if(d<=90)warning++;else valid++;});
+    h+='到期狀態：';
+    if(expired)h+='<span class="hot">已過期 '+expired+' 筆</span>、';
+    if(urgent)h+='<span class="hot">30 天內到期 '+urgent+' 筆</span>、';
+    if(warning)h+='<span style="color:var(--warn);font-weight:700">90 天內到期 '+warning+' 筆</span>、';
+    h+='有效 '+valid+' 筆。<br>';
+    const soon=rows.filter(r=>{const d=daysUntil(r.expiry);return d!=null&&d<=30;});
+    if(soon.length){h+='<span class="hot">⚠ 急件清單：</span><br>';
+      soon.forEach(r=>{const d=daysUntil(r.expiry);
+        h+='• '+esc(r.holder)+'（'+esc(r.type)+'）'+r.expiry+(d<0?'（已過期 '+(-d)+' 天）':'（剩 '+d+' 天）')+'<br>';});}
+  }
+  const bad=rows.filter(r=>r.warn&&!r.dup).length;
+  const dups=rows.filter(r=>r.dup).length;
+  if(bad)h+='<span class="hot">⚠ '+bad+' 筆有欄位問題（標橘，預設不匯入）。</span><br>';
+  if(dups)h+='<span style="color:var(--warn)">⚠ '+dups+' 筆與 DCC 既有資料疑似重複，預設不匯入。</span>';
+  body.innerHTML=h;
+}
+
+function render(){
+  const el=document.getElementById('tbl');
+  if(!rows.length){el.innerHTML='<div class="empty">尚未載入檔案</div>';
+    document.getElementById('selbar').style.display='none';
+    document.getElementById('foot').classList.remove('on');return;}
+  document.getElementById('selbar').style.display='flex';
+  document.getElementById('foot').classList.add('on');
+  let head,body;
+  if(mode==='docs'){
+    head='<th></th><th>文件編號</th><th>標題</th><th>分類</th><th>版次</th><th>負責人</th><th>日期</th><th>狀態</th><th>備註</th><th>警告</th><th></th>';
+    body=rows.map((r,i)=>'<tr class="'+(r.sel?'':'skip ')+(r.warn&&!r.dup?'bad':'')+'">'+
+      '<td><input type="checkbox" '+(r.sel?'checked':'')+' onchange="rows['+i+'].sel=this.checked;render()"></td>'+
+      '<td>'+esc(r.docNum)+'</td><td>'+esc(r.title)+'</td><td><span class="pill">'+r.cat+'</span></td>'+
+      '<td>'+esc(r.ver)+'</td><td>'+esc(r.owner)+'</td><td>'+esc(r.date||'—')+'</td><td>'+r.status+'</td>'+
+      '<td>'+esc(r.remarks)+'</td><td class="warnc">'+esc(r.warn||'')+'</td>'+
+      '<td><button class="del" onclick="rows.splice('+i+',1);render();renderAI()">刪</button></td></tr>').join('');
+  }else{
+    head='<th></th><th>持有人</th><th>類型</th><th>號碼</th><th>國籍</th><th>簽發日</th><th>到期日</th><th>剩餘</th><th>備註</th><th>警告</th><th></th>';
+    body=rows.map((r,i)=>{const d=daysUntil(r.expiry);
+      const rem=d==null?'—':d<0?'<span style="color:var(--err);font-weight:700">過期'+(-d)+'天</span>':d<=30?'<span style="color:var(--err);font-weight:700">'+d+'天</span>':d<=90?'<span style="color:var(--warn);font-weight:700">'+d+'天</span>':d+'天';
+      return '<tr class="'+(r.sel?'':'skip ')+(r.warn&&!r.dup?'bad':'')+'">'+
+      '<td><input type="checkbox" '+(r.sel?'checked':'')+' onchange="rows['+i+'].sel=this.checked;render()"></td>'+
+      '<td>'+esc(r.holder)+'</td><td><span class="pill">'+esc(r.type)+'</span></td><td>'+esc(r.docNo)+'</td>'+
+      '<td>'+esc(r.nat)+'</td><td>'+esc(r.issue||'—')+'</td><td>'+esc(r.expiry||'—')+'</td><td>'+rem+'</td>'+
+      '<td>'+esc(r.remarks)+'</td><td class="warnc">'+esc(r.warn||'')+'</td>'+
+      '<td><button class="del" onclick="rows.splice('+i+',1);render();renderAI()">刪</button></td></tr>';}).join('');
+  }
+  el.innerHTML='<div class="twrap"><table><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+  const n=rows.filter(x=>x.sel).length;
+  document.getElementById('cnt').textContent='已勾選 '+n+' / '+rows.length+' 筆';
+  document.getElementById('btn-w').disabled=!n;
+}
+function selAll(v){rows.forEach(x=>x.sel=v);render();}
+function clearAll(){rows=[];render();renderAI();}
+
+let writing=false;
+function writeIn(){
+  if(writing)return;
+  const picked=rows.filter(x=>x.sel);
+  if(!picked.length)return;
+  writing=true;document.getElementById('btn-w').disabled=true;
+  const db=loadDB();
+  const stamp=localISO();
+  picked.forEach(r=>{
+    if(mode==='docs'){
+      db.S.docs.push({id:genId('DOC'),docNum:r.docNum,title:r.title,cat:r.cat,ver:r.ver,
+        owner:r.owner,date:r.date,status:r.status,remarks:r.remarks,createdAt:stamp});
+    }else{
+      db.S.certs.push({id:genId('CERT'),holder:r.holder,expiry:r.expiry,type:r.type,
+        docNo:r.docNo,nat:r.nat,issue:r.issue,remarks:r.remarks,createdAt:stamp});
+    }
+  });
+  try{localStorage.setItem(DB_KEY,JSON.stringify({S:db.S,extSeq:db.extSeq}));}
+  catch(e){toast('寫入失敗：'+e.message);writing=false;return;}
+  toast('✓ 已寫入 '+picked.length+' 筆到 DCC');
+  if(document.getElementById('tg-on').checked){
+    const lines=['本次匯入 '+picked.length+' 筆'+(mode==='docs'?'文件':'證照')+'到 DCC'];
+    if(mode==='certs'){
+      const soon=picked.filter(r=>{const d=daysUntil(r.expiry);return d!=null&&d<=30;});
+      if(soon.length){lines.push('','⚠ 其中 '+soon.length+' 筆 30 天內到期：');
+        soon.forEach(r=>{const d=daysUntil(r.expiry);
+          lines.push('• '+r.holder+'（'+r.type+'）'+r.expiry+(d<0?' 已過期':' 剩'+d+'天'));});}
+    }
+    fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'tg',title:'DCC 文件匯入通知',lines})})
+      .then(r=>r.json()).then(d=>{if(d.ok)toast('✓ 已寫入並通知 Telegram');})
+      .catch(()=>{});
+  }
+  rows=[];writing=false;render();renderAI();
+}
+
+function exportCur(){
+  const db=loadDB();
+  const wb=XLSX.utils.book_new();
+  if(db.S.docs.length){
+    const rows1=db.S.docs.map((d,i)=>[i+1,d.docNum,d.title,d.cat,d.ver,d.owner,d.date,d.status,d.remarks]);
+    const ws1=XLSX.utils.aoa_to_sheet([['No','DocNum','Title','Cat','Ver','Owner','Date','Status','Remarks'],...rows1]);
+    ws1['!cols']=[{wch:5},{wch:16},{wch:40},{wch:10},{wch:8},{wch:14},{wch:11},{wch:10},{wch:24}];
+    XLSX.utils.book_append_sheet(wb,ws1,'Documents');
+  }
+  if(db.S.certs.length){
+    const rows2=db.S.certs.map((c,i)=>[i+1,c.holder,c.type,c.docNo,c.nat,c.issue,c.expiry,c.remarks]);
+    const ws2=XLSX.utils.aoa_to_sheet([['No','Holder','Type','DocNo','Nat','Issue','Expiry','Remarks'],...rows2]);
+    ws2['!cols']=[{wch:5},{wch:16},{wch:14},{wch:16},{wch:6},{wch:11},{wch:11},{wch:24}];
+    XLSX.utils.book_append_sheet(wb,ws2,'Certificates');
+  }
+  if(!wb.SheetNames.length){toast('DCC 目前無資料');return;}
+  const d=new Date();
+  const stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb,'VRT_DCC_'+stamp+'.xlsx');
+}
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';
+  clearTimeout(t._x);t._x=setTimeout(()=>t.style.display='none',2800);
+}
+const dz=document.getElementById('drop');
+['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('on');}));
+['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('on');}));
+dz.addEventListener('drop',ev=>handleFile(ev.dataTransfer.files[0]));
+
+window.handleFile=handleFile;window.setMode=setMode;window.selAll=selAll;window.clearAll=clearAll;
+window.writeIn=writeIn;window.exportCur=exportCur;window.render=render;window.renderAI=renderAI;
+render();
+</script>
+</body>
+<!-- ac_audit_intake_dcc_v1.html · v1.0 · 2026-07-11 · 寫入鍵 vrt_dcc_v2 -->
+</html>

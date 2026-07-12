@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>稽核改善追蹤匯入 v1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f5f4f0;--surface:#fff;--txt:#1a1a1a;--txt2:#4a4a44;--muted:#8a8a80;
+--border:#dddad2;--khaki:#b8a888;--khaki-d:#8a7a5a;--linen:#efece4;
+--ok:#2e7d32;--warn:#b45309;--err:#c62828;--r:12px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI','Noto Sans TC',sans-serif}
+body{background:var(--bg);color:var(--txt);padding-bottom:90px}
+.hdr{background:#1a1a1a;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.hdr a{color:#b8a888;text-decoration:none;font-size:13px;min-height:44px;display:flex;align-items:center}
+.hdr h1{font-size:15px;font-weight:700;flex:1}
+.wrap{max-width:1000px;margin:0 auto;padding:14px}
+.drop{border:2px dashed var(--khaki);border-radius:var(--r);background:var(--linen);
+padding:24px 14px;text-align:center;cursor:pointer;margin-bottom:12px}
+.drop.on{background:#e8e2d2;border-color:var(--khaki-d)}
+.drop .t1{font-size:14px;font-weight:700;color:var(--txt2)}
+.drop .t2{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6}
+.btn{min-height:44px;padding:9px 15px;border:none;border-radius:9px;font-size:13px;font-weight:700;
+cursor:pointer;background:var(--linen);color:var(--txt2)}
+.btn-p{background:#1a1a1a;color:#fff}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.cnt{font-size:12px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:12px}
+.pttl{font-size:13px;font-weight:700;margin-bottom:9px;color:var(--khaki-d)}
+.ai{font-size:12px;line-height:1.9;color:var(--txt2)}
+.ai b{color:var(--txt)}
+.ai .hot{color:var(--err);font-weight:700}
+.twrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;margin-bottom:12px}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th{background:var(--linen);font-size:11px;font-weight:700;color:var(--txt2);padding:8px;text-align:left;
+border-bottom:1px solid var(--border);white-space:nowrap}
+td{font-size:12px;padding:7px 8px;border-bottom:1px solid #eee}
+tr.skip{opacity:.4}
+tr.bad td{background:#fdf3e8}
+td input[type=checkbox]{width:19px;height:19px;accent-color:var(--khaki-d)}
+.warnc{font-size:10px;color:var(--warn);font-weight:700}
+.del{min-width:40px;min-height:34px;border:none;border-radius:8px;background:#fde8e8;color:var(--err);font-weight:700;cursor:pointer;font-size:12px}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 0}
+.st{font-size:10px;padding:2px 9px;border-radius:99px;font-weight:700}
+.st.open{background:#fde8e8;color:var(--err)}
+.st.wip{background:#f4ede0;color:var(--warn)}
+.st.done{background:#e6f2e6;color:var(--ok)}
+#toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;
+padding:11px 20px;border-radius:99px;font-size:13px;display:none;z-index:99;max-width:90vw}
+.foot{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);
+padding:10px 14px;display:none;justify-content:center;gap:9px;z-index:50;flex-wrap:wrap}
+.foot.on{display:flex}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <a href="ac_audit_intake_portal_v1.html">←</a>
+  <h1>📋 稽核改善追蹤匯入（Excel）</h1>
+  <button class="btn" onclick="exportCur()">⬇ 匯出目前追蹤狀態</button>
+</div>
+<div class="wrap">
+  <div class="drop" id="drop" onclick="document.getElementById('fi').click()">
+    <div class="t1">📋 拖入改善追蹤 Excel，或點此選取</div>
+    <div class="t2">欄位：ID/項目編號（如 g1、g2…對應 WSE 稽核項目）、Status/狀態（待處理/進行中/已關閉 或 open/wip/done）、<br>Evidence/證據、Date/日期、Notes/備註 · 批次更新 WSE 稽核評估的處理狀態</div>
+  </div>
+  <input type="file" id="fi" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0]);this.value=''">
+
+  <div id="ai-panel" class="panel" style="display:none">
+    <div class="pttl">🤖 智慧解讀</div>
+    <div class="ai" id="ai-body"></div>
+  </div>
+
+  <div class="bar" id="selbar" style="display:none">
+    <button class="btn" onclick="selAll(true)">全選</button>
+    <button class="btn" onclick="selAll(false)">全不選</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div id="tbl"></div>
+</div>
+<div class="foot" id="foot">
+  <button class="btn" onclick="clearAll()">清除</button>
+  <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2)">
+    <input type="checkbox" id="tg-on" checked style="width:18px;height:18px;accent-color:var(--khaki-d)">通知 TG
+  </label>
+  <button class="btn btn-p" id="btn-w" onclick="writeIn()">✓ 確認更新追蹤狀態</button>
+</div>
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  稽核改善追蹤匯入 v1 · 寫入鍵：VRT_WSE_AUDIT_STATE
+//  結構：{ 項目ID: {status:'open'|'wip'|'done', evidence, date, notes} }
+//  稽核項目清單（標題、嚴重度）固定寫在 WSE_Audit_Assessment_v1.html 內，
+//  本模組只批次更新各項目的「處理狀態」，不新增項目
+//  ⚠ 匯入前請關閉 WSE 稽核評估頁面
+// ══════════════════════════════════════════════════════════════
+const GAS_URL='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
+const STATE_KEY='VRT_WSE_AUDIT_STATE';
+
+const MAP={
+  id:['id','項目編號','編號','item','item id','no','no.'],
+  status:['status','狀態','處理狀態'],
+  evidence:['evidence','證據','改善證據'],
+  date:['date','日期','完成日期'],
+  notes:['notes','note','備註','remarks','remark','說明']
+};
+const ST_ZH={open:'待處理',wip:'進行中',done:'已關閉'};
+
+let rows=[];
+
+function normStatus(s){
+  const v=String(s||'').trim().toLowerCase();
+  if(['open','待處理','待辦','未處理','pending'].includes(v))return'open';
+  if(['wip','進行中','處理中','in progress','ongoing'].includes(v))return'wip';
+  if(['done','已關閉','完成','已完成','closed','close'].includes(v))return'done';
+  return'';
+}
+function serialToDate(n){
+  const d=new Date(Date.UTC(1899,11,30)+Math.round(n)*86400000);
+  return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');
+}
+function normDate(v){
+  if(v==null||v==='')return'';
+  if(typeof v==='number'&&v>20000&&v<80000)return serialToDate(v);
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if(m)return m[1]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[3]).padStart(2,'0');
+  m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+  if(m)return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+  return'';
+}
+function loadState(){
+  try{return JSON.parse(localStorage.getItem(STATE_KEY)||'{}')||{};}catch(e){return{};}
+}
+
+function handleFile(f){
+  if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false,raw:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+      parseAoa(aoa);
+    }catch(err){toast('讀取失敗：'+err.message);}
+  };
+  rd.readAsArrayBuffer(f);
+}
+
+function parseAoa(aoa){
+  let hi=-1,colMap={};
+  for(let i=0;i<Math.min(10,aoa.length);i++){
+    const cells=(aoa[i]||[]).map(c=>String(c).trim().toLowerCase());
+    const cm={};
+    Object.entries(MAP).forEach(([field,aliases])=>{
+      const ci=cells.findIndex(c=>c&&aliases.includes(c));
+      if(ci>-1)cm[field]=ci;
+    });
+    if(cm.id!=null&&cm.status!=null){hi=i;colMap=cm;break;}
+  }
+  if(hi<0){toast('找不到標題列（至少需含 ID/項目編號 與 Status/狀態）');return;}
+
+  const cur=loadState();
+  rows=[];
+  const seen=new Set();
+  for(let i=hi+1;i<aoa.length;i++){
+    const r=aoa[i]||[];
+    const get=f=>colMap[f]!=null?String(r[colMap[f]]==null?'':r[colMap[f]]).trim():'';
+    const id=get('id');
+    if(!id)continue;
+    const status=normStatus(get('status'));
+    const warn=[];
+    if(!status)warn.push('狀態無法辨識');
+    if(seen.has(id))warn.push('本檔內 ID 重複');
+    seen.add(id);
+    const prev=cur[id];
+    rows.push({sel:!warn.length,warn:warn.join('、'),id,status,
+      evidence:get('evidence'),date:normDate(colMap.date!=null?r[colMap.date]:''),notes:get('notes'),
+      prevStatus:prev?prev.status:null});
+  }
+  if(!rows.length){toast('沒有解析到任何資料列');return;}
+  render();renderAI();
+}
+
+function renderAI(){
+  const el=document.getElementById('ai-panel'),body=document.getElementById('ai-body');
+  if(!rows.length){el.style.display='none';return;}
+  el.style.display='block';
+  const ok=rows.filter(r=>r.status);
+  const cnt={open:0,wip:0,done:0};ok.forEach(r=>cnt[r.status]++);
+  const closed=ok.filter(r=>r.status==='done'&&r.prevStatus&&r.prevStatus!=='done');
+  const reopened=ok.filter(r=>r.status!=='done'&&r.prevStatus==='done');
+  const fresh=ok.filter(r=>r.prevStatus==null);
+  let h='共解析 <b>'+rows.length+'</b> 筆追蹤更新：'+
+    '待處理 <b>'+cnt.open+'</b>、進行中 <b>'+cnt.wip+'</b>、已關閉 <b style="color:var(--ok)">'+cnt.done+'</b>。<br>';
+  if(closed.length)h+='✅ 本次將關閉 '+closed.length+' 項：'+closed.map(r=>r.id).join('、')+'。<br>';
+  if(reopened.length)h+='<span class="hot">⚠ '+reopened.length+' 項將從「已關閉」退回（'+reopened.map(r=>r.id).join('、')+'），請確認是否為刻意重開。</span><br>';
+  if(fresh.length)h+='其中 '+fresh.length+' 項為首次登記狀態。<br>';
+  const noEv=ok.filter(r=>r.status==='done'&&!r.evidence).length;
+  if(noEv)h+='<span style="color:var(--warn)">⚠ '+noEv+' 項標記已關閉但未附證據說明，稽核回覆時可能被挑戰。</span><br>';
+  const bad=rows.filter(r=>r.warn).length;
+  if(bad)h+='<span class="hot">⚠ '+bad+' 筆有問題（標橘，預設不匯入）。</span>';
+  body.innerHTML=h;
+}
+
+function render(){
+  const el=document.getElementById('tbl');
+  if(!rows.length){el.innerHTML='<div class="empty">尚未載入檔案</div>';
+    document.getElementById('selbar').style.display='none';
+    document.getElementById('foot').classList.remove('on');return;}
+  document.getElementById('selbar').style.display='flex';
+  document.getElementById('foot').classList.add('on');
+  el.innerHTML='<div class="twrap"><table><thead><tr>'+
+    '<th></th><th>項目 ID</th><th>原狀態</th><th>新狀態</th><th>證據</th><th>日期</th><th>備註</th><th>警告</th><th></th>'+
+    '</tr></thead><tbody>'+
+    rows.map((r,i)=>'<tr class="'+(r.sel?'':'skip ')+(r.warn?'bad':'')+'">'+
+      '<td><input type="checkbox" '+(r.sel?'checked':'')+' onchange="rows['+i+'].sel=this.checked;render()"></td>'+
+      '<td><b>'+esc(r.id)+'</b></td>'+
+      '<td>'+(r.prevStatus?'<span class="st '+r.prevStatus+'">'+ST_ZH[r.prevStatus]+'</span>':'—')+'</td>'+
+      '<td>'+(r.status?'<span class="st '+r.status+'">'+ST_ZH[r.status]+'</span>':'?')+'</td>'+
+      '<td>'+esc(r.evidence)+'</td><td>'+esc(r.date||'')+'</td><td>'+esc(r.notes)+'</td>'+
+      '<td class="warnc">'+esc(r.warn||'')+'</td>'+
+      '<td><button class="del" onclick="rows.splice('+i+',1);render();renderAI()">刪</button></td></tr>').join('')+
+    '</tbody></table></div>';
+  const n=rows.filter(x=>x.sel).length;
+  document.getElementById('cnt').textContent='已勾選 '+n+' / '+rows.length+' 筆';
+  document.getElementById('btn-w').disabled=!n;
+}
+function selAll(v){rows.forEach(x=>{if(x.status)x.sel=v;});render();}
+function clearAll(){rows=[];render();renderAI();}
+
+let writing=false;
+function writeIn(){
+  if(writing)return;
+  const picked=rows.filter(x=>x.sel&&x.status);
+  if(!picked.length){toast('勾選的記錄需有有效狀態');return;}
+  writing=true;document.getElementById('btn-w').disabled=true;
+  const state=loadState();
+  picked.forEach(r=>{
+    const cur=state[r.id]||{status:'open',evidence:'',date:'',notes:''};
+    state[r.id]={status:r.status,
+      evidence:r.evidence||cur.evidence,
+      date:r.date||cur.date,
+      notes:r.notes||cur.notes};
+  });
+  try{localStorage.setItem(STATE_KEY,JSON.stringify(state));}
+  catch(e){toast('寫入失敗：'+e.message);writing=false;return;}
+  toast('✓ 已更新 '+picked.length+' 項追蹤狀態');
+  if(document.getElementById('tg-on').checked){
+    const cnt={open:0,wip:0,done:0};picked.forEach(r=>cnt[r.status]++);
+    const lines=['本次批次更新 '+picked.length+' 項稽核改善追蹤：',
+      '待處理 '+cnt.open+'、進行中 '+cnt.wip+'、已關閉 '+cnt.done];
+    const closed=picked.filter(r=>r.status==='done');
+    if(closed.length)lines.push('','✅ 已關閉：'+closed.map(r=>r.id).join('、'));
+    fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action:'tg',title:'稽核改善追蹤更新',lines})})
+      .then(r=>r.json()).then(d=>{if(d.ok)toast('✓ 已更新並通知 Telegram');})
+      .catch(()=>{});
+  }
+  rows=[];writing=false;render();renderAI();
+}
+
+function exportCur(){
+  const state=loadState();
+  const ids=Object.keys(state);
+  if(!ids.length){toast('目前無追蹤狀態記錄');return;}
+  const rowsX=ids.map(id=>{const s=state[id];
+    return[id,ST_ZH[s.status]||s.status,s.evidence||'',s.date||'',s.notes||''];});
+  const ws=XLSX.utils.aoa_to_sheet([['ID','Status','Evidence','Date','Notes'],...rowsX]);
+  ws['!cols']=[{wch:10},{wch:10},{wch:40},{wch:12},{wch:30}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'改善追蹤');
+  const d=new Date();
+  const stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb,'VRT_稽核改善追蹤_'+stamp+'.xlsx');
+}
+
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';
+  clearTimeout(t._x);t._x=setTimeout(()=>t.style.display='none',2800);
+}
+const dz=document.getElementById('drop');
+['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('on');}));
+['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('on');}));
+dz.addEventListener('drop',ev=>handleFile(ev.dataTransfer.files[0]));
+
+window.handleFile=handleFile;window.selAll=selAll;window.clearAll=clearAll;
+window.writeIn=writeIn;window.exportCur=exportCur;window.render=render;window.renderAI=renderAI;
+render();
+</script>
+</body>
+<!-- ac_audit_intake_audit_v1.html · v1.0 · 2026-07-11 · 寫入鍵 VRT_WSE_AUDIT_STATE -->
+</html>
