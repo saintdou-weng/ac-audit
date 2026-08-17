@@ -170,6 +170,19 @@ table.dt tbody tr:hover{background:rgba(168,146,114,.07);cursor:pointer}
 .typechip{display:inline-flex;align-items:center;gap:7px;background:var(--linen);border:1px solid var(--line);
   border-radius:16px;padding:5px 12px;font-size:12.5px;margin:0 6px 6px 0}
 .typechip button{background:none;border:none;color:var(--danger);font-size:13px;padding:0}
+
+/* ===== HRA-style integrated module cards ===== */
+.integrated-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:14px}
+.integration-card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:13px 14px;display:flex;gap:12px;align-items:flex-start;min-height:96px;box-shadow:0 1px 0 rgba(17,18,20,.02)}
+.integration-card:hover{border-color:var(--khaki);box-shadow:0 5px 18px rgba(17,18,20,.08)}
+.ic-ico{width:38px;height:38px;border-radius:10px;background:var(--linen);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ic-body{min-width:0;flex:1}.ic-title{font-weight:700;font-size:13.5px;color:var(--ink);line-height:1.25}.ic-sub{font-size:11.5px;color:var(--ink2);line-height:1.45;margin-top:3px}.ic-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.hra-mini{background:linear-gradient(135deg,rgba(168,146,114,.18),rgba(255,255,255,.08));border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.hra-mini .hm-ico{font-size:30px;width:44px;height:44px;border-radius:12px;background:var(--white);border:1px solid var(--line);display:flex;align-items:center;justify-content:center}
+.hra-mini .hm-title{font-size:17px;font-weight:800}.hra-mini .hm-sub{font-size:12px;color:var(--ink2);margin-top:2px}.hm-actions{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.mini-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:14px}.mini-stat{background:var(--white);border:1px solid var(--line);border-radius:10px;padding:10px 12px}.mini-stat .v{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums}.mini-stat .l{font-size:11px;color:var(--ink2);margin-top:2px}
+.optlist{display:grid;gap:8px}.optitem{background:var(--linen);border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.5}.optitem b{color:var(--khaki-d)}
+
 @media print{
   header,nav,.toolbar,.m-foot,#toast{display:none!important}
   main{padding:0;overflow:visible}body{overflow:visible}
@@ -213,14 +226,15 @@ table.dt tbody tr:hover{background:rgba(168,146,114,.07);cursor:pointer}
 <input type="file" id="jsonFile" accept=".json" style="display:none">
 <input type="file" id="photoFile" accept="image/*" multiple style="display:none">
 <input type="file" id="msgFile" accept=".msg,.eml,.txt" style="display:none">
+<input type="file" id="unifiedImportFile" accept=".xlsx,.xls,.csv,.json,.txt,.eml,.msg" style="display:none">
 
 <script>
 /* =====================================================================
-   AC Audit Platform v1.0  ·  VRT Admin Center  ·  SAINTDOU
+   AC Audit Platform v1.2  ·  VRT Admin Center  ·  SAINTDOU
    Single-file integrated platform:
    Dashboard / Analytics / Audit / CAP-CAPA / GRS / DCC / Incident /
    Policy / MSG Processor / Settings
-   Storage: localStorage ac_audit_db  ·  Cloud: GAS AC_AUDIT_PLATFORM
+   Storage: localStorage ac_audit_db  ·  Cloud: Unified GAS + Drive JSON
    Bot: @ac_audit_bot  ·  Group: -5456651485
 ===================================================================== */
 'use strict';
@@ -242,6 +256,8 @@ const T={
  policies:{zh:'政策中心',en:'Policy Center',km:'មជ្ឈមណ្ឌលគោលការណ៍'},
  msg:{zh:'MSG 處理器',en:'MSG Processor',km:'ដំណើរការ MSG'},
  settings:{zh:'設定',en:'Settings',km:'ការកំណត់'},
+ importHub:{zh:'統一匯入中心',en:'Unified Import Center',km:'មជ្ឈមណ្ឌលនាំចូល'},
+ training:{zh:'培訓管理',en:'Training',km:'ការបណ្តុះបណ្តាល'},
  grpMain:{zh:'總覽',en:'Overview',km:'ទិដ្ឋភាពរួម'},
  grpAudit:{zh:'稽核作業',en:'Audit Operations',km:'ប្រតិបត្តិការសវនកម្ម'},
  grpGRS:{zh:'GRS 中心',en:'GRS Center',km:'មជ្ឈមណ្ឌល GRS'},
@@ -312,7 +328,17 @@ const T={
  printedOn:{zh:'列印時間',en:'Printed on',km:'បោះពុម្ពនៅ'},
  total:{zh:'共',en:'Total',km:'សរុប'},
  records:{zh:'筆',en:'records',km:'កំណត់ត្រា'},
- openPlatform:{zh:'於群組輸入 /audit 可顯示平台面板',en:'Type /audit in the group to show the platform panel',km:'វាយ /audit ក្នុងក្រុម'}
+ openPlatform:{zh:'於群組輸入 /audit 可顯示平台面板',en:'Type /audit in the group to show the platform panel',km:'វាយ /audit ក្នុងក្រុម'},
+ period:{zh:'期間',en:'Period',km:'រយៈពេល'},
+ daily:{zh:'日',en:'Day',km:'ថ្ងៃ'},
+ weekly:{zh:'週',en:'Week',km:'សប្តាហ៍'},
+ monthly:{zh:'月',en:'Month',km:'ខែ'},
+ yearly:{zh:'年',en:'Year',km:'ឆ្នាំ'},
+ sendSummary:{zh:'發摘要',en:'Send Summary',km:'ផ្ញើសង្ខេប'},
+ sendApproval:{zh:'送核可',en:'Send Approval',km:'ផ្ញើអនុម័ត'},
+ autoCloud:{zh:'摘要/核可成功後自動上傳',en:'Auto-upload after summary/approval',km:'ផ្ទុកឡើងស្វ័យប្រវត្តិបន្ទាប់ពីសង្ខេប/អនុម័ត'},
+ recordUpdate:{zh:'新增/修改即時通知',en:'Instant notice on record changes',km:'ជូនដំណឹងភ្លាមៗពេលកែប្រែ'},
+ approvalNotif:{zh:'核可通知',en:'Approval notice',km:'ជូនដំណឹងអនុម័ត'}
 };
 function t(k){const o=T[k];return o?(o[LANG]||o.zh):k}
 function L(o){return o?(o[LANG]||o.zh||o.en||''):''}
@@ -338,14 +364,13 @@ const CFG_KEY='ac_audit_config', DB_KEY='ac_audit_db';
 const GAS_DEFAULT='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
 const DEFAULT_CFG={
   gasUrl:GAS_DEFAULT,
-  botToken:'8673812837:AAFJqA4rL4RIlAXAP2-ConrrPLCGt8rou8g',
-  chatId:'-5456651485',
-  notif:{upload:true,download:true,sync:true,hiRisk:true,capOverdue:true,certExpiry:true,docExpiry:true,auditRemind:true,newAudit:false,newIncident:true}
+  notif:{upload:true,download:true,sync:true,autoCloud:true,recordUpdate:true,approval:true,hiRisk:true,capOverdue:true,certExpiry:true,docExpiry:true,auditRemind:true,newAudit:false,newIncident:true}
 };
 let CFG=Object.assign({},DEFAULT_CFG,JSON.parse(localStorage.getItem(CFG_KEY)||'{}'));
+delete CFG.botToken;delete CFG.token;
 if(!CFG.gasUrl)CFG.gasUrl=GAS_DEFAULT;
 CFG.notif=Object.assign({},DEFAULT_CFG.notif,CFG.notif||{});
-function saveCFG(){localStorage.setItem(CFG_KEY,JSON.stringify(CFG))}
+function saveCFG(){delete CFG.botToken;delete CFG.token;localStorage.setItem(CFG_KEY,JSON.stringify(CFG))}
 
 const DEFAULT_TYPES=['Internal','Customer','GRS','WRAP','SLCP','HIGG FEM','ISO 9001','ISO 14001','BSCI','SEDEX','Social','C-TPAT'];
 let DB=loadDB();
@@ -362,13 +387,49 @@ function migrate(d){
   d.meta.seq=d.meta.seq||{};return d;
 }
 function saveDB(touch){
-  if(touch!==false)DB.meta.updatedAt=Date.now();
+  if(touch!==false){DB.meta.updatedAt=Date.now();dedupeDB();markCloudPending();requestAutoUpload('SAVE');}
   localStorage.setItem(DB_KEY,JSON.stringify(DB));
   renderNavCounts();
 }
 function logAct(text){
   DB.activities.unshift({t:Date.now(),x:text});
   if(DB.activities.length>200)DB.activities.length=200;
+}
+
+function recSignature(k,r){
+  if(!r)return'';
+  if(r.id)return String(r.id);
+  if(k==='caps')return [r.description,r.dueDate,r.owner].join('|');
+  if(k==='documents')return [r.docNo,r.title,r.version].join('|');
+  if(k==='msg')return [r.date,r.from,r.subject].join('|');
+  if(k==='incidents')return [r.date,r.location,r.description].join('|');
+  if(k==='audits')return [r.auditType,r.auditName,r.date].join('|');
+  return JSON.stringify(r).slice(0,180);
+}
+function dedupeArray(k,arr){
+  const map={};(arr||[]).forEach(r=>{const sig=recSignature(k,r);if(!sig)return;const old=map[sig];if(!old||(Number(r._updated||0)>Number(old._updated||0)))map[sig]=r});
+  return Object.values(map);
+}
+function dedupeDB(){MODULE_KEYS.forEach(k=>{DB[k]=dedupeArray(k,DB[k])});return DB}
+function mergeAuditDB(local,remote){
+  local=migrate(local||loadDB());remote=migrate(remote||{});
+  MODULE_KEYS.forEach(k=>{local[k]=dedupeArray(k,(local[k]||[]).concat(remote[k]||[]))});
+  local.settings=Object.assign({},remote.settings||{},local.settings||{});
+  local.meta=Object.assign({},remote.meta||{},local.meta||{});
+  local.meta.updatedAt=Math.max(Number(local.meta.updatedAt||0),Number(remote.meta&&remote.meta.updatedAt||0),Date.now());
+  return local;
+}
+let AUTO_UPLOAD_TIMER=null;
+function markCloudPending(){try{const d=$('#dot-cloud');if(d)d.className='dot wait';const l=$('#lbl-cloud');if(l)l.textContent='Cloud*'}catch(e){}}
+function requestAutoUpload(reason){
+  if(!CFG.gasUrl||!CFG.notif.autoCloud)return;
+  clearTimeout(AUTO_UPLOAD_TIMER);
+  AUTO_UPLOAD_TIMER=setTimeout(()=>cloudUpload(true,reason||'AUTO'),1400);
+}
+function notifyRecordUpdate(k,rec,isNew){
+  if(!CFG.notif.recordUpdate)return;
+  const txt='🔔 <b>AC Audit Updated</b>\n━━━━━━━━━━━━━━━━━━━━\n'+esc(t(k))+' · '+esc(rec.id||'')+' · '+(isNew?'New':'Updated')+'\n'+esc((rec.auditName||rec.description||rec.title||rec.subject||rec.certNo||rec.name||'').slice(0,160))+'\n📊 <a href="'+esc((CFG.dashboardUrl||'')||location.href.split('#')[0]+'#'+k)+'">Open Dashboard</a>';
+  tgNotify(txt);
 }
 
 /* =====================================================================
@@ -662,20 +723,33 @@ const MODULE_KEYS=Object.keys(MODULES);
 ===================================================================== */
 let CURRENT='dashboard', GRS_CUR='grs_certs';
 const GRS_SUBS=['grs_certs','grs_tc','grs_suppliers','grs_trace'];
-const TAB_ORDER=['dashboard','analytics','audits','caps','grs','documents','incidents','policies','msg','subsys','settings'];
-const PAGE_ICONS={dashboard:'◧',analytics:'📈',settings:'⚙',grs:'🏅',subsys:'📚'};
-const SUBSYS_LINKS=[
- {u:'ac_audit_intake_portal_v1.html',i:'📥',zh:'匯入中心（Intake Hub）',en:'Intake Hub'},
- {u:'vrt_training_v1.html',i:'🎓',zh:'培訓計劃系統',en:'Training System'},
- {u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment'},
- {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules'},
- {u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law'},
- {u:'vrt_damage_report_v2.html',i:'📝',zh:'損壞/遺失報告表',en:'Damage Report Form'},
- {u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 文件管制',en:'DCC'},
- {u:'ac_audit_intake_msg_v2.html',i:'📨',zh:'外來文件管制',en:'Ext. Doc Control'}];
+const TAB_ORDER=['dashboard','analytics','importHub','training','audits','caps','grs','documents','incidents','policies','msg','settings'];
+const PAGE_ICONS={dashboard:'◧',analytics:'📈',importHub:'📥',training:'🎓',settings:'⚙',grs:'🏅'};
+const INTEGRATIONS={
+ training:[
+  {u:'vrt_training_v1.html',i:'🎓',zh:'培訓計劃系統',en:'Training System',descZH:'培訓獨立分頁；資料、Telegram、雲端全部走同一支 AC Audit Unified GAS。',descEN:'Training stays as a separate tab; data, Telegram and cloud all use the same AC Audit Unified GAS.'}
+ ],
+ audits:[
+  {u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment',route:'audits',descZH:'WSE/客戶稽核表可從這裡開啟，或由匯入中心寫入稽核管理。',descEN:'Open WSE tool or import files into Audit Management.'}
+ ],
+ documents:[
+  {u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 文件管制',en:'DCC Document Control',route:'documents',action:'migrateDCC',descZH:'文件、證書、外來文件資料可遷移到本分頁。',descEN:'Migrate document/certificate/external document records here.'}
+ ],
+ incidents:[
+  {u:'vrt_damage_report.html',i:'📝',zh:'損壞/遺失報告表',en:'Damage Report Form',route:'incidents',descZH:'損壞、遺失、事故資料整合到事故中心。',descEN:'Damage/loss/incident records are managed in Incident Center.'}
+ ],
+ policies:[
+  {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules',route:'policies',descZH:'廠規、政策、SOP 內容歸到政策中心管理。',descEN:'Factory rules, policy and SOP content belong in Policy Center.'},
+  {u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law',route:'policies',descZH:'法規參考可轉為政策或文件記錄，避免只留靜態頁。',descEN:'Legal references can be converted to policy/document records.'}
+ ],
+ msg:[
+  {u:'MSG_Processor.html',i:'📨',zh:'外來文件管制',en:'Incoming MSG Control',route:'msg',action:'migrateMSG',descZH:'MSG/EML/TXT 優先在本分頁與匯入中心處理，可直接在本頁完成分類與轉 CAP。',descEN:'MSG/EML/TXT should be handled here or through Import Hub.'}
+ ]
+};
 function tabLabel(k){
   if(k==='grs')return 'GRS';
-  if(k==='subsys')return LANG==='zh'?'子系統':(LANG==='km'?'ប្រព័ន្ធរង':'Subsystems');
+  if(k==='training')return t('training');
+  if(k==='importHub')return t('importHub');
   return t(k);
 }
 function renderNav(){   // 上方 Tabs
@@ -707,14 +781,66 @@ function goGrs(sub){
   const m=$('#main');if(m)m.scrollTop=0;
   renderModule(sub);
 }
-function renderSubsys(){
-  $('#main').innerHTML='<div class="pgtitle"><h2>📚 '+(LANG==='zh'?'子系統 / 參考':(LANG==='km'?'ប្រព័ន្ធរង':'Subsystems / Reference'))+'</h2>'+
-    '<div class="sub">'+(LANG==='zh'?'獨立頁面，於新分頁開啟':'Opens in a new tab')+'</div></div>'+
-    '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr))">'+
-    SUBSYS_LINKS.map(s=>'<a class="card" href="'+s.u+'" target="_blank" rel="noopener" style="text-decoration:none;display:flex;gap:12px;align-items:center">'+
-      '<span style="font-size:26px;flex-shrink:0">'+s.i+'</span><div style="min-width:0"><div style="font-weight:600;color:var(--ink)">'+esc(LANG==='zh'?s.zh:s.en)+'</div>'+
-      '<div style="font-size:11px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(s.u)+' ↗</div></div></a>').join('')+'</div>';
+function iText(o){return LANG==='zh'?o.zh:(LANG==='km'?(o.km||o.en):o.en)}
+function iDesc(o){return LANG==='zh'?(o.descZH||''):(o.descEN||o.descZH||'')}
+function openTool(u){window.open(u,'_blank','noopener')}
+function presetImportRoute(route){
+  HUB_ROUTE=route||'auto';go('importHub');
+  setTimeout(()=>{const el=$('#hubRoute');if(el){el.value=HUB_ROUTE;renderHubPreview()}toast((LANG==='zh'?'已切到匯入目標：':'Import target: ')+hubTargetLabel(HUB_ROUTE));},0);
 }
+function renderIntegrationPanel(k){
+  const list=INTEGRATIONS[k]||[];if(!list.length)return '';
+  return '<div class="integrated-strip">'+list.map((it,idx)=>{
+    const open='<button class="btn sm" onclick="openTool(\''+it.u+'\')">↗ '+(LANG==='zh'?'開啟':'Open')+'</button>';
+    const imp=it.route?'<button class="btn sm" onclick="presetImportRoute(\''+it.route+'\')">📥 '+(LANG==='zh'?'匯入到本頁':'Import Here')+'</button>':'';
+    const act=it.action?'<button class="btn sm" onclick="'+it.action+'()">🔄 '+(LANG==='zh'?'遷移舊資料':'Migrate')+'</button>':'';
+    return '<div class="integration-card"><div class="ic-ico">'+it.i+'</div><div class="ic-body"><div class="ic-title">'+esc(iText(it))+'</div><div class="ic-sub">'+esc(iDesc(it))+'</div><div class="ic-actions">'+open+imp+act+'</div></div></div>';
+  }).join('')+'</div>';
+}
+function readJsonLS(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'')}catch(e){return fallback}}
+function trainingSnapshot(){
+  const trainings=readJsonLS('vrt3_tr',[]), records=readJsonLS('vrt3_rc',{}), library=readJsonLS('vrt3_lb',[]), cfg=readJsonLS('vrt3_cfg',{}), bridge=readJsonLS('ac_training_bridge',{});
+  const recCount=Object.values(records||{}).reduce((a,b)=>a+(Array.isArray(b)?b.length:0),0);
+  const brRecs=Object.values((bridge&&bridge.records)||{}).reduce((a,b)=>a+(Array.isArray(b)?b.length:0),0);
+  return {trainings:trainings||[],records:records||{},library:library||[],cfg:cfg||{},bridge:bridge||{},recCount,bridgeCount:((bridge.trainings||[]).length+brRecs),lastSync:(cfg&&cfg.lastSync)||'—'};
+}
+function getTrainingGasUrl(){return CFG.gasUrl||GAS_DEFAULT}
+
+function setTrainingCfg(o){const n=Object.assign({},readJsonLS('vrt3_cfg',{}),o||{});delete n.tgToken;delete n.botToken;delete n.token;localStorage.setItem('vrt3_cfg',JSON.stringify(n))}
+async function trainingGasCall(payload,asGet){
+  const url=getTrainingGasUrl();if(!url)throw new Error('Unified GAS URL not configured');
+  const res=asGet?await fetch(url+'?action=getAll'):await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+  return await res.json();
+}
+function applyTrainingBridgeToLocal(bridge){
+  bridge=bridge||readJsonLS('ac_training_bridge',{});let trainings=readJsonLS('vrt3_tr',[]), records=readJsonLS('vrt3_rc',{}), library=readJsonLS('vrt3_lb',[]);
+  let add=0,upd=0;
+  (bridge.trainings||[]).forEach(t=>{const i=trainings.findIndex(x=>(t.id&&x.id===t.id)||(t.nameZH&&x.nameZH===t.nameZH));if(i>=0){trainings[i]=Object.assign({},trainings[i],t);upd++}else{trainings.push(t);add++}});
+  Object.keys(bridge.records||{}).forEach(m=>{if(!records[m])records[m]=[];(bridge.records[m]||[]).forEach(r=>{const i=records[m].findIndex(x=>(r.id&&x.id===r.id)||(x.subject===r.subject&&x.date===r.date&&x.trainer===r.trainer));if(i>=0){records[m][i]=Object.assign({},records[m][i],r);upd++}else{records[m].push(r);add++}})});
+  (bridge.library||[]).forEach(item=>{const i=library.findIndex(x=>(item.id&&x.id===item.id)||(item.nameZH&&x.nameZH===item.nameZH));if(i>=0)library[i]=Object.assign({},library[i],item);else library.push(item)});
+  localStorage.setItem('vrt3_tr',JSON.stringify(trainings));localStorage.setItem('vrt3_rc',JSON.stringify(records));localStorage.setItem('vrt3_lb',JSON.stringify(library));localStorage.setItem('ac_training_bridge_applied',String(bridge.updatedAt||Date.now()));
+  return {add,upd,trainings,records,library};
+}
+async function trainingCloudUpload(){
+  try{const s=trainingSnapshot();toast('🎓☁⬆ …');const j=await trainingGasCall({action:'saveAll',trainings:s.trainings,records:s.records,library:s.library});if(j.status!=='ok')throw new Error(j.msg||j.error||'Unified GAS training upload failed');const ts=new Date().toLocaleString('zh-TW',{hour12:false}).slice(0,16);setTrainingCfg({lastSync:ts,needsSync:false});toast((LANG==='zh'?'Training 上傳完成 ✓':'Training upload ✓'));renderTrainingHub()}catch(e){toast('⚠ '+e.message)}
+}
+async function trainingCloudDownload(){
+  try{toast('🎓☁⬇ …');const d=await trainingGasCall({},true);if(d.error)throw new Error(d.error);let trainings=readJsonLS('vrt3_tr',[]),records=readJsonLS('vrt3_rc',{}),library=readJsonLS('vrt3_lb',[]);if(d.trainings&&d.trainings.length)trainings=d.trainings;if(d.records){Object.keys(d.records).forEach(m=>{if(!records[m])records[m]=[];(d.records[m]||[]).forEach(r=>{if(!records[m].some(x=>x.id===r.id||(r.date&&x.subject===r.subject&&x.date===r.date&&x.trainer===r.trainer)))records[m].push(r)})})}if(d.library&&d.library.length)library=d.library;localStorage.setItem('vrt3_tr',JSON.stringify(trainings));localStorage.setItem('vrt3_rc',JSON.stringify(records));localStorage.setItem('vrt3_lb',JSON.stringify(library));const ts=new Date().toLocaleString('zh-TW',{hour12:false}).slice(0,16);setTrainingCfg({lastSync:ts,needsSync:false});toast((LANG==='zh'?'Training 下載完成 ✓':'Training download ✓'));renderTrainingHub()}catch(e){toast('⚠ '+e.message)}
+}
+async function trainingTgTest(){
+  try{const j=await trainingGasCall({action:'tgTest'});if(j.status!=='ok'&&j.ok!==true)throw new Error(j.msg||j.error||'Training Telegram failed');toast('🎓 Telegram test sent ✓')}catch(e){toast('⚠ '+e.message)}
+}
+function clearTrainingBridge(){if(!confirm(LANG==='zh'?'清除 Training Bridge 暫存？':'Clear Training Bridge?'))return;localStorage.removeItem('ac_training_bridge');toast('Training bridge cleared');renderTrainingHub()}
+function renderTrainingHub(){
+  const s=trainingSnapshot();const rec=s.recCount;const br=s.bridgeCount;const applied=localStorage.getItem('ac_training_bridge_applied')||'—';
+  $('#main').innerHTML='<div class="pgtitle"><h2>🎓 '+esc(t('training'))+'</h2><span class="sub">'+(LANG==='zh'?'獨立培訓系統，但入口、匯入、雲端操作整合在 Audit 平台':'Independent training system with import/cloud actions integrated here')+'</span></div>'+ 
+  '<div class="hra-mini"><div class="hm-ico">🎓</div><div><div class="hm-title">VRT Training Control</div><div class="hm-sub">'+(LANG==='zh'?'資料鍵：vrt3_tr / vrt3_rc / vrt3_lb；Token 由 Unified GAS 管理':'Storage keys: vrt3_tr / vrt3_rc / vrt3_lb; token managed by Unified GAS')+'</div></div><div class="hm-actions"><button class="btn pri" onclick="openTool(\'vrt_training_v1.html\')">↗ '+(LANG==='zh'?'開啟完整培訓系統':'Open Training')+'</button><button class="btn" onclick="presetImportRoute(\'training\')">📥 '+(LANG==='zh'?'匯入培訓 Excel':'Import Training Excel')+'</button></div></div>'+ 
+  '<div class="mini-stats"><div class="mini-stat"><div class="v">'+s.trainings.length+'</div><div class="l">Trainings</div></div><div class="mini-stat"><div class="v">'+rec+'</div><div class="l">Records</div></div><div class="mini-stat"><div class="v">'+s.library.length+'</div><div class="l">Library</div></div><div class="mini-stat"><div class="v">'+br+'</div><div class="l">Bridge Pending</div></div><div class="mini-stat"><div class="v" style="font-size:13px">'+esc(s.lastSync)+'</div><div class="l">Last Sync</div></div></div>'+ 
+  renderIntegrationPanel('training')+
+  '<div class="panel"><h3>☁ Unified GAS / Telegram<span class="rule"></span></h3><div class="toolbar"><button class="btn" onclick="trainingCloudUpload()">☁⬆ '+(LANG==='zh'?'上傳 Unified GAS':'Upload Unified GAS')+'</button><button class="btn" onclick="trainingCloudDownload()">☁⬇ '+(LANG==='zh'?'下載 Unified GAS':'Download Unified GAS')+'</button><button class="btn" onclick="trainingTgTest()">🔧 '+(LANG==='zh'?'測試 Training Telegram':'Test Training Telegram')+'</button><button class="btn" onclick="clearTrainingBridge()">🧹 '+(LANG==='zh'?'清除 Bridge':'Clear Bridge')+'</button></div><div class="hint">GAS URL: '+esc(getTrainingGasUrl()||'—')+'<br>Bridge applied: '+esc(applied)+'</div></div>'+ 
+  '<div class="panel" style="margin-top:14px"><h3>🧭 '+(LANG==='zh'?'目前已優化 / 仍需注意':'Optimized / Attention')+'<span class="rule"></span></h3><div class="optlist"><div class="optitem"><b>✓</b> '+(LANG==='zh'?'Training 已從「子系統」拆出成獨立主分頁，避免手機端一直捲到下面找。':'Training is now a main tab, not buried under Subsystems.')+'</div><div class="optitem"><b>✓</b> '+(LANG==='zh'?'匯入中心可直接把 Training Excel 寫入本地 Training 資料，不必先開子系統。':'Import Hub writes Training Excel into local Training data directly.')+'</div><div class="optitem"><b>⚠</b> '+(LANG==='zh'?'MSG 檔瀏覽器無法完整解析 Outlook 二進位格式，建議優先用 .eml / .txt 或走 MSG 處理器。':'Binary Outlook .msg parsing remains browser-limited; prefer .eml/.txt or use the MSG tab parser.')+'</div><div class="optitem"><b>⚠</b> '+(LANG==='zh'?'Training 與 Audit 已合併使用同一支 Unified GAS；Bot Token 不放在 HTML。':'Training and Audit now use the same Unified GAS; tokens are not stored in HTML.')+'</div></div></div>';
+}
+function renderSubsys(){go('training')}
 function go(k){
   if(k==='grs')return goGrs(GRS_CUR);
   if(GRS_SUBS.includes(k))return goGrs(k);
@@ -724,6 +850,8 @@ function go(k){
   const m=$('#main');if(m)m.scrollTop=0;
   if(k==='dashboard')return renderDashboard();
   if(k==='analytics')return renderAnalytics();
+  if(k==='importHub')return renderImportHub();
+  if(k==='training')return renderTrainingHub();
   if(k==='settings')return renderSettings();
   if(k==='subsys')return renderSubsys();
   if(MODULES[k])return renderModule(k);
@@ -777,9 +905,13 @@ function renderModule(k){
       (optList(f.opts)||[]).map(o=>'<option value="'+esc(o.v)+'">'+esc(L(o.L))+'</option>').join('')+'</select>';}
   $('#main').innerHTML=
    '<div class="pgtitle"><h2>'+M.icon+' '+esc(t(k))+'</h2><span class="sub" id="modCount"></span></div>'+
+   renderIntegrationPanel(k)+
    '<div class="toolbar">'+
     '<button class="btn pri" onclick="openForm(\''+k+'\')">＋ '+esc(t('add'))+'</button>'+
     '<input type="search" placeholder="'+esc(t('search'))+'" oninput="SEARCHQ=this.value;drawTable(\''+k+'\')">'+filterSel+
+    '<select id="period_'+k+'" class="periodSel"><option value="day">'+esc(t('daily'))+'</option><option value="week">'+esc(t('weekly'))+'</option><option value="month" selected>'+esc(t('monthly'))+'</option><option value="year">'+esc(t('yearly'))+'</option></select>'+
+    '<button class="btn" onclick="sendModuleSummary(\''+k+'\')">📤 '+esc(t('sendSummary'))+'</button>'+
+    '<button class="btn" onclick="sendModuleApproval(\''+k+'\')">✅ '+esc(t('sendApproval'))+'</button>'+
     '<span style="flex:1"></span>'+
     '<div class="dd"><button class="btn" onclick="toggleDD(this)">⬆ '+esc(t('import'))+' ▾</button><div class="dd-menu">'+
       '<button onclick="importExcel(\''+k+'\')">📊 '+esc(t('impExcel'))+'</button>'+
@@ -884,7 +1016,7 @@ function saveForm(k,id){
   if(M.onSave)M.onSave(rec,!id);
   if(!id)DB[k].push(rec);
   logAct((id?'✏️':'＋')+' '+t(k)+' · '+rec.id);
-  saveDB();closeModal();toast(t('saved')+' · '+rec.id);
+  saveDB();closeModal();toast(t('saved')+' · '+rec.id);notifyRecordUpdate(k,rec,!id);
   if(CURRENT===k)MODULES[k].custom?go(k):drawTable(k);
   if(!id&&k==='caps'&&(rec.riskLevel==='high'||rec.riskLevel==='critical')&&CFG.notif.hiRisk)
     tgNotify('🔴 <b>High Risk Finding</b>\n'+esc(rec.id)+' · '+esc(rec.department||'')+'\n'+esc((rec.description||'').slice(0,180))+'\nDue: '+esc(rec.dueDate||'-'));
@@ -903,7 +1035,7 @@ function delRec(k,id){
 function capVerify(id){
   const r=DB.caps.find(x=>x.id===id);if(!r)return;
   r.status='closed';r.verifyDate=todayStr();r._updated=Date.now();
-  logAct('✔ CAP closed · '+id);saveDB();drawTable('caps');toast('✔ '+id+' Closed');
+  logAct('✔ CAP closed · '+id);saveDB();drawTable('caps');toast('✔ '+id+' Closed');tgNotify('✅ <b>CAP Closed</b> · '+esc(id)+'\nVerifier: '+esc('Paul Weng / 神大'));cloudUpload(true,'CAP_CLOSE');
 }
 function auditToFinding(id){
   const a=DB.audits.find(x=>x.id===id);if(!a)return;
@@ -993,7 +1125,7 @@ function importExcel(k){
           if(ex>=0)DB[k][ex]=Object.assign(DB[k][ex],rec,{_updated:Date.now()});else DB[k].push(rec);
           n++;
         });
-        logAct('📊 Import Excel · '+t(k)+' × '+n);saveDB();drawTable(k);toast('📊 Import ✓ '+n+' rows');
+        logAct('📊 Import Excel · '+t(k)+' × '+n);saveDB();drawTable(k);toast('📊 Import ✓ '+n+' rows');requestAutoUpload('IMPORT_'+k);
       }catch(err){toast('⚠ Import error: '+err.message)}
     };
     fr.readAsArrayBuffer(f);
@@ -1011,10 +1143,191 @@ function restoreJSON(){
     fr.onload=ev=>{try{
       const d=JSON.parse(ev.target.result);
       if(!d.meta)throw new Error('Invalid backup');
-      DB=migrate(d);saveDB();logAct('🗂 Restore JSON backup');go(CURRENT);toast('🗂 Restore ✓');
+      DB=mergeAuditDB(DB,d);saveDB();logAct('🗂 Restore JSON backup + merge');go(CURRENT);toast('🗂 Restore ✓');requestAutoUpload('RESTORE_JSON');
     }catch(err){toast('⚠ '+err.message)}};
     fr.readAsText(f);
   };$('#jsonFile').click();
+}
+
+
+/* =====================================================================
+   UNIFIED IMPORT CENTER  (MSG / Excel / CSV / JSON → Audit DB or Training Bridge)
+===================================================================== */
+let HUB_ROWS=[], HUB_FILE='', HUB_ROUTE='msg';
+const HUB_TARGETS=['auto','training','audits','caps','documents','incidents','policies','msg'];
+function renderImportHub(){
+  $('#main').innerHTML=
+   '<div class="pgtitle"><h2>📥 '+esc(t('importHub'))+'</h2><span class="sub">'+(LANG==='zh'?'MSG / Excel / CSV / JSON 統一入口；先預覽、再寫入，不直接覆蓋。':'One import gate for MSG / Excel / CSV / JSON. Preview first, then commit.')+'</span></div>'+ 
+   '<div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:14px">'+
+    '<div class="panel"><h3>① '+(LANG==='zh'?'選擇資料':'Select Data')+'<span class="rule"></span></h3>'+ 
+      '<div class="toolbar" style="margin-top:6px"><button class="btn pri" onclick="pickUnifiedImport()">📎 '+(LANG==='zh'?'選擇檔案':'Choose File')+'</button>'+ 
+      '<button class="btn" onclick="hubPasteBox()">📋 '+(LANG==='zh'?'貼上 MSG / Email':'Paste MSG / Email')+'</button></div>'+ 
+      '<p class="hint" style="margin-top:10px">支援 .xlsx / .xls / .csv / .json / .txt / .eml / .msg。Training 檔會寫入 Training 本地資料與 bridge，可在「培訓管理」分頁直接上傳 Unified GAS。</p></div>'+ 
+    '<div class="panel"><h3>② '+(LANG==='zh'?'路由與寫入':'Route & Commit')+'<span class="rule"></span></h3>'+ 
+      '<div class="fld"><label>'+(LANG==='zh'?'目標模組':'Target Module')+'</label><select id="hubRoute" onchange="HUB_ROUTE=this.value;renderHubPreview()">'+
+        HUB_TARGETS.map(x=>'<option value="'+x+'">'+hubTargetLabel(x)+'</option>').join('')+'</select></div>'+ 
+      '<div class="toolbar" style="margin-top:10px"><button class="btn pri" onclick="commitHubImport()">✅ '+(LANG==='zh'?'確認寫入':'Commit Import')+'</button>'+ 
+      '<button class="btn" onclick="clearHubImport()">🧹 '+(LANG==='zh'?'清除預覽':'Clear')+'</button></div>'+ 
+      '<p class="hint" id="hubInfo" style="margin-top:10px">'+(LANG==='zh'?'尚未載入資料。':'No file loaded.')+'</p></div>'+ 
+   '</div><div class="panel"><h3>③ Preview<span class="rule"></span></h3><div id="hubPreview" class="tblwrap"><div class="empty"><div class="e1">📥</div>'+(LANG==='zh'?'請先選擇檔案或貼上內容。':'Choose a file or paste content first.')+'</div></div></div>';
+}
+function hubTargetLabel(x){return ({auto:'Auto Detect',training:'Training Bridge',audits:t('audits'),caps:t('caps'),documents:t('documents'),incidents:t('incidents'),policies:t('policies'),msg:t('msg')})[x]||x}
+function pickUnifiedImport(){
+  const inp=$('#unifiedImportFile');
+  inp.onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)readUnifiedFile(f)};
+  inp.click();
+}
+function readUnifiedFile(f){
+  HUB_FILE=f.name;const ext=f.name.toLowerCase().split('.').pop();
+  const fr=new FileReader();
+  if(['xlsx','xls','csv'].includes(ext)){
+    fr.onload=ev=>{try{const wb=XLSX.read(ev.target.result,{type:'array',cellDates:false,raw:true});const ws=wb.Sheets[wb.SheetNames[0]];HUB_ROWS=XLSX.utils.sheet_to_json(ws,{defval:''});HUB_ROUTE=detectHubRoute(HUB_ROWS,f.name);renderHubPreview()}catch(err){toast('Import parse error: '+err.message)}};
+    fr.readAsArrayBuffer(f);return;
+  }
+  if(ext==='json'){
+    fr.onload=ev=>{try{const d=JSON.parse(ev.target.result);HUB_ROWS=jsonToHubRows(d);HUB_ROUTE=detectHubRoute(HUB_ROWS,f.name);renderHubPreview()}catch(err){toast('JSON error: '+err.message)}};
+    fr.readAsText(f);return;
+  }
+  if(ext==='msg'){
+    fr.onload=ev=>{const body=extractMsgText(new Uint8Array(ev.target.result));HUB_ROWS=[msgTextToRow(body,f.name)];HUB_ROUTE='msg';renderHubPreview()};
+    fr.readAsArrayBuffer(f);return;
+  }
+  fr.onload=ev=>{HUB_ROWS=[msgTextToRow(ev.target.result,f.name)];HUB_ROUTE='msg';renderHubPreview()};
+  fr.readAsText(f);
+}
+function hubPasteBox(){
+  $('#modalBox').innerHTML='<div class="m-head"><h3>📋 Paste MSG / Email</h3><button class="x" onclick="closeModal()">✕</button></div>'+ 
+    '<div class="m-body"><textarea id="hubPasteTxt" style="min-height:260px" placeholder="Paste email / MSG text here..."></textarea></div>'+ 
+    '<div class="m-foot"><button class="btn" onclick="closeModal()">'+esc(t('cancel'))+'</button><button class="btn pri" onclick="hubUsePaste()">'+esc(t('parse'))+'</button></div>';
+  $('#modalMask').classList.add('show');
+}
+function hubUsePaste(){HUB_FILE='pasted-msg.txt';HUB_ROWS=[msgTextToRow($('#hubPasteTxt').value,'pasted-msg.txt')];HUB_ROUTE='msg';closeModal();renderImportHub();renderHubPreview()}
+function jsonToHubRows(d){
+  if(Array.isArray(d))return d;
+  if(d&&d.meta&&d.audits)return [{__backup:'AC_AUDIT_BACKUP',data:d}];
+  if(d&&d.trainings)return (d.trainings||[]).map(x=>Object.assign({__training:'training'},x)).concat(Object.keys(d.records||{}).flatMap(m=>(d.records[m]||[]).map(r=>Object.assign({Month:m,__training:'record'},r))));
+  return [d||{}];
+}
+function msgTextToRow(body,name){
+  const grab=re=>{const m=String(body||'').match(re);return m?m[1].trim():''};
+  let dt=grab(/^Date:\s*(.+)$/mi)||grab(/日期[:：]\s*(.+)$/mi);let ds='';if(dt){const d=new Date(dt);if(!isNaN(d))ds=fmtDate(d)}
+  return {File:name||'',From:grab(/^From:\s*(.+)$/mi)||grab(/寄件者[:：]\s*(.+)$/mi),Date:ds||todayStr(),Subject:grab(/^Subject:\s*(.+)$/mi)||grab(/主旨[:：]\s*(.+)$/mi)||String(name||'MSG'),Body:String(body||'').slice(0,20000)};
+}
+function detectHubRoute(rows,name){
+  const keys=Object.keys(rows[0]||{}).join('|').toLowerCase();const s=(keys+'|'+(name||'')).toLowerCase();
+  if(/__training|training|trainings|trainer|trainee|attendees|absences|培訓/.test(s))return 'training';
+  if(/finding|root.?cause|corrective|preventive|capa|cap_|due.?date/.test(s))return 'caps';
+  if(/doc.?no|document|revision|version|effective|expiry|dcc|文件/.test(s))return 'documents';
+  if(/damage|lost|incident|injury|cost|損壞|遺失|事故/.test(s))return 'incidents';
+  if(/policy|legal|law|factory.?rule|法規|廠規/.test(s))return 'policies';
+  if(/audit|auditor|score|wse|wrap|稽核/.test(s))return 'audits';
+  if(/from|subject|body|email|msg|寄件|主旨/.test(s))return 'msg';
+  return 'msg';
+}
+function renderHubPreview(){
+  const sel=$('#hubRoute');if(sel)sel.value=HUB_ROUTE||'auto';
+  const route=(HUB_ROUTE==='auto'?detectHubRoute(HUB_ROWS,HUB_FILE):HUB_ROUTE)||'msg';
+  const inf=$('#hubInfo');if(inf)inf.innerHTML='File: <b>'+esc(HUB_FILE||'-')+'</b> · Rows: <b>'+HUB_ROWS.length+'</b> · Auto route: <b>'+esc(hubTargetLabel(route))+'</b>';
+  const box=$('#hubPreview');if(!box)return;
+  if(!HUB_ROWS.length){box.innerHTML='<div class="empty"><div class="e1">📥</div>No preview</div>';return}
+  const cols=[...new Set(HUB_ROWS.flatMap(r=>Object.keys(r).filter(k=>!String(k).startsWith('__'))))].slice(0,10);
+  box.innerHTML='<table class="dt"><thead><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'+
+    HUB_ROWS.slice(0,80).map(r=>'<tr>'+cols.map(c=>'<td>'+esc(String(r[c]??'').slice(0,120))+'</td>').join('')+'</tr>').join('')+'</tbody></table>'+
+    (HUB_ROWS.length>80?'<p class="hint">Preview first 80 rows only.</p>':'');
+}
+function clearHubImport(){HUB_ROWS=[];HUB_FILE='';HUB_ROUTE='msg';renderImportHub()}
+function rowVal(row,names){const map={};Object.keys(row||{}).forEach(k=>map[String(k).toLowerCase().replace(/[\s_\-\/]/g,'')]=row[k]);for(const n of names){const k=String(n).toLowerCase().replace(/[\s_\-\/]/g,'');if(map[k]!=null&&map[k]!=='')return map[k]}return ''}
+function rowDate(row,names){let v=rowVal(row,names);if(v instanceof Date)return fmtDate(v);if(typeof v==='number'&&v>20000){const d=new Date(Math.round((v-25569)*86400*1000));return fmtDate(d)}v=String(v||'').trim();if(!v)return '';const d=new Date(v);if(!isNaN(d))return fmtDate(d);const m=v.match(/(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/);return m?m[1]+'-'+pad(+m[2])+'-'+pad(+m[3]):v}
+function commitHubImport(){
+  if(!HUB_ROWS.length)return toast('No data to import');
+  let route=($('#hubRoute')&&$('#hubRoute').value)||HUB_ROUTE||'auto';if(route==='auto')route=detectHubRoute(HUB_ROWS,HUB_FILE);
+  if(route==='training')return commitTrainingBridge();
+  if(route==='__backup')return toast('Backup restore should use Settings → Restore JSON');
+  if(!DB[route])return toast('Unsupported route: '+route);
+  let add=0,upd=0,skip=0;
+  HUB_ROWS.forEach(row=>{const rec=mapHubRecord(route,row);if(!rec){skip++;return}const i=findHubDuplicate(route,rec);if(i>=0){DB[route][i]=Object.assign(DB[route][i],rec,{_updated:Date.now()});upd++;}else{DB[route].push(rec);add++;}});
+  logAct('📥 Unified Import · '+route+' +'+add+' / update '+upd+' / skip '+skip);saveDB();toast('📥 Import done: +'+add+' / update '+upd+' / skip '+skip);go(route);requestAutoUpload('HUB_IMPORT_'+route);
+}
+function mapHubRecord(route,row){
+  if(route==='audits')return {id:String(rowVal(row,['ID','Audit ID'])||uid('AUD')),_created:Date.now(),_updated:Date.now(),auditType:String(rowVal(row,['Audit Type','Type','Standard'])||'Internal'),auditName:String(rowVal(row,['Audit Name','Name','Title','Subject'])||HUB_FILE||'Imported Audit'),auditor:String(rowVal(row,['Auditor','Audit Body','Customer'])||''),date:rowDate(row,['Date','Start Date','Audit Date'])||todayStr(),endDate:rowDate(row,['End Date'])||'',status:String(rowVal(row,['Status'])||'planned').toLowerCase(),result:String(rowVal(row,['Result'])||''),score:Number(rowVal(row,['Score']))||'',department:String(rowVal(row,['Department','Dept'])||''),scope:String(rowVal(row,['Scope'])||''),notes:String(rowVal(row,['Notes','Remark','Summary','Body'])||''),photos:[]};
+  if(route==='caps')return {id:String(rowVal(row,['ID','CAP ID','CAPA No'])||uid('CAP')),_created:Date.now(),_updated:Date.now(),auditId:String(rowVal(row,['Audit ID','Related Audit'])||''),source:String(rowVal(row,['Source','Customer','Audit Type'])||HUB_FILE||'Unified Import'),description:String(rowVal(row,['Finding','Description','Issue','Nonconformity','Subject','Body'])||'').trim(),priority:String(rowVal(row,['Priority'])||'medium').toLowerCase(),riskLevel:String(rowVal(row,['Risk','Risk Level'])||'medium').toLowerCase(),department:String(rowVal(row,['Department','Dept'])||''),owner:String(rowVal(row,['Owner','Responsible','PIC'])||''),rootCause:String(rowVal(row,['Root Cause'])||''),correctiveAction:String(rowVal(row,['Corrective Action','CA','Action'])||''),preventiveAction:String(rowVal(row,['Preventive Action','PA'])||''),dueDate:rowDate(row,['Due Date','Deadline'])||'',status:String(rowVal(row,['Status'])||'open').toLowerCase(),photos:[]};
+  if(route==='documents')return {id:String(rowVal(row,['ID','Doc ID'])||uid('DOC')),_created:Date.now(),_updated:Date.now(),docNo:String(rowVal(row,['Doc No','Document No','Code','No'])||''),title:String(rowVal(row,['Title','Document Name','Name','Subject'])||HUB_FILE||'Imported Document'),category:String(rowVal(row,['Category'])||'external').toLowerCase(),docType:String(rowVal(row,['Doc Type','Type'])||'other').toLowerCase(),version:String(rowVal(row,['Version','Rev'])||''),department:String(rowVal(row,['Department','Dept'])||''),owner:String(rowVal(row,['Owner'])||''),approvedBy:String(rowVal(row,['Approved By'])||''),effectiveDate:rowDate(row,['Effective Date','Issue Date'])||'',expiryDate:rowDate(row,['Expiry Date','Review Date'])||'',copies:Number(rowVal(row,['Copies']))||'',distribution:String(rowVal(row,['Distribution'])||''),location:String(rowVal(row,['Location'])||''),status:String(rowVal(row,['Status'])||'active').toLowerCase(),history:'Imported '+fmtDT(new Date()),remark:String(rowVal(row,['Remark','Notes','Body'])||''),photos:[]};
+  if(route==='incidents')return {id:String(rowVal(row,['ID','Incident ID'])||uid('INC')),_created:Date.now(),_updated:Date.now(),type:String(rowVal(row,['Type','Incident Type'])||'damage').toLowerCase(),date:rowDate(row,['Date','Incident Date'])||todayStr(),location:String(rowVal(row,['Location'])||''),department:String(rowVal(row,['Department','Dept'])||''),description:String(rowVal(row,['Description','Issue','Subject','Body'])||HUB_FILE||'Imported incident'),responsible:String(rowVal(row,['Responsible','Owner','PIC'])||''),cost:Number(rowVal(row,['Cost','Amount','Loss'])||0),investigation:String(rowVal(row,['Investigation'])||''),rootCause:String(rowVal(row,['Root Cause'])||''),correctiveAction:String(rowVal(row,['Corrective Action','Action'])||''),status:String(rowVal(row,['Status'])||'open').toLowerCase(),photos:[]};
+  if(route==='policies')return {id:String(rowVal(row,['ID','Policy ID'])||uid('POL')),_created:Date.now(),_updated:Date.now(),category:String(rowVal(row,['Category'])||'legal').toLowerCase(),title:String(rowVal(row,['Title','Name','Subject'])||HUB_FILE||'Imported Policy'),refNo:String(rowVal(row,['Ref No','Code','No'])||''),version:String(rowVal(row,['Version','Rev'])||''),effectiveDate:rowDate(row,['Effective Date','Issue Date'])||'',reviewDate:rowDate(row,['Review Date','Expiry Date'])||'',department:String(rowVal(row,['Department','Dept'])||''),lang:String(rowVal(row,['Lang','Language'])||''),status:String(rowVal(row,['Status'])||'active').toLowerCase(),content:String(rowVal(row,['Content','Body','Text','Remark'])||''),photos:[]};
+  if(route==='msg')return {id:String(rowVal(row,['ID','MSG ID'])||uid('MSG')),_created:Date.now(),_updated:Date.now(),date:rowDate(row,['Date','Email Date'])||todayStr(),from:String(rowVal(row,['From','Sender'])||''),subject:String(rowVal(row,['Subject','Title'])||HUB_FILE||'Imported MSG'),msgType:String(rowVal(row,['Type','Msg Type'])||'email'),auditId:String(rowVal(row,['Audit ID'])||''),content:String(rowVal(row,['Body','Content','Text','Summary','Remark'])||''),convertedTo:'',photos:[]};
+}
+function findHubDuplicate(route,rec){
+  return DB[route].findIndex(x=>x.id===rec.id||
+    (route==='documents'&&rec.docNo&&x.docNo===rec.docNo)||
+    (route==='caps'&&x.description===rec.description&&x.dueDate===rec.dueDate)||
+    (route==='msg'&&x.subject===rec.subject&&x.date===rec.date)||
+    (route==='incidents'&&x.description===rec.description&&x.date===rec.date)||
+    (route==='policies'&&x.title===rec.title&&x.refNo===rec.refNo)||
+    (route==='audits'&&x.auditName===rec.auditName&&x.date===rec.date));
+}
+function commitTrainingBridge(){
+  let bridge={source:'AC Audit Unified Import Center',updatedAt:Date.now(),trainings:[],records:{},library:[]};
+  try{bridge=Object.assign(bridge,JSON.parse(localStorage.getItem('ac_training_bridge')||'{}'));bridge.trainings=bridge.trainings||[];bridge.records=bridge.records||{};bridge.library=bridge.library||[]}catch(e){}
+  let add=0,upd=0,skip=0;
+  HUB_ROWS.forEach(row=>{
+    const isRec=rowVal(row,['Subject'])&&(rowVal(row,['Attendees','Absences','Dept','Participant'])||row.__training==='record');
+    if(isRec){const date=rowDate(row,['Date'])||todayStr();const month=String(rowVal(row,['Month'])||date.slice(0,7));const r={id:String(rowVal(row,['ID'])||''),seq:Number(rowVal(row,['Seq']))||0,subject:String(rowVal(row,['Subject'])||''),dept:String(rowVal(row,['Dept','Department'])||''),trainer:String(rowVal(row,['Trainer'])||''),date:date,time:String(rowVal(row,['Time'])||''),duration:String(rowVal(row,['Duration'])||''),participant:String(rowVal(row,['Participant'])||''),attendees:Number(rowVal(row,['Attendees'])||0),absences:Number(rowVal(row,['Absences'])||0),remarks:String(rowVal(row,['Remarks','Remark'])||'')};if(!r.subject){skip++;return}if(!bridge.records[month])bridge.records[month]=[];const i=bridge.records[month].findIndex(x=>(r.id&&x.id===r.id)||(x.subject===r.subject&&x.date===r.date&&x.trainer===r.trainer));if(i>=0){bridge.records[month][i]=Object.assign(bridge.records[month][i],r);upd++}else{bridge.records[month].push(r);add++}return;}
+    const monthsRaw=rowVal(row,['Months_JSON','Months','months']);let months={};try{months=typeof monthsRaw==='string'?JSON.parse(monthsRaw||'{}'):(monthsRaw||{})}catch(e){}
+    const trow={id:Number(rowVal(row,['ID','id']))||Date.now()+Math.floor(Math.random()*999),category:String(rowVal(row,['Category'])||''),nameZH:String(rowVal(row,['NameZH','Name ZH','中文名稱','Subject','Title'])||''),nameEN:String(rowVal(row,['NameEN','Name EN'])||''),nameKH:String(rowVal(row,['NameKH','Name KH'])||''),trainer:String(rowVal(row,['Trainer'])||''),hours:Number(rowVal(row,['Hours'])||1),traineeZH:String(rowVal(row,['TraineeZH','Trainee ZH'])||''),traineeEN:String(rowVal(row,['TraineeEN','Trainee EN'])||''),frequency:String(rowVal(row,['Frequency'])||''),months:months,remarks:String(rowVal(row,['Remarks','Remark'])||''),type:String(rowVal(row,['Type'])||'internal'),organizer:String(rowVal(row,['Organizer'])||''),outlineZH:String(rowVal(row,['OutlineZH'])||''),outlineEN:String(rowVal(row,['OutlineEN'])||'')};
+    if(!trow.nameZH&&!trow.nameEN){skip++;return}const i=bridge.trainings.findIndex(x=>(trow.id&&x.id===trow.id)||(trow.nameZH&&x.nameZH===trow.nameZH));if(i>=0){bridge.trainings[i]=Object.assign(bridge.trainings[i],trow);upd++}else{bridge.trainings.push(trow);add++}
+  });
+  bridge.updatedAt=Date.now();localStorage.setItem('ac_training_bridge',JSON.stringify(bridge));
+  const applied=applyTrainingBridgeToLocal(bridge);
+  logAct('📥 Training import +'+add+' / update '+upd+' / skip '+skip+' · local applied +'+applied.add+' / update '+applied.upd);
+  toast('Training imported: +'+add+' / update '+upd+' / skip '+skip+'. Local data applied.');trainingCloudUpload();
+}
+
+
+/* =====================================================================
+   TELEGRAM PERIOD SUMMARY / APPROVAL — D/W/M/Y + Analysis
+===================================================================== */
+function getPeriodChoice(k){const el=$('#period_'+k);return el?el.value:'month'}
+function periodRange(mode){
+  const now=new Date();let start,end=new Date(now);
+  if(mode==='day'){start=new Date(now.getFullYear(),now.getMonth(),now.getDate())}
+  else if(mode==='week'){const d=(now.getDay()+6)%7;start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-d)}
+  else if(mode==='year'){start=new Date(now.getFullYear(),0,1)}
+  else{start=new Date(now.getFullYear(),now.getMonth(),1)}
+  end.setHours(23,59,59,999);return {start,end,label:fmtDate(start)+' ~ '+fmtDate(end),mode};
+}
+function recDateOf(k,r){return r.date||r.dueDate||r.expiryDate||r.effectiveDate||r.issueDate||r.reviewDate||fmtDate(new Date(r._created||Date.now()))}
+function rowsByPeriod(k,mode){const pr=periodRange(mode);return (DB[k]||[]).filter(r=>{const ds=recDateOf(k,r);if(!ds)return false;const d=new Date(ds+'T00:00:00');return d>=pr.start&&d<=pr.end})}
+function moduleAnalysis(k,rows){
+  const total=rows.length;
+  const open=rows.filter(r=>String(r.status||'').toLowerCase()!=='closed'&&String(r.status||'').toLowerCase()!=='completed').length;
+  const overdue=rows.filter(r=>r.dueDate&&String(r.status||'').toLowerCase()!=='closed'&&daysDiff(r.dueDate)<0).length;
+  const high=rows.filter(r=>['high','critical'].includes(String(r.riskLevel||r.priority||'').toLowerCase())).length;
+  const exp=rows.filter(r=>r.expiryDate&&daysDiff(r.expiryDate)!=null&&daysDiff(r.expiryDate)<=60&&daysDiff(r.expiryDate)>=0).length;
+  const issue=[];if(overdue)issue.push('Overdue '+overdue);if(high)issue.push('High Risk '+high);if(exp)issue.push('Expiring 60D '+exp);if(!issue.length)issue.push('No major abnormality');
+  return {total,open,overdue,high,exp,issue:issue.join(' / ')};
+}
+function buildModuleSummary(k,mode,approval){
+  const rows=rowsByPeriod(k,mode), pr=periodRange(mode), a=moduleAnalysis(k,rows);
+  const title=(approval?'✅ Approval / 核可':'📤 Summary / 摘要');
+  const lines=rows.slice(0,8).map((r,i)=>{
+    const name=(r.auditName||r.description||r.title||r.subject||r.certNo||r.name||r.docNo||r.id||'').toString().replace(/\s+/g,' ').slice(0,90);
+    return (i+1)+'. '+esc(name)+' — '+esc(r.status||r.result||'');
+  }).join('\n');
+  return title+'\n<b>AC Audit · '+esc(t(k))+'</b>\n━━━━━━━━━━━━━━━━━━━━\n'+
+    '📆 Period: <b>'+esc(t(mode==='day'?'daily':mode==='week'?'weekly':mode==='year'?'yearly':'monthly'))+'</b> · '+esc(pr.label)+'\n'+
+    '📝 Records: <b>'+a.total+'</b> | Open: <b>'+a.open+'</b>\n'+
+    '⏰ Overdue: <b>'+a.overdue+'</b> | 🔴 High: <b>'+a.high+'</b> | 📁 Expiring: <b>'+a.exp+'</b>\n'+
+    '📌 Analysis: '+esc(a.issue)+'\n'+(approval?'👤 Approver: <b>Paul Weng / 神大</b>\n':'')+
+    (lines?'━━━━━━━━━━━━━━━━━━━━\n'+lines+'\n':'')+
+    '━━━━━━━━━━━━━━━━━━━━\n🕐 '+esc(fmtDT(new Date()))+'\n📊 <a href="'+esc(location.href.split('#')[0]+'#'+k)+'">Open Dashboard</a>';
+}
+async function sendModuleSummary(k){
+  const mode=getPeriodChoice(k);try{const j=await gasCall({action:'tg',text:buildModuleSummary(k,mode,false)});if(!j.ok&&j.status!=='ok')throw new Error(j.msg||j.error||'Telegram failed');toast('📤 '+t('sendSummary')+' ✓');await cloudUpload(true,'SUMMARY_'+k+'_'+mode)}catch(e){toast('⚠ '+e.message)}
+}
+async function sendModuleApproval(k){
+  const mode=getPeriodChoice(k), rows=rowsByPeriod(k,mode), pr=periodRange(mode);
+  if(!confirm('Paul Weng / 神大 '+t('sendApproval')+'?\n'+t(k)+' · '+pr.label+' · '+rows.length+' records'))return;
+  try{const j=await gasCall({action:'approval',module:t(k),period:pr.label+' / '+mode,count:rows.length,comment:'Approved',hash:'#'+k});if(!j.ok&&j.status!=='ok')throw new Error(j.msg||j.error||'Approval failed');DB.meta.lastApproval={module:k,period:pr.label,approver:'Paul Weng / 神大',time:Date.now(),count:rows.length};saveDB();toast('✅ '+t('sendApproval')+' ✓');await cloudUpload(true,'APPROVAL_'+k+'_'+mode)}catch(e){toast('⚠ '+e.message)}
 }
 
 /* =====================================================================
@@ -1074,6 +1387,10 @@ async function cloudSync(){
 async function tgNotify(html){
   try{await gasCall({action:'tg',text:html})}catch(e){/* silent */}
 }
+async function testTg(){
+  try{await gasCall({action:'tgTest'});toast('Telegram test sent ✓')}
+  catch(e){toast('Telegram test failed: '+e.message)}
+}
 
 /* =====================================================================
    DASHBOARD
@@ -1118,6 +1435,7 @@ function renderDashboard(){
     kpi('docExp',s.docExp,'📁',s.docExp?'var(--warn)':'var(--ok)','documents')+
     kpi('dccActive',s.dccActive,'🗄','var(--info)','documents')+
     kpi('incOpen',s.incOpen,'🚨',s.incOpen?'var(--danger)':'var(--ok)','incidents')+
+    kpi('training',trainingSnapshot().trainings.length,'🎓','var(--khaki)','training')+
    '</div>'+
    '<div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:14px" id="dashLow">'+
     '<div class="panel"><h3>🕘 '+esc(t('recentAct'))+'<span class="rule"></span></h3><ul class="actlist">'+
@@ -1125,8 +1443,8 @@ function renderDashboard(){
     '</ul></div>'+
     '<div class="panel"><h3>⚙ '+esc(t('sysStatus'))+'<span class="rule"></span></h3>'+
       '<div class="kv-row"><span>☁ Cloud</span><b id="dashCloud">'+(CFG.gasUrl?'…':esc(t('cloudBad')))+'</b></div>'+
-      '<div class="kv-row"><span>✈ Telegram Bot</span><b>@ac_audit_bot</b></div>'+
-      '<div class="kv-row"><span>👥 Group</span><b>'+esc(CFG.chatId)+'</b></div>'+
+      '<div class="kv-row"><span>✈ Telegram</span><b>GAS Script Properties</b></div>'+
+      '<div class="kv-row"><span>🔐 Token</span><b>Not stored in browser</b></div>'+
       '<div class="kv-row"><span>'+esc(t('lastSync'))+'</span><b>'+esc(lastSync)+'</b></div>'+
       '<div class="kv-row"><span>💾 Local records</span><b>'+MODULE_KEYS.reduce((n,k)=>n+DB[k].length,0)+'</b></div>'+
       '<div class="hint" style="margin-top:10px">'+esc(t('openPlatform'))+'</div>'+
@@ -1274,6 +1592,9 @@ const NOTIF_LABELS={
  upload:{zh:'上傳完成通知',en:'Upload complete',km:'ជូនដំណឹងផ្ទុកឡើង'},
  download:{zh:'下載完成通知',en:'Download complete',km:'ជូនដំណឹងទាញយក'},
  sync:{zh:'同步完成通知',en:'Sync complete',km:'ជូនដំណឹងសមកាលកម្ម'},
+ autoCloud:{zh:'摘要/核可成功後自動上傳',en:'Auto-upload after summary/approval',km:'ផ្ទុកឡើងស្វ័យប្រវត្តិបន្ទាប់ពីសង្ខេប/អនុម័ត'},
+ recordUpdate:{zh:'新增/修改即時通知',en:'Instant update notice',km:'ជូនដំណឹងពេលកែប្រែ'},
+ approval:{zh:'核可通知',en:'Approval notice',km:'ជូនដំណឹងអនុម័ត'},
  hiRisk:{zh:'高風險 Finding 通知',en:'High risk finding',km:'Finding ហានិភ័យខ្ពស់'},
  capOverdue:{zh:'CAP 逾期提醒（每日 GAS）',en:'CAP overdue (daily GAS)',km:'CAP ហួសកំណត់'},
  certExpiry:{zh:'證書到期提醒（每日 GAS）',en:'Certificate expiry (daily GAS)',km:'វិញ្ញាបនបត្រជិតផុត'},
@@ -1288,11 +1609,11 @@ function renderSettings(){
    '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(330px,1fr))">'+
    '<div class="panel setsec"><h4>☁ '+esc(t('cloudSet'))+'</h4>'+
      '<div class="fld"><label>GAS Web App URL（/exec）</label><input id="set_gas" value="'+esc(CFG.gasUrl)+'" placeholder="https://script.google.com/macros/s/…/exec"></div>'+
-     '<div class="fld" style="margin-top:8px"><label>Telegram Group Chat ID</label><input id="set_chat" value="'+esc(CFG.chatId)+'"></div>'+
-     '<div style="margin-top:10px;display:flex;gap:8px">'+
+     '<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">'+
      '<button class="btn pri" onclick="saveCloudSet()">💾 '+esc(t('save'))+'</button>'+
-     '<button class="btn" onclick="pingCloud().then(()=>toast(t(\'cloudOk\')))">🔌 Test</button></div>'+
-     '<p class="hint" style="margin-top:8px">Bot：@ac_audit_bot · GAS：AC_AUDIT_PLATFORM · Repo：ac-audit</p></div>'+
+     '<button class="btn" onclick="pingCloud().then(()=>toast(t(\'cloudOk\')))">🔌 Test</button>'+
+     '<button class="btn" onclick="testTg()">🔧 Test Telegram</button></div>'+
+     '<p class="hint" style="margin-top:8px">'+(LANG==='zh'?'Bot Token / Group Chat ID 已由 Unified GAS 自動設定；瀏覽器不保存 Token。':(LANG==='km'?'Bot Token / Group Chat ID ត្រូវបានគ្រប់គ្រងដោយ Unified GAS; browser មិនរក្សា Token ទេ។':'Bot Token / Group Chat ID are managed by Unified GAS; the browser does not store tokens.'))+'</p></div>'+
    '<div class="panel setsec"><h4>✈ '+esc(t('notif'))+'</h4>'+
      Object.keys(NOTIF_LABELS).map(k=>'<div class="swrow"><input type="checkbox" id="nt_'+k+'" '+(CFG.notif[k]?'checked':'')+
        ' onchange="CFG.notif.'+k+'=this.checked;saveCFG();syncNotifToDB()"><label for="nt_'+k+'">'+esc(L(NOTIF_LABELS[k]))+'</label></div>').join('')+'</div>'+
@@ -1363,7 +1684,7 @@ function migrateMSG(){
 window.migrateDCC=migrateDCC;window.migrateMSG=migrateMSG;
 
 function saveCloudSet(){
-  CFG.gasUrl=$('#set_gas').value.trim();CFG.chatId=$('#set_chat').value.trim();
+  CFG.gasUrl=$('#set_gas').value.trim();
   saveCFG();toast(t('saved'));pingCloud();
 }
 function syncNotifToDB(){DB.settings.notif=Object.assign({},CFG.notif);saveDB()}
@@ -1386,7 +1707,7 @@ function toggleTheme(){
   document.documentElement.dataset.theme=cur;localStorage.setItem('ac_audit_theme',cur);
 }
 function setLang(v){LANG=v;localStorage.setItem('ac_audit_lang',v);renderNav();go(CURRENT)}
-const ROUTE_OK=k=>MODULES[k]||['dashboard','analytics','settings','subsys','grs'].includes(k);
+const ROUTE_OK=k=>MODULES[k]||['dashboard','analytics','importHub','training','settings','subsys','grs'].includes(k);
 window.addEventListener('hashchange',()=>{const k=location.hash.slice(1);
   if(k&&k!==CURRENT&&ROUTE_OK(k))go(k)});
 (function init(){
@@ -1401,4 +1722,3 @@ window.addEventListener('hashchange',()=>{const k=location.hash.slice(1);
 </script>
 </body>
 </html>
-<!-- ac_audit_platform_v1.html · 2026-07-12 · 子系統連結修正：damage→v2、MSG→intake_msg_v2、新增匯入中心；其餘未動 -->

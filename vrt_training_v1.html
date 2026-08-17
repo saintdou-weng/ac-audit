@@ -509,7 +509,7 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
 
   <!-- GAS ONLINE SYNC -->
   <div class="set-sec">
-    <div class="set-ttl" data-i18n="set.sync.ttl">☁️ 線上同步（Google Sheets / GAS）</div>
+    <div class="set-ttl" data-i18n="set.sync.ttl">☁️ 線上同步（Unified GAS / Google Sheets）</div>
     <div class="set-row">
       <label>GAS Web App URL</label>
       <input type="url" id="gas-url" placeholder="https://script.google.com/macros/s/..." style="flex:1;max-width:500px" oninput="saveGasUrl()">
@@ -527,14 +527,12 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
   <div class="set-sec">
     <div class="set-ttl" data-i18n="set.tg.ttl">📱 Telegram Bot 設定</div>
     <div class="set-row">
-      <label data-i18n="set.tg.token">Bot Token</label>
-      <input type="text" id="tg-token" placeholder="123456:ABC-DEF..." style="flex:1;max-width:400px" oninput="saveTgCfg()">
+      <span class="conn-na" style="background:#fff7ed;color:#9a5b00">由 GAS Script Properties 管理</span>
+      <button class="btn" onclick="testTelegram()">🔧 測試 Telegram</button>
     </div>
-    <div class="set-row">
-      <label data-i18n="set.tg.chat">群組 Chat ID</label>
-      <input type="text" id="tg-chatid" placeholder="-1001234567890" style="flex:1;max-width:240px" oninput="saveTgCfg()">
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.7">
+      本頁與 AC Audit 平台使用同一個 GAS Web App。Bot Token / Chat ID 已由 Unified GAS 的 installPlatformV2() 自動設定，瀏覽器不保存 Token。
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px" data-i18n="set.tg.note">從 @BotFather 取得 Token；Chat ID 為負數（群組）</div>
   </div>
 
   <!-- BACKUP -->
@@ -875,7 +873,7 @@ const DICT={
   'set.ph.dur':{zh:'例：0.5 / 1 / 30mn',en:'e.g. 0.5 / 1 / 30mn'},
   'set.ph.part':{zh:'例：全體員工 / New Employees',en:'e.g. All Employees'},
   'set.add':{zh:'＋ 新增',en:'＋ Add'},
-  'set.sync.ttl':{zh:'☁️ 線上同步（Google Sheets / GAS）',en:'☁️ Online Sync (Google Sheets / GAS)'},
+  'set.sync.ttl':{zh:'☁️ 線上同步（Unified GAS / Google Sheets）',en:'☁️ Online Sync (Google Sheets / GAS)'},
   'set.sync.upload':{zh:'⬆ 上傳至 GAS',en:'⬆ Upload to GAS'},
   'set.sync.download':{zh:'⬇ 從 GAS 下載',en:'⬇ Download from GAS'},
   'set.sync.test':{zh:'🔗 測試連線',en:'🔗 Test Connection'},
@@ -1161,9 +1159,40 @@ function load(){
     S.library=clone(DEF_LIB);S.opts=clone(DEF_OPTS);
   }
 }
+
+function applyAuditBridge(){
+  try{
+    const raw=localStorage.getItem('ac_training_bridge');
+    if(!raw)return;
+    const b=JSON.parse(raw);
+    if(!b||!b.updatedAt)return;
+    const mark=localStorage.getItem('ac_training_bridge_applied');
+    if(mark&&String(mark)===String(b.updatedAt))return;
+    let changed=0;
+    (b.trainings||[]).forEach(t=>{
+      const i=S.trainings.findIndex(x=>(t.id&&x.id===t.id)||(t.nameZH&&x.nameZH===t.nameZH));
+      if(i>=0)S.trainings[i]=Object.assign({},S.trainings[i],t);else S.trainings.push(t);
+      changed++;
+    });
+    if(b.records){Object.keys(b.records).forEach(month=>{
+      if(!S.records[month])S.records[month]=[];
+      (b.records[month]||[]).forEach(r=>{
+        const exists=S.records[month].some(x=>(r.id&&x.id===r.id)||(x.subject===r.subject&&x.date===r.date&&x.trainer===r.trainer));
+        if(!exists){S.records[month].push(r);changed++;}
+      });
+    });}
+    (b.library||[]).forEach(item=>{
+      const i=S.library.findIndex(x=>(item.id&&x.id===item.id)||(item.nameZH&&x.nameZH===item.nameZH));
+      if(i>=0)S.library[i]=Object.assign({},S.library[i],item);else S.library.push(item);
+      changed++;
+    });
+    localStorage.setItem('ac_training_bridge_applied',String(b.updatedAt));
+    if(changed>0){save();setCfg({needsSync:true});setTimeout(()=>toast('已接收 Audit 匯入中心資料：'+changed+' 筆，請視需要上傳 GAS','ok'),700);}
+  }catch(e){console.warn('Audit bridge import failed',e);}
+}
 function clone(o){return JSON.parse(JSON.stringify(o));}
-function getCfg(){try{const c=JSON.parse(localStorage.getItem('vrt3_cfg')||'{}');if(!c.gasUrl)c.gasUrl='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';return c}catch{return{gasUrl:'https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec'}}}
-function setCfg(o){localStorage.setItem('vrt3_cfg',JSON.stringify({...getCfg(),...o}))}
+function getCfg(){try{const c=JSON.parse(localStorage.getItem('vrt3_cfg')||'{}');delete c.tgToken;delete c.botToken;delete c.token;if(!c.gasUrl)c.gasUrl='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';return c}catch{return{gasUrl:'https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec'}}}
+function setCfg(o){const n={...getCfg(),...o};delete n.tgToken;delete n.botToken;delete n.token;localStorage.setItem('vrt3_cfg',JSON.stringify(n))}
 function saveGasUrl(){const u=gv('gas-url').trim();setCfg({gasUrl:u});updSyncBadge();}
 function updSyncBadge(){
   const {gasUrl,lastSync,needsSync}=getCfg();
@@ -1602,20 +1631,14 @@ function renderStats(){
 // =====================================================
 function renderSettings(){
   ['trainers','depts','durations','participants'].forEach(k=>renderOptList(k));
-  const {gasUrl='',tgToken='',tgChatId=''}=getCfg();
+  const {gasUrl=''}=getCfg();
   document.getElementById('gas-url').value=gasUrl;
-  if(document.getElementById('tg-token')) document.getElementById('tg-token').value=tgToken;
-  if(document.getElementById('tg-chatid')) document.getElementById('tg-chatid').value=tgChatId;
   updStorInfo();
   document.getElementById('gas-code').textContent=GAS_CODE;
   applyI18n();
   updSyncBadge(); // must run AFTER applyI18n
 }
-function saveTgCfg(){
-  const token=(document.getElementById('tg-token')||{}).value||'';
-  const chatId=(document.getElementById('tg-chatid')||{}).value||'';
-  setCfg({tgToken:token,tgChatId:chatId});
-}
+function saveTgCfg(){setCfg({});}
 function renderOptList(k){
   const el=document.getElementById('opt-'+k);
   if(!el) return;
@@ -2193,7 +2216,7 @@ async function syncToGAS(){
     const payload={action:'saveAll',trainings:S.trainings,records:S.records,library:S.library};
     const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain'}});
     const d=await res.json();
-    if(d.status==='ok'){
+    if(d.status==='ok'||d.ok===true){
       const ts=new Date().toLocaleString('zh-TW',{hour12:false}).slice(0,16);
       setCfg({lastSync:ts,needsSync:false});
       const rc=Object.values(S.records).reduce((a,b)=>a+b.length,0);
@@ -2257,8 +2280,19 @@ async function syncFromGAS(){
 async function testGAS(){
   const {gasUrl}=getCfg();if(!gasUrl){toast('請先填入 GAS URL','err');return;}
   loading(true);
-  try{const res=await fetch(gasUrl+'?action=ping');const d=await res.json();if(d.pong) toast('連線成功 ✓ v'+(d.version||'1.0'),'ok');else toast('GAS 回應異常','warn');}
+  try{const res=await fetch(gasUrl+'?action=ping');const d=await res.json();if(d.pong||d.ok) toast('連線成功 ✓ v'+(d.version||'1.0'),'ok');else toast('GAS 回應異常','warn');}
   catch(e){toast('無法連線：'+e.message,'err');}
+  loading(false);
+}
+async function testTelegram(){
+  const {gasUrl}=getCfg();if(!gasUrl){toast('請先填入 GAS URL','err');return;}
+  loading(true);
+  try{
+    const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify({action:'tgTest'}),headers:{'Content-Type':'text/plain'}});
+    const d=await res.json();
+    if(d.status==='ok'||d.ok===true) toast('Telegram 測試訊息已送出 ✓','ok');
+    else toast('Telegram 測試失敗：'+(d.msg||d.error||''),'err');
+  }catch(e){toast('Telegram 測試失敗：'+e.message,'err');}
   loading(false);
 }
 
@@ -2289,7 +2323,7 @@ function restoreJSON(inp){
 // =====================================================
 //  TELEGRAM SUMMARY
 // =====================================================
-function sendTgSummary(){
+async function sendTgSummary(){
   const {gasUrl}=getCfg();
   if(!gasUrl){toast(str('toast.tg.nocfg'),'warn');return;}
   const m=S.month,key=`${CURRENT_YEAR}-${String(m).padStart(2,'0')}`;
@@ -2306,7 +2340,7 @@ function sendTgSummary(){
   const payload={
     action:'sendSummary',
     month:key,
-    monthLabel:`${MONTHS_EN[m-1]} 2026`,
+    monthLabel:`${MONTHS_EN[m-1]} ${CURRENT_YEAR}`,
     totalPlanned:planned.length,
     doneCount:doneItems.length,
     pendingCount:pendingItems.length,
@@ -2317,89 +2351,436 @@ function sendTgSummary(){
     cancelledItems:cancelledItems.map(t=>t.nameZH+(t.nameEN?' / '+t.nameEN:''))
   };
   loading(true);
-  fetch(gasUrl,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain'}})
-    .then(r=>r.json())
-    .then(d=>{loading(false);if(d.status==='ok') toast(str('toast.tg.ok'),'ok');else toast(str('toast.tg.err')+(d.msg||d.error||''),'err');})
-    .catch(e=>{loading(false);toast(str('toast.tg.err')+e.message,'err');});
+  try{
+    const res=await fetch(gasUrl,{method:'POST',body:JSON.stringify(payload),headers:{'Content-Type':'text/plain'}});
+    const d=await res.json();
+    if(d.status==='ok'||d.ok===true){ toast(str('toast.tg.ok')+' · Auto upload…','ok'); await syncToGAS(); }
+    else toast(str('toast.tg.err')+(d.msg||d.error||'Unknown error'),'err');
+  }catch(e){toast(str('toast.tg.err')+e.message,'err');}
+  loading(false);
 }
 
 // =====================================================
 //  GAS CODE
 // =====================================================
-const GAS_CODE=`// VRT HR Training System v3 - GAS Backend
-// 部署：Apps Script → 部署 → 新增部署 → 網頁應用程式
-// 執行身分：我；存取：任何知道連結的人
+const GAS_CODE=`// ═══════════════════════════════════════════════════════════════════
+// AC_Audit_Platform_GAS.gs — UNIFIED AC Audit + Training Cloud + Telegram
+// Version: 2.0 unified-gs / default-properties / Drive JSON storage
+//
+// Single GAS for:
+//  1) AC Audit Platform cloud upload/download
+//  2) VRT Training page saveAll/getAll/sendSummary
+//  3) Telegram /audit panel, summary, approval relay
+//
+// First deployment: run installPlatformV2() once to authorize Drive/Sheets/UrlFetch/Triggers.
+// ═══════════════════════════════════════════════════════════════════
 
-function getOrCreateSS() {
-  const id = PropertiesService.getScriptProperties().getProperty('SS_ID');
-  if (id) return SpreadsheetApp.openById(id);
-  const ss = SpreadsheetApp.create('VRT_Training_2026');
-  PropertiesService.getScriptProperties().setProperty('SS_ID', ss.getId());
-  ['Trainings','Records','Library','Log'].forEach(n => { if (!ss.getSheetByName(n)) ss.insertSheet(n); });
+var DEFAULT_BOT_TOKEN = '8673812837:AAFJqA4rL4RIIAXAP2-ConrrPLCgt8rou8g';
+var DEFAULT_GROUP_CHAT_ID = '-5456651485';
+var DEFAULT_DASHBOARD_URL = 'https://saintdou-weng.github.io/ac-audit/ac_audit_platform_v1.html';
+var DEFAULT_TRAINING_URL = 'https://saintdou-weng.github.io/ac-audit/vrt_training_v1.html';
+var DEFAULT_APPROVER = 'Paul Weng / 神大';
+var APP_VERSION = '2.0';
+
+function installPlatformV2() {
+  var props = PropertiesService.getScriptProperties();
+  props.setProperties({
+    BOT_TOKEN: DEFAULT_BOT_TOKEN,
+    GROUP_CHAT_ID: DEFAULT_GROUP_CHAT_ID,
+    DASHBOARD_URL: DEFAULT_DASHBOARD_URL,
+    TRAINING_URL: DEFAULT_TRAINING_URL,
+    APPROVER_NAME: DEFAULT_APPROVER,
+    AC_AUDIT_VERSION: APP_VERSION
+  }, false);
+  getAuditDbFile_();
+  getTrainingSS_();
+  setupPolling();
+  appendLog_('INSTALL', 'AC Audit unified platform v' + APP_VERSION + ' installed');
+  return 'OK: AC Audit unified platform installed. Deploy Web App as Me / Anyone, then use /audit.';
+}
+function ensureDefaultProperties_() {
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('BOT_TOKEN')) props.setProperty('BOT_TOKEN', DEFAULT_BOT_TOKEN);
+  if (!props.getProperty('GROUP_CHAT_ID')) props.setProperty('GROUP_CHAT_ID', DEFAULT_GROUP_CHAT_ID);
+  if (!props.getProperty('DASHBOARD_URL')) props.setProperty('DASHBOARD_URL', DEFAULT_DASHBOARD_URL);
+  if (!props.getProperty('TRAINING_URL')) props.setProperty('TRAINING_URL', DEFAULT_TRAINING_URL);
+  if (!props.getProperty('APPROVER_NAME')) props.setProperty('APPROVER_NAME', DEFAULT_APPROVER);
+}
+function CFG(key) {
+  ensureDefaultProperties_();
+  return PropertiesService.getScriptProperties().getProperty(key) || '';
+}
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+function doGet(e) {
+  try {
+    ensureDefaultProperties_();
+    var p = e && e.parameter ? e.parameter : {};
+    var action = p.action || '';
+    if (action === 'ping') return jsonOut({ ok: true, pong: true, app: 'AC_AUDIT_UNIFIED', version: APP_VERSION, time: new Date().toISOString() });
+    if (action === 'panel') return sendAuditPanel_(CFG('GROUP_CHAT_ID'));
+    if (action === 'getAll' || action === 'trainingGetAll') return jsonOut(getTrainingData_());
+    if (action === 'download') return download_();
+    return jsonOut({ ok: true, app: 'AC_AUDIT_UNIFIED', version: APP_VERSION, time: new Date().toISOString() });
+  } catch (err) {
+    return jsonOut({ ok: false, error: err.message });
+  }
+}
+function doPost(e) {
+  try {
+    ensureDefaultProperties_();
+    var raw = e && e.postData && e.postData.contents ? e.postData.contents : '{}';
+    var data = JSON.parse(raw);
+    var action = data.action || '';
+    if (action === 'ping' || action === 'test') return jsonOut({ ok: true, status: 'ok', pong: true, version: APP_VERSION, time: new Date().toISOString() });
+
+    // AC Audit cloud
+    if (action === 'upload') return upload_(data);
+    if (action === 'download') return download_();
+    if (action === 'meta') return meta_();
+
+    // VRT Training compatibility — one GAS only
+    if (action === 'saveAll' || action === 'trainingSaveAll') return saveTrainingData_(data);
+    if (action === 'sendSummary' || action === 'trainingSummary') return sendTrainingSummary_(data);
+
+    // Telegram relay / panel / approval
+    if (action === 'tg') return tg_(data.text || data.html || '');
+    if (action === 'tgTest') return tg_('🔧 <b>AC Audit Unified GAS — Test</b>\n✅ Telegram relay OK\n☁ Audit + Training use the same GAS\n🕐 ' + Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss'));
+    if (action === 'auditPanel') return sendAuditPanel_(data.chatId || CFG('GROUP_CHAT_ID'));
+    if (action === 'approval') return sendApproval_(data);
+    if (action === 'notifyUpdate') return sendUpdateNotice_(data);
+    return jsonOut({ ok: false, status: 'error', error: 'Unknown action: ' + action, msg: 'Unknown action: ' + action });
+  } catch (err) {
+    appendLog_('ERROR', err.message);
+    return jsonOut({ ok: false, status: 'error', error: err.message, msg: err.message });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Audit DB cloud storage — Drive file avoids ScriptProperties size limit
+// ═══════════════════════════════════════════════════════════════════
+function getAuditDbFile_() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('AC_AUDIT_DB_FILE_ID');
+  if (id) {
+    try { return DriveApp.getFileById(id); } catch (e) { props.deleteProperty('AC_AUDIT_DB_FILE_ID'); }
+  }
+  var file = DriveApp.createFile('AC_AUDIT_DB_JSON.txt', JSON.stringify({ meta: { version: 2, updatedAt: Date.now() } }), MimeType.PLAIN_TEXT);
+  props.setProperty('AC_AUDIT_DB_FILE_ID', file.getId());
+  return file;
+}
+function upload_(data) {
+  var payload = data.data || {};
+  var updatedAt = Number(data.updatedAt || (payload.meta && payload.meta.updatedAt) || Date.now());
+  if (!payload.meta) payload.meta = {};
+  payload.meta.updatedAt = updatedAt;
+  payload.meta.cloudSavedAt = new Date().toISOString();
+  var file = getAuditDbFile_();
+  file.setContent(JSON.stringify(payload));
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty('AC_AUDIT_UPDATED_AT', String(updatedAt));
+  props.setProperty('AC_AUDIT_LAST_UPLOAD', Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss'));
+  appendLog_('AUDIT_UPLOAD', 'updatedAt=' + updatedAt);
+  return jsonOut({ ok: true, status: 'ok', updatedAt: updatedAt, time: new Date().toISOString() });
+}
+function download_() {
+  var props = PropertiesService.getScriptProperties();
+  var raw = getAuditDbFile_().getBlob().getDataAsString() || '';
+  var updatedAt = Number(props.getProperty('AC_AUDIT_UPDATED_AT') || 0);
+  var data = raw ? JSON.parse(raw) : null;
+  return jsonOut({ ok: true, status: 'ok', data: data, updatedAt: updatedAt });
+}
+function meta_() {
+  var updatedAt = Number(PropertiesService.getScriptProperties().getProperty('AC_AUDIT_UPDATED_AT') || 0);
+  return jsonOut({ ok: true, status: 'ok', updatedAt: updatedAt, lastUpload: CFG('AC_AUDIT_LAST_UPLOAD') || '—' });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Training Google Sheets — same GAS URL as AC Audit
+// ═══════════════════════════════════════════════════════════════════
+function getTrainingSS_() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('TRAINING_SS_ID') || props.getProperty('SS_ID');
+  if (id) {
+    try { return SpreadsheetApp.openById(id); } catch (e) { props.deleteProperty('TRAINING_SS_ID'); props.deleteProperty('SS_ID'); }
+  }
+  var ss = SpreadsheetApp.create('VRT_Training_2026_UNIFIED');
+  props.setProperty('TRAINING_SS_ID', ss.getId());
+  initTrainingSheets_(ss);
   return ss;
 }
+function initTrainingSheets_(ss) {
+  ['Trainings', 'Records', 'Library', 'Summary', 'Log'].forEach(function(name) { if (!ss.getSheetByName(name)) ss.insertSheet(name); });
+  var s1 = ss.getSheetByName('Trainings');
+  if (s1.getLastRow() === 0) s1.appendRow(['ID','Category','NameZH','NameEN','NameKH','Trainer','Hours','TraineeZH','TraineeEN','Frequency','Months_JSON','Remarks','Type','Organizer','OutlineZH','OutlineEN']);
+  var s2 = ss.getSheetByName('Records');
+  if (s2.getLastRow() === 0) s2.appendRow(['Month','ID','Seq','Subject','Dept','Trainer','Date','Time','Duration','Participant','Attendees','Absences','Remarks']);
+  var s3 = ss.getSheetByName('Library');
+  if (s3.getLastRow() === 0) s3.appendRow(['ID','Category','NameZH','NameEN','NameKH','Type','Organizer','Trainer','TraineeZH','TraineeEN','OutlineZH','OutlineEN']);
+  [s1,s2,s3].forEach(function(sh) { if (sh.getLastColumn() > 0) sh.getRange(1,1,1,sh.getLastColumn()).setFontWeight('bold').setBackground('#e8f3ed'); });
+}
+function saveTrainingData_(data) {
+  var ss = getTrainingSS_();
+  initTrainingSheets_(ss);
+  writeSheet_(ss.getSheetByName('Trainings'), ['ID','Category','NameZH','NameEN','NameKH','Trainer','Hours','TraineeZH','TraineeEN','Frequency','Months_JSON','Remarks','Type','Organizer','OutlineZH','OutlineEN'], (data.trainings || []).map(function(t) {
+    return [t.id, t.category, t.nameZH, t.nameEN || '', t.nameKH || '', t.trainer || '', t.hours || 1, t.traineeZH || '', t.traineeEN || '', t.frequency || '', JSON.stringify(t.months || {}), t.remarks || '', t.type || 'internal', t.organizer || '', t.outlineZH || '', t.outlineEN || ''];
+  }));
+  var recRows = [];
+  var rec = data.records || {};
+  Object.keys(rec).sort().forEach(function(monthKey) {
+    (rec[monthKey] || []).forEach(function(r) { recRows.push([String(monthKey), String(r.id || ''), r.seq || 0, r.subject || '', r.dept || '', r.trainer || '', String(r.date || ''), r.time || '', r.duration || '', r.participant || '', r.attendees || 0, r.absences || 0, r.remarks || '']); });
+  });
+  var s2 = ss.getSheetByName('Records');
+  writeSheet_(s2, ['Month','ID','Seq','Subject','Dept','Trainer','Date','Time','Duration','Participant','Attendees','Absences','Remarks'], recRows);
+  s2.getRange('A:A').setNumberFormat('@');
+  s2.getRange('G:G').setNumberFormat('@');
+  writeSheet_(ss.getSheetByName('Library'), ['ID','Category','NameZH','NameEN','NameKH','Type','Organizer','Trainer','TraineeZH','TraineeEN','OutlineZH','OutlineEN'], (data.library || []).map(function(item) {
+    return [item.id, item.category, item.nameZH, item.nameEN || '', item.nameKH || '', item.type || 'internal', item.organizer || '', item.trainer || '', item.traineeZH || '', item.traineeEN || '', item.outlineZH || '', item.outlineEN || ''];
+  }));
+  appendLog_('TRAINING_SAVE', 'trainings=' + ((data.trainings || []).length) + ', records=' + recRows.length);
+  return jsonOut({ ok: true, status: 'ok', time: new Date().toISOString(), trainings: (data.trainings || []).length, records: recRows.length });
+}
+function writeSheet_(sh, header, rows) {
+  sh.clearContents();
+  sh.getRange(1,1,1,header.length).setValues([header]).setFontWeight('bold').setBackground('#e8f3ed');
+  if (rows.length) sh.getRange(2,1,rows.length,header.length).setValues(rows);
+}
+function getTrainingData_() {
+  var ss = getTrainingSS_();
+  initTrainingSheets_(ss);
+  var trainings = sheetToObj_(ss.getSheetByName('Trainings'));
+  var recordsRaw = sheetToObj_(ss.getSheetByName('Records'));
+  var library = sheetToObj_(ss.getSheetByName('Library'));
+  trainings.forEach(function(t) {
+    try { t.months = JSON.parse(t.Months_JSON || '{}'); } catch(e) { t.months = {}; }
+    t.id = Number(t.ID) || 0; t.hours = Number(t.Hours) || 0;
+    t.category = t.Category || ''; t.nameZH = t.NameZH || ''; t.nameEN = t.NameEN || ''; t.nameKH = t.NameKH || '';
+    t.trainer = t.Trainer || ''; t.traineeZH = t.TraineeZH || ''; t.traineeEN = t.TraineeEN || ''; t.frequency = t.Frequency || '';
+    t.remarks = t.Remarks || ''; t.type = t.Type || 'internal'; t.organizer = t.Organizer || ''; t.outlineZH = t.OutlineZH || ''; t.outlineEN = t.OutlineEN || '';
+    ['ID','Category','NameZH','NameEN','NameKH','Trainer','Hours','TraineeZH','TraineeEN','Frequency','Months_JSON','Remarks','Type','Organizer','OutlineZH','OutlineEN'].forEach(function(k){ delete t[k]; });
+  });
+  var records = {};
+  recordsRaw.forEach(function(r) {
+    var monthKey = normalMonth_(r.Month);
+    if (!monthKey || monthKey === 'Month' || monthKey === '0') return;
+    if (!records[monthKey]) records[monthKey] = [];
+    records[monthKey].push({ id: String(r.ID || ''), seq: Number(r.Seq) || 0, subject: String(r.Subject || ''), dept: String(r.Dept || ''), trainer: String(r.Trainer || ''), date: normalDate_(r.Date), time: String(r.Time || ''), duration: String(r.Duration || ''), participant: String(r.Participant || ''), attendees: Number(r.Attendees) || 0, absences: Number(r.Absences) || 0, remarks: String(r.Remarks || '') });
+  });
+  library.forEach(function(item) {
+    item.id = Number(item.ID) || 0; item.category = item.Category || ''; item.nameZH = item.NameZH || ''; item.nameEN = item.NameEN || ''; item.nameKH = item.NameKH || ''; item.type = item.Type || 'internal'; item.organizer = item.Organizer || ''; item.trainer = item.Trainer || ''; item.traineeZH = item.TraineeZH || ''; item.traineeEN = item.TraineeEN || ''; item.outlineZH = item.OutlineZH || ''; item.outlineEN = item.OutlineEN || '';
+    ['ID','Category','NameZH','NameEN','NameKH','Type','Organizer','Trainer','TraineeZH','TraineeEN','OutlineZH','OutlineEN'].forEach(function(k){ delete item[k]; });
+  });
+  return { ok: true, status: 'ok', trainings: trainings, records: records, library: library };
+}
+function sheetToObj_(sheet) {
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0].map(function(h){ return String(h).trim(); });
+  return data.slice(1).map(function(row) {
+    var obj = {};
+    headers.forEach(function(h, i) { obj[h] = row[i] instanceof Date ? Utilities.formatDate(row[i], 'UTC', String(h).toLowerCase().indexOf('month') >= 0 ? 'yyyy-MM' : 'yyyy-MM-dd') : row[i]; });
+    return obj;
+  }).filter(function(r) { return Object.keys(r).some(function(k){ return r[k] !== '' && r[k] !== null && r[k] !== undefined; }); });
+}
+function normalMonth_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, 'UTC', 'yyyy-MM');
+  var s = String(v || '').trim();
+  var m = s.match(/^(\d{4})-(\d)$/); if (m) return m[1] + '-0' + m[2];
+  return s;
+}
+function normalDate_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, 'UTC', 'yyyy-MM-dd');
+  return String(v || '').trim();
+}
 
-function doGet(e) {
-  const action = (e.parameter || {}).action || '';
-  let result = {};
+// ═══════════════════════════════════════════════════════════════════
+// Telegram
+// ═══════════════════════════════════════════════════════════════════
+function tg_(html) {
+  var cfgErr = telegramConfigError_();
+  if (cfgErr) return jsonOut({ ok: false, status: 'error', error: cfgErr, msg: cfgErr });
+  var result = sendMessage_(CFG('GROUP_CHAT_ID'), html, null);
+  if (!result || result.ok !== true) return jsonOut({ ok: false, status: 'error', error: telegramErrorMessage_(result), msg: telegramErrorMessage_(result), tg: result || null });
+  appendLog_('TG', String(html).slice(0, 250));
+  return jsonOut({ ok: true, status: 'ok', msg: 'Telegram sent' });
+}
+function sendTrainingSummary_(data) {
+  var msg = buildTrainingSummaryMsg_(data);
+  var result = sendMessage_(CFG('GROUP_CHAT_ID'), msg, null);
+  if (!result || result.ok !== true) return jsonOut({ ok: false, status: 'error', error: telegramErrorMessage_(result), msg: telegramErrorMessage_(result), tg: result || null });
+  saveTrainingSummarySnapshot_(data);
+  appendLog_('TRAINING_SUMMARY', data.month || '');
+  return jsonOut({ ok: true, status: 'ok', msg: 'Training summary sent' });
+}
+function buildTrainingSummaryMsg_(data) {
+  var dashUrl = CFG('TRAINING_URL') || DEFAULT_TRAINING_URL;
+  var month = data.monthLabel || data.month || '';
+  var total = Number(data.totalPlanned || 0), done = Number(data.doneCount || 0), pending = Number(data.pendingCount || 0), cancelled = Number(data.cancelledCount || 0), records = Number(data.recordCount || 0);
+  var pct = total > 0 ? Math.round(done / total * 100) : 0;
+  var filled = Math.round(pct / 10);
+  var bar = Array(filled + 1).join('█') + Array(10 - filled + 1).join('░');
+  var msg = '📚 <b>VRT 培訓報告 Training Report | ' + escHtml_(month) + '</b>\n━━━━━━━━━━━━━━━━━━━━\n' +
+    '📊 完成率 Completion Rate\n<code>[' + bar + '] ' + pct + '%</code>\n\n' +
+    '📋 計劃 Planned: <b>' + total + '</b>\n✅ 完成 Done: <b>' + done + '</b>\n⏳ 未完成 Pending: <b>' + pending + '</b>\n❌ 取消/延後 Cancelled: <b>' + cancelled + '</b>\n📝 記錄 Records: <b>' + records + '</b>\n\n';
+  if (data.doneItems && data.doneItems.length) msg += '✅ <b>Completed:</b>\n' + data.doneItems.slice(0, 8).map(function(x,i){return (i+1)+'. '+escHtml_(x);}).join('\n') + '\n\n';
+  if (data.pendingItems && data.pendingItems.length) msg += '⏳ <b>Pending:</b>\n' + data.pendingItems.slice(0, 6).map(function(x,i){return (i+1)+'. '+escHtml_(x);}).join('\n') + '\n\n';
+  msg += '━━━━━━━━━━━━━━━━━━━━\n🕐 ' + Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm') + '\n📊 <a href="' + dashUrl + '">Open Training Dashboard</a>';
+  return msg;
+}
+function saveTrainingSummarySnapshot_(data) {
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty('last_training_summary', JSON.stringify({ month: data.month, monthLabel: data.monthLabel, totalPlanned: data.totalPlanned, doneCount: data.doneCount, pendingCount: data.pendingCount, cancelledCount: data.cancelledCount, recordCount: data.recordCount, savedAt: new Date().toISOString() }));
+}
+function sendApproval_(data) {
+  var approver = CFG('APPROVER_NAME') || DEFAULT_APPROVER;
+  var msg = '✅ <b>AC Audit Approval / 核可</b>\n━━━━━━━━━━━━━━━━━━━━\n' +
+    '📌 Module: <b>' + escHtml_(data.module || '') + '</b>\n' +
+    '📆 Period: <b>' + escHtml_(data.period || '') + '</b>\n' +
+    '👤 Approver: <b>' + escHtml_(approver) + '</b>\n' +
+    '📝 Records: <b>' + escHtml_(data.count || 0) + '</b>\n' +
+    '💬 Comment: ' + escHtml_(data.comment || 'Approved') + '\n' +
+    '━━━━━━━━━━━━━━━━━━━━\n🕐 ' + Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm') + '\n📊 <a href="' + pageUrl_(data.hash || '#dashboard') + '">Open Dashboard</a>';
+  var result = sendMessage_(CFG('GROUP_CHAT_ID'), msg, null);
+  if (!result || result.ok !== true) return jsonOut({ ok: false, status: 'error', error: telegramErrorMessage_(result), msg: telegramErrorMessage_(result), tg: result || null });
+  appendLog_('APPROVAL', (data.module || '') + ' by ' + approver);
+  return jsonOut({ ok: true, status: 'ok', msg: 'Approval sent', approver: approver });
+}
+function sendUpdateNotice_(data) {
+  var msg = '🔔 <b>AC Audit Updated</b>\n━━━━━━━━━━━━━━━━━━━━\n' + escHtml_(data.text || '') + '\n🕐 ' + Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm') + '\n📊 <a href="' + pageUrl_(data.hash || '#dashboard') + '">Open Dashboard</a>';
+  return tg_(msg);
+}
+function telegramConfigError_() {
+  if (!CFG('BOT_TOKEN')) return 'BOT_TOKEN not configured';
+  if (!CFG('GROUP_CHAT_ID')) return 'GROUP_CHAT_ID not configured';
+  return '';
+}
+function telegramErrorMessage_(result) {
+  if (!result) return 'Telegram API no response';
+  var desc = result.description || JSON.stringify(result);
+  if (result.error_code === 401 || String(desc).indexOf('Unauthorized') >= 0) return '401 Unauthorized: BOT_TOKEN is invalid or revoked.';
+  if (result.error_code === 400 || String(desc).indexOf('chat not found') >= 0) return '400 chat not found: GROUP_CHAT_ID is wrong or bot is not in the group.';
+  if (result.error_code === 403 || String(desc).indexOf('Forbidden') >= 0) return '403 Forbidden: bot was removed, blocked, or has no permission.';
+  return desc;
+}
+function callTelegram_(method, payload) {
+  var url = 'https://api.telegram.org/bot' + CFG('BOT_TOKEN') + '/' + method;
+  var opts = { method: 'post', contentType: 'application/json', payload: JSON.stringify(payload), muteHttpExceptions: true };
+  try { return JSON.parse(UrlFetchApp.fetch(url, opts).getContentText()); } catch (err) { return null; }
+}
+function sendMessage_(chatId, html, keyboard) {
+  var payload = { chat_id: chatId, text: html, parse_mode: 'HTML', disable_web_page_preview: true };
+  if (keyboard) payload.reply_markup = { inline_keyboard: keyboard };
+  return callTelegram_('sendMessage', payload);
+}
+function setupPolling() {
+  var triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(function(t) { if (t.getHandlerFunction() === 'onPoll') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('onPoll').timeBased().everyMinutes(1).create();
+  return 'OK: onPoll every 1 minute';
+}
+function onPoll() {
+  if (telegramConfigError_()) return;
+  var props = PropertiesService.getScriptProperties();
+  var offset = parseInt(props.getProperty('AC_AUDIT_TG_OFFSET') || '0', 10);
+  var res = callTelegram_('getUpdates', { offset: offset, timeout: 5, allowed_updates: ['message', 'channel_post'] });
+  if (!res || !res.ok || !res.result) return;
+  res.result.forEach(function(update) { offset = update.update_id + 1; handleUpdate_(update); });
+  props.setProperty('AC_AUDIT_TG_OFFSET', String(offset));
+}
+function handleUpdate_(update) {
+  var msg = update.message || update.channel_post;
+  if (!msg || !msg.text) return;
+  var text = String(msg.text).trim();
+  var chatId = msg.chat.id;
+  if (text.indexOf('/') !== 0) return;
+  var cmd = text.split(' ')[0].split('@')[0].toLowerCase();
+  if (cmd === '/audit' || cmd === '/ac' || cmd === '/auditstatus') return sendAuditPanel_(chatId);
+  if (cmd === '/train' || cmd === '/training') return sendTrainingPanel_(chatId);
+  if (cmd === '/audithelp' || cmd === '/help') return sendAuditHelp_(chatId);
+}
+function sendAuditHelp_(chatId) {
+  var msg = '📂 <b>AC Audit Platform Bot</b>\n━━━━━━━━━━━━━━━━━━━━\n/audit — open platform menu\n/train — training menu\n/auditstatus — same as /audit\n/audithelp — command help\n\nAudit and Training use one unified GAS.';
+  sendMessage_(chatId, msg, keyboard_());
+}
+function sendTrainingPanel_(chatId) {
+  var last = PropertiesService.getScriptProperties().getProperty('last_training_summary') || '';
+  var s = last ? JSON.parse(last) : null;
+  var msg = '🎓 <b>VRT Training</b>\n━━━━━━━━━━━━━━━━━━━━\n' + (s ? ('📋 Last Summary: <b>' + escHtml_(s.monthLabel || s.month) + '</b>\n✅ Done: ' + s.doneCount + '/' + s.totalPlanned + '\n') : '尚未提交培訓摘要 No training summary yet.\n') + '━━━━━━━━━━━━━━━━━━━━\n📊 <a href="' + (CFG('TRAINING_URL') || DEFAULT_TRAINING_URL) + '">Open Training Dashboard</a>';
+  sendMessage_(chatId, msg, keyboard_());
+}
+function sendAuditPanel_(chatId) {
+  var s = stats_();
+  var lastUpload = CFG('AC_AUDIT_LAST_UPLOAD') || '—';
+  var msg = '📂 <b>AC AUDIT PLATFORM · VRT</b>\n━━━━━━━━━━━━━━━━━━━━\n' +
+    '📋 今日稽核 Today: <b>' + s.todayAudit + '</b>\n' +
+    '🛠 CAP 未結案 Open: <b>' + s.capOpen + '</b>\n' +
+    '⏰ CAP 逾期 Overdue: <b>' + s.capOverdue + '</b>\n' +
+    '🔴 高風險 High Risk: <b>' + s.highRisk + '</b>\n' +
+    '🏅 證書 60 日內到期: <b>' + s.certExp + '</b>\n' +
+    '📁 文件 60 日內到期: <b>' + s.docExp + '</b>\n' +
+    '🎓 培訓 Training: <b>Unified GAS</b>\n' +
+    '━━━━━━━━━━━━━━━━━━━━\n☁ 上次上傳 Last Upload: ' + lastUpload;
+  var result = sendMessage_(chatId, msg, keyboard_());
+  if (!result || result.ok !== true) return jsonOut({ ok: false, status: 'error', error: telegramErrorMessage_(result), msg: telegramErrorMessage_(result), tg: result || null });
+  appendLog_('TG_PANEL', 'sent');
+  return jsonOut({ ok: true, status: 'ok', msg: 'Audit panel sent' });
+}
+function keyboard_() {
+  return [
+    [{ text: '📂 開啟平台 Open Platform', url: pageUrl_('#dashboard') }, { text: '📥 匯入中心 Intake', url: pageUrl_('#importHub') }],
+    [{ text: '🎓 培訓 Training', url: CFG('TRAINING_URL') || DEFAULT_TRAINING_URL }, { text: '📈 分析 Analytics', url: pageUrl_('#analytics') }],
+    [{ text: '📋 稽核 Audit', url: pageUrl_('#audits') }, { text: '🛠 CAP', url: pageUrl_('#caps') }],
+    [{ text: '🏅 GRS', url: pageUrl_('#grs_certs') }, { text: '📁 DCC', url: pageUrl_('#documents') }],
+    [{ text: '🚨 事故 Incident', url: pageUrl_('#incidents') }, { text: '📨 MSG', url: pageUrl_('#msg') }]
+  ];
+}
+function pageUrl_(hash) {
+  var base = CFG('DASHBOARD_URL') || DEFAULT_DASHBOARD_URL;
+  return base.split('#')[0] + (hash || '');
+}
+function stats_() {
+  var db = {};
+  try { var raw = getAuditDbFile_().getBlob().getDataAsString(); db = raw ? JSON.parse(raw) : {}; } catch(e) {}
+  var today = Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd');
+  var caps = db.caps || [], audits = db.audits || [], docs = db.documents || [], certs = (db.grs_certs || []).concat(db.grs_suppliers || []);
+  return {
+    todayAudit: audits.filter(function(a) { return a.date === today || (a.date <= today && a.endDate >= today); }).length,
+    capOpen: caps.filter(function(c) { return c.status !== 'closed'; }).length,
+    capOverdue: caps.filter(function(c) { return c.status !== 'closed' && c.dueDate && dayDiff_(c.dueDate) < 0; }).length,
+    highRisk: caps.filter(function(c) { return c.status !== 'closed' && (c.riskLevel === 'high' || c.riskLevel === 'critical'); }).length,
+    certExp: certs.filter(function(c) { var d = dayDiff_(c.expiryDate); return d >= 0 && d <= 60; }).length,
+    docExp: docs.filter(function(d0) { var d = dayDiff_(d0.expiryDate); return d >= 0 && d <= 60; }).length
+  };
+}
+function dayDiff_(yyyyMMdd) {
+  if (!yyyyMMdd) return 999999;
+  var p = String(yyyyMMdd).split('-'); if (p.length < 3) return 999999;
+  var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2])); var t = new Date();
+  t.setHours(0,0,0,0); d.setHours(0,0,0,0); return Math.round((d - t) / 86400000);
+}
+function escHtml_(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ═══════════════════════════════════════════════════════════════════
+// Logging
+// ═══════════════════════════════════════════════════════════════════
+function appendLog_(type, detail) {
   try {
-    if (action === 'ping') result = { pong: true, version: '3.0', time: new Date().toISOString() };
-    else if (action === 'getAll') result = getAllData();
-    else result = { error: 'Unknown action: ' + action };
-  } catch(err) { result = { error: err.message }; }
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    var ss = getLogSS_();
+    var sh = ss.getSheetByName('Log') || ss.insertSheet('Log');
+    if (sh.getLastRow() === 0) sh.appendRow(['Time (PNH)', 'Type', 'Detail']);
+    sh.appendRow([Utilities.formatDate(new Date(), 'Asia/Phnom_Penh', 'yyyy-MM-dd HH:mm:ss'), type, detail || '']);
+  } catch (e) {}
 }
-
-function doPost(e) {
-  let result = {};
-  try {
-    const data = JSON.parse(e.postData.contents);
-    if (data.action === 'saveAll') { saveAllData(data); logAction('SAVE'); result = { status: 'ok', time: new Date().toISOString() }; }
-    else result = { status: 'error', msg: 'Unknown action' };
-  } catch(err) { result = { status: 'error', msg: err.message }; }
-  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+function getLogSS_() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('AC_AUDIT_LOG_SS_ID');
+  if (id) { try { return SpreadsheetApp.openById(id); } catch (e) { props.deleteProperty('AC_AUDIT_LOG_SS_ID'); } }
+  var ss = SpreadsheetApp.create('AC_AUDIT_PLATFORM_LOG');
+  props.setProperty('AC_AUDIT_LOG_SS_ID', ss.getId());
+  return ss;
 }
-
-function getAllData() {
-  const ss = getOrCreateSS();
-  const trainings = sheetToObj(ss.getSheetByName('Trainings'));
-  const records_raw = sheetToObj(ss.getSheetByName('Records'));
-  const library = sheetToObj(ss.getSheetByName('Library'));
-  trainings.forEach(t => { try { t.months = JSON.parse(t.Months || '{}'); } catch { t.months = {}; } t.id = +t.ID || 0; t.hours = +t.Hours || 0; });
-  const records = {};
-  records_raw.forEach(r => { if (!records[r.Month]) records[r.Month] = []; records[r.Month].push({ id: r.ID, seq: +r.Seq || 0, subject: r.Subject, dept: r.Dept, trainer: r.Trainer, date: r.Date, time: r.Time, duration: r.Duration, participant: r.Participant, attendees: +r.Attendees || 0, absences: +r.Absences || 0, remarks: r.Remarks }); });
-  library.forEach(item => { item.id = +item.ID || 0; });
-  return { trainings, records, library };
-}
-
-function saveAllData(data) {
-  const ss = getOrCreateSS();
-  const s1 = ss.getSheetByName('Trainings') || ss.insertSheet('Trainings');
-  s1.clearContents();
-  s1.appendRow(['ID','Category','NameZH','NameEN','NameKH','Trainer','Hours','TraineeZH','TraineeEN','Frequency','Months','Remarks','Type','Organizer']);
-  (data.trainings || []).forEach(t => s1.appendRow([t.id, t.category, t.nameZH, t.nameEN, t.nameKH, t.trainer, t.hours, t.traineeZH, t.traineeEN, t.frequency, JSON.stringify(t.months || {}), t.remarks, t.type, t.organizer]));
-  const s2 = ss.getSheetByName('Records') || ss.insertSheet('Records');
-  s2.clearContents();
-  s2.appendRow(['Month','ID','Seq','Subject','Dept','Trainer','Date','Time','Duration','Participant','Attendees','Absences','Remarks']);
-  Object.entries(data.records || {}).forEach(([month, recs]) => recs.forEach(r => s2.appendRow([month, r.id, r.seq, r.subject, r.dept, r.trainer, r.date, r.time, r.duration, r.participant, r.attendees, r.absences || 0, r.remarks])));
-  const s3 = ss.getSheetByName('Library') || ss.insertSheet('Library');
-  s3.clearContents();
-  s3.appendRow(['ID','Category','NameZH','NameEN','NameKH','Type','Organizer','Trainer','TraineeZH','TraineeEN','OutlineZH','OutlineEN']);
-  (data.library || []).forEach(item => s3.appendRow([item.id, item.category, item.nameZH, item.nameEN, item.nameKH || '', item.type, item.organizer, item.trainer, item.traineeZH, item.traineeEN, item.outlineZH, item.outlineEN]));
-}
-
-function sheetToObj(sheet) {
-  if (!sheet) return [];
-  const data = sheet.getDataRange().getValues();
-  if (data.length < 2) return [];
-  const h = data[0];
-  return data.slice(1).map(row => { const o = {}; h.forEach((k, i) => o[k] = row[i]); return o; }).filter(r => Object.values(r).some(v => v !== ''));
-}
-
-function logAction(type) {
-  try { const ss = getOrCreateSS(); const ls = ss.getSheetByName('Log') || ss.insertSheet('Log'); if (ls.getLastRow() === 0) ls.appendRow(['Time','Type']); ls.appendRow([new Date().toISOString(), type]); } catch(e) {}
-}`;
-
+`;
 function copyGAS(){
   navigator.clipboard.writeText(GAS_CODE).then(()=>toast('程式碼已複製','ok')).catch(()=>{const ta=document.createElement('textarea');ta.value=GAS_CODE;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('已複製','ok');});
 }
@@ -2468,6 +2849,7 @@ let CURRENT_YEAR=2026;
 try{const sy=localStorage.getItem('vrt3_year');if(sy) CURRENT_YEAR=parseInt(sy)||2026;}catch(e){}
 
 load();
+applyAuditBridge();
 rebuildDataLists();
 applyI18n();
 updSyncBadge();
