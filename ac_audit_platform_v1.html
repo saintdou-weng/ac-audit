@@ -224,7 +224,7 @@ table.dt tbody tr:hover{background:rgba(168,146,114,.07);cursor:pointer}
 <div id="toast"></div>
 <input type="file" id="xlsxFile" accept=".xlsx,.xls,.csv" style="display:none">
 <input type="file" id="jsonFile" accept=".json" style="display:none">
-<input type="file" id="photoFile" accept="image/*" multiple style="display:none">
+<input type="file" id="photoFile" accept="image/*,.pdf,application/pdf" multiple style="display:none">
 <input type="file" id="msgFile" accept=".msg,.eml,.txt" style="display:none">
 <input type="file" id="unifiedImportFile" accept=".xlsx,.xls,.csv,.json,.txt,.eml,.msg" style="display:none">
 
@@ -258,6 +258,12 @@ const T={
  settings:{zh:'設定',en:'Settings',km:'ការកំណត់'},
  importHub:{zh:'統一匯入中心',en:'Unified Import Center',km:'មជ្ឈមណ្ឌលនាំចូល'},
  training:{zh:'培訓管理',en:'Training',km:'ការបណ្តុះបណ្តាល'},
+ wse_assessment:{zh:'WSE 稽核評估',en:'WSE Audit Assessment',km:'ការវាយតម្លៃសវនកម្ម WSE'},
+ dcc_control:{zh:'DCC 文件管制',en:'DCC Document Control',km:'គ្រប់គ្រងឯកសារ DCC'},
+ incoming_control:{zh:'外來文件管制',en:'Incoming Document Control',km:'គ្រប់គ្រងឯកសារខាងក្រៅ'},
+ factory_rules:{zh:'廠規手冊',en:'Factory Rules Manual',km:'សៀវភៅបទបញ្ជារោងចក្រ'},
+ cambodia_law:{zh:'柬埔寨法律參考',en:'Cambodia Law Reference',km:'ឯកសារយោងច្បាប់កម្ពុជា'},
+ damage_report:{zh:'損壞 / 遺失報告',en:'Damage / Loss Report',km:'របាយការណ៍ខូចខាត/បាត់បង់'},
  grpMain:{zh:'總覽',en:'Overview',km:'ទិដ្ឋភាពរួម'},
  grpAudit:{zh:'稽核作業',en:'Audit Operations',km:'ប្រតិបត្តិការសវនកម្ម'},
  grpGRS:{zh:'GRS 中心',en:'GRS Center',km:'មជ្ឈមណ្ឌល GRS'},
@@ -312,6 +318,10 @@ const T={
  syncSame:{zh:'資料已是最新',en:'Already up to date',km:'ទិន្នន័យថ្មីបំផុតរួចហើយ'},
  confirmDown:{zh:'雲端資料將覆蓋本機資料，確定下載？',en:'Cloud data will overwrite local. Continue?',km:'ទិន្នន័យ Cloud នឹងជំនួស ក្នុងម៉ាស៊ីន បន្តទេ?'},
  photos:{zh:'照片 / 證據',en:'Photos / Evidence',km:'រូបភាព / ភស្តុតាង'},
+ driveEvidence:{zh:'Drive 證據附件',en:'Drive Evidence Files',km:'ឯកសារភស្តុតាង Drive'},
+ driveUploading:{zh:'正在上傳到 Google Drive…',en:'Uploading to Google Drive…',km:'កំពុងផ្ទុកទៅ Google Drive…'},
+ driveRequired:{zh:'請先設定 GAS URL，照片/PDF 必須上傳 Google Drive，不存本機。',en:'Set GAS URL first. Photos/PDF must upload to Google Drive, not local storage.',km:'សូមកំណត់ GAS URL ជាមុន ឯកសារ/រូបភាពត្រូវផ្ទុកទៅ Google Drive។'},
+ driveDup:{zh:'Drive 已有相同附件，已沿用不重複上傳',en:'Same file already exists on Drive; reused without duplicate upload',km:'មានឯកសារដូចគ្នាលើ Drive ហើយ'},
  toCAP:{zh:'轉為 CAP Finding',en:'Convert to CAP',km:'បម្លែងទៅ CAP'},
  verify:{zh:'驗證結案',en:'Verify & Close',km:'ផ្ទៀងផ្ទាត់បិទ'},
  parse:{zh:'解析',en:'Parse',km:'វិភាគ'},
@@ -376,15 +386,17 @@ const DEFAULT_TYPES=['Internal','Customer','GRS','WRAP','SLCP','HIGG FEM','ISO 9
 let DB=loadDB();
 function loadDB(){
   try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d&&d.meta)return migrate(d)}catch(e){}
-  return {meta:{version:1,updatedAt:Date.now(),lastSync:0,seq:{}},
+  return {meta:{version:1,updatedAt:Date.now(),lastSync:0,seq:{},deleted:{},summaryLog:{},approvalLog:{},reminderLog:{}},
     settings:{auditTypes:DEFAULT_TYPES.slice()},
     audits:[],caps:[],grs_certs:[],grs_tc:[],grs_suppliers:[],grs_trace:[],
-    documents:[],incidents:[],policies:[],msg:[],activities:[]};
+    documents:[],incidents:[],policies:[],msg:[],
+    wse_assessment:[],dcc_control:[],incoming_control:[],factory_rules:[],cambodia_law:[],damage_report:[],
+    activities:[]};
 }
 function migrate(d){
-  ['audits','caps','grs_certs','grs_tc','grs_suppliers','grs_trace','documents','incidents','policies','msg','activities'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
+  ['audits','caps','grs_certs','grs_tc','grs_suppliers','grs_trace','documents','incidents','policies','msg','wse_assessment','dcc_control','incoming_control','factory_rules','cambodia_law','damage_report','activities'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
   d.settings=d.settings||{};if(!Array.isArray(d.settings.auditTypes)||!d.settings.auditTypes.length)d.settings.auditTypes=DEFAULT_TYPES.slice();
-  d.meta.seq=d.meta.seq||{};return d;
+  d.meta.seq=d.meta.seq||{};d.meta.deleted=d.meta.deleted||{};d.meta.summaryLog=d.meta.summaryLog||{};d.meta.approvalLog=d.meta.approvalLog||{};d.meta.reminderLog=d.meta.reminderLog||{};return d;
 }
 function saveDB(touch){
   if(touch!==false){DB.meta.updatedAt=Date.now();dedupeDB();markCloudPending();requestAutoUpload('SAVE');}
@@ -406,6 +418,62 @@ function recSignature(k,r){
   if(k==='audits')return [r.auditType,r.auditName,r.date].join('|');
   return JSON.stringify(r).slice(0,180);
 }
+
+function delKey(k,r){return k+'|'+recSignature(k,r)}
+function isDeleted(k,r){const d=DB.meta&&DB.meta.deleted||{};return !!d[delKey(k,r)]}
+function markDeleted(k,r){DB.meta.deleted=DB.meta.deleted||{};DB.meta.deleted[delKey(k,r)]=Date.now()}
+function applyTombstones(){
+  const del=DB.meta&&DB.meta.deleted||{};
+  MODULE_KEYS.forEach(k=>{DB[k]=(DB[k]||[]).filter(r=>!del[delKey(k,r)])});
+  return DB;
+}
+function clearSentFlags(rec){delete rec._summarySentAt;delete rec._approvalSentAt;delete rec._summaryKey;delete rec._approvalKey;return rec}
+function moduleRecordDate(r){
+  const keys=['date','dueDate','expiryDate','effectiveDate','reviewDate','issueDate','endDate','verifyDate'];
+  for(const k of keys){if(r&&r[k]){const d=new Date(String(r[k]).slice(0,10)+'T00:00:00');if(!isNaN(d))return fmtDate(d)}}
+  return r&&r._updated?fmtDate(new Date(r._updated)):'';
+}
+function reminderCutoff(){const n=new Date();return new Date(n.getFullYear(),n.getMonth()-1,1)}
+function isReminderEligible(r){const ds=moduleRecordDate(r);if(!ds)return false;const d=new Date(ds+'T00:00:00');return !isNaN(d)&&d>=reminderCutoff()}
+function pendingReminderRows(){
+  const out=[];
+  MODULE_KEYS.forEach(k=>{(DB[k]||[]).forEach(r=>{if(isReminderEligible(r)&&!r._summarySentAt&&!r._approvalSentAt){out.push({module:k,rec:r,date:moduleRecordDate(r)})}})});
+  return out;
+}
+function reminderBucket(){const n=new Date();return n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate())+'-'+pad(n.getHours())}
+function buildPendingReminderMsg(items){
+  const by={};items.forEach(x=>{(by[x.module]=by[x.module]||[]).push(x)});
+  const lines=Object.keys(by).slice(0,10).map(k=>{
+    const arr=by[k];const examples=arr.slice(0,3).map(x=>(x.rec.id||'')+' '+(x.rec.auditName||x.rec.description||x.rec.title||x.rec.subject||x.rec.name||'').toString().slice(0,45)).join(' / ');
+    return '• '+t(k)+': <b>'+arr.length+'</b> — '+esc(examples);
+  }).join('\n');
+  return '🔔 <b>AC Audit Reminder / 摘要或核可提醒</b>\n━━━━━━━━━━━━━━━━━━━━\n'+
+    '範圍：上月、當月、今日及未來日期資料。超過 1 個月以上資料不提醒。\n'+
+    'Scope: previous month, current month, today and future records only. Older records are ignored.\n\n'+
+    '以下資料已有新增/更新，但尚未發摘要或核可：\n'+lines+'\n━━━━━━━━━━━━━━━━━━━━\n'+
+    '👤 Check person must be filled. Approver: <b>Paul Weng / 神大</b>\n'+
+    '請到各模組選 日/週/月/年 後發摘要或送核可。\n🕐 '+esc(fmtDT(new Date()))+'\n📊 <a href="'+esc(location.href.split('#')[0]+'#dashboard')+'">Open Dashboard</a>';
+}
+async function checkPendingReminder(force){
+  try{
+    if(!CFG.notif.auditRemind&&!force)return;
+    const items=pendingReminderRows();
+    const bucket=reminderBucket();DB.meta.reminderLog=DB.meta.reminderLog||{};
+    if(!items.length)return;
+    if(!force&&DB.meta.reminderLog[bucket])return;
+    await gasCall({action:'tg',text:buildPendingReminderMsg(items)});
+    DB.meta.reminderLog[bucket]=Date.now();saveDB(false);
+  }catch(e){/* reminder silent */}
+}
+function markRowsSent(k,mode,type){
+  const rows=rowsByPeriod(k,mode), pr=periodRange(mode), key=k+'|'+mode+'|'+pr.label;
+  DB.meta.summaryLog=DB.meta.summaryLog||{};DB.meta.approvalLog=DB.meta.approvalLog||{};
+  if(type==='summary')DB.meta.summaryLog[key]={time:Date.now(),count:rows.length,checker:'',period:pr.label};
+  if(type==='approval')DB.meta.approvalLog[key]={time:Date.now(),count:rows.length,approver:'Paul Weng / 神大',period:pr.label};
+  rows.forEach(r=>{if(type==='summary'){r._summarySentAt=Date.now();r._summaryKey=key}else{r._approvalSentAt=Date.now();r._approvalKey=key}});
+  DB.meta.updatedAt=Date.now();
+}
+
 function dedupeArray(k,arr){
   const map={};(arr||[]).forEach(r=>{const sig=recSignature(k,r);if(!sig)return;const old=map[sig];if(!old||(Number(r._updated||0)>Number(old._updated||0)))map[sig]=r});
   return Object.values(map);
@@ -416,7 +484,12 @@ function mergeAuditDB(local,remote){
   MODULE_KEYS.forEach(k=>{local[k]=dedupeArray(k,(local[k]||[]).concat(remote[k]||[]))});
   local.settings=Object.assign({},remote.settings||{},local.settings||{});
   local.meta=Object.assign({},remote.meta||{},local.meta||{});
+  local.meta.deleted=Object.assign({},remote.meta&&remote.meta.deleted||{},local.meta.deleted||{});
+  local.meta.summaryLog=Object.assign({},remote.meta&&remote.meta.summaryLog||{},local.meta.summaryLog||{});
+  local.meta.approvalLog=Object.assign({},remote.meta&&remote.meta.approvalLog||{},local.meta.approvalLog||{});
+  local.meta.reminderLog=Object.assign({},remote.meta&&remote.meta.reminderLog||{},local.meta.reminderLog||{});
   local.meta.updatedAt=Math.max(Number(local.meta.updatedAt||0),Number(remote.meta&&remote.meta.updatedAt||0),Date.now());
+  DB=local;applyTombstones();local=DB;
   return local;
 }
 let AUTO_UPLOAD_TIMER=null;
@@ -425,6 +498,7 @@ function requestAutoUpload(reason){
   if(!CFG.gasUrl||!CFG.notif.autoCloud)return;
   clearTimeout(AUTO_UPLOAD_TIMER);
   AUTO_UPLOAD_TIMER=setTimeout(()=>cloudUpload(true,reason||'AUTO'),1400);
+  setTimeout(()=>checkPendingReminder(false),2800);
 }
 function notifyRecordUpdate(k,rec,isNew){
   if(!CFG.notif.recordUpdate)return;
@@ -716,6 +790,14 @@ const MODULES={
   rowActions:[{ico:'⚠',tip:{zh:'轉為 CAP Finding',en:'To CAP',km:'ទៅ CAP'},fn:'msgToCAP'}]
  }
 };
+// Independent module pages split out from former 子系統 / reference cards.
+// Each page has its own data area, CRUD, import/export, cloud sync, Telegram summary/approval and photo/PDF evidence.
+MODULES.wse_assessment=Object.assign({},MODULES.audits,{icon:'📋',prefix:'WSE',group:'grpAudit',filter:'status'});
+MODULES.dcc_control=Object.assign({},MODULES.documents,{icon:'🗄',prefix:'DCC',group:'grpDoc',filter:'status'});
+MODULES.incoming_control=Object.assign({},MODULES.documents,{icon:'📨',prefix:'EXT',group:'grpDoc',filter:'status'});
+MODULES.factory_rules=Object.assign({},MODULES.policies,{icon:'📕',prefix:'RULE',group:'grpDoc',filter:'status'});
+MODULES.cambodia_law=Object.assign({},MODULES.policies,{icon:'⚖️',prefix:'LAW',group:'grpDoc',filter:'status'});
+MODULES.damage_report=Object.assign({},MODULES.incidents,{icon:'📝',prefix:'DMG',group:'grpOther',filter:'status'});
 const MODULE_KEYS=Object.keys(MODULES);
 
 /* =====================================================================
@@ -723,9 +805,15 @@ const MODULE_KEYS=Object.keys(MODULES);
 ===================================================================== */
 let CURRENT='dashboard', GRS_CUR='grs_certs';
 const GRS_SUBS=['grs_certs','grs_tc','grs_suppliers','grs_trace'];
-const TAB_ORDER=['dashboard','analytics','importHub','training','audits','caps','grs','documents','incidents','policies','msg','settings'];
-const PAGE_ICONS={dashboard:'◧',analytics:'📈',importHub:'📥',training:'🎓',settings:'⚙',grs:'🏅'};
+const TAB_ORDER=['dashboard','analytics','importHub','training','wse_assessment','audits','caps','grs','dcc_control','incoming_control','documents','damage_report','incidents','factory_rules','cambodia_law','policies','msg','settings'];
+const PAGE_ICONS={dashboard:'◧',analytics:'📈',importHub:'📥',training:'🎓',wse_assessment:'📋',dcc_control:'🗄',incoming_control:'📨',factory_rules:'📕',cambodia_law:'⚖️',damage_report:'📝',settings:'⚙',grs:'🏅'};
 const INTEGRATIONS={
+ wse_assessment:[{u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'原 WSE 稽核評估工具',en:'Original WSE Assessment Tool',descZH:'本頁已可線上新增/修改/匯入/核可；舊工具僅作參考或對照。',descEN:'This page supports online CRUD/import/approval; the old tool is kept for reference.'}],
+ dcc_control:[{u:'VRT_DCC_v2.html',i:'🗄',zh:'原 DCC 工具',en:'Original DCC Tool',descZH:'本頁為新正式作業入口；舊 DCC 可作歷史資料參考。',descEN:'This page is the new operation entry; old DCC is for reference.'}],
+ incoming_control:[{u:'MSG_Processor.html',i:'📨',zh:'原外來文件 / MSG 工具',en:'Original Incoming / MSG Tool',descZH:'可直接在本頁建檔與發摘要，也可用匯入中心處理 MSG/EML/TXT。',descEN:'Create records here or process MSG/EML/TXT through Import Hub.'}],
+ factory_rules:[{u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'原廠規手冊',en:'Original Factory Rules',descZH:'條文更新、版本、核可與照片/PDF 證據改由本頁管理。',descEN:'Rule updates, version, approval and photo/PDF evidence are handled here.'}],
+ cambodia_law:[{u:'cambodia_law_v1.html',i:'⚖️',zh:'原法律參考頁',en:'Original Law Reference',descZH:'法律條文可轉為正式政策/法規記錄，避免只留靜態參考。',descEN:'Law references can become formal policy/legal records.'}],
+ damage_report:[{u:'vrt_damage_report.html',i:'📝',zh:'原損壞/遺失表',en:'Original Damage/Loss Form',descZH:'本頁可直接記錄事件、關聯 CAPA、發摘要與核可。',descEN:'Record incidents, link CAPA and send summary/approval here.'}],
  training:[
   {u:'vrt_training_v1.html',i:'🎓',zh:'培訓計劃系統',en:'Training System',descZH:'培訓獨立分頁；資料、Telegram、雲端全部走同一支 AC Audit Unified GAS。',descEN:'Training stays as a separate tab; data, Telegram and cloud all use the same AC Audit Unified GAS.'}
  ],
@@ -905,6 +993,7 @@ function renderModule(k){
       (optList(f.opts)||[]).map(o=>'<option value="'+esc(o.v)+'">'+esc(L(o.L))+'</option>').join('')+'</select>';}
   $('#main').innerHTML=
    '<div class="pgtitle"><h2>'+M.icon+' '+esc(t(k))+'</h2><span class="sub" id="modCount"></span></div>'+
+   '<div class="sync-strip"><span>☁⬆ '+esc(t('upload'))+'</span><span>☁⬇ '+esc(t('download'))+'</span><span>＋ '+esc(t('add'))+' / ✎ '+esc(t('edit'))+' / ✕ '+esc(t('del'))+'</span><span>📷 PDF</span><span>📆 '+esc(t('daily'))+'/'+esc(t('weekly'))+'/'+esc(t('monthly'))+'/'+esc(t('yearly'))+'</span><span>👤 Check / Approval: Paul</span></div>'+
    renderIntegrationPanel(k)+
    '<div class="toolbar">'+
     '<button class="btn pri" onclick="openForm(\''+k+'\')">＋ '+esc(t('add'))+'</button>'+
@@ -979,24 +1068,57 @@ function openForm(k,id){
      '<button class="btn pri" onclick="saveForm(\''+k+'\',\''+(id||'')+'\')">💾 '+esc(t('save'))+'</button></div>';
   $('#modalBox').innerHTML=h;$('#modalMask').classList.add('show');drawPhotoGrid();
 }
+function isPdfData(p){return typeof p==='string'?String(p||'').startsWith('data:application/pdf'):/pdf/i.test((p&&p.mime)||'')}
+function isDriveAtt(p){return p&&typeof p==='object'&&p.driveId}
+function attName(p){return isDriveAtt(p)?(p.name||p.fileName||'Drive file'):(isPdfData(p)?'PDF':'Photo')}
+function attUrl(p){return isDriveAtt(p)?(p.url||p.webViewUrl||p.downloadUrl||''):(p||'')}
+function attDownload(p){return isDriveAtt(p)?(p.downloadUrl||p.url||''):(p||'')}
 function drawPhotoGrid(){
   const g=$('#photoGrid');if(!g)return;
-  g.innerHTML=FORM_PHOTOS.map((p,i)=>'<div class="ph" style="background-image:url('+p+')" onclick="viewPhoto('+i+')">'+
-    '<button class="rm" onclick="event.stopPropagation();FORM_PHOTOS.splice('+i+',1);drawPhotoGrid()">✕</button></div>').join('')+
-    '<button class="add" onclick="pickPhotos()">＋</button>';
+  g.innerHTML=FORM_PHOTOS.map((p,i)=>{
+    const pdf=isPdfData(p), drive=isDriveAtt(p), url=attDownload(p), nm=esc(attName(p));
+    const bg=(!pdf&&url)?'style="background-image:url('+esc(url)+')"':'';
+    return '<div class="ph '+(pdf?'pdf':'')+'" '+bg+' title="'+nm+'" onclick="viewPhoto('+i+')">'+
+      (pdf?'<div class="pdfico">📄 PDF</div>':'')+(drive?'<span style="position:absolute;left:3px;bottom:3px;background:#fff;border-radius:6px;padding:1px 4px;font-size:10px">☁Drive</span>':'')+
+      '<button class="rm" onclick="event.stopPropagation();FORM_PHOTOS.splice('+i+',1);drawPhotoGrid()">✕</button></div>';
+  }).join('')+'<button class="add" onclick="pickPhotos()">＋<br><small>Drive</small></button>'+
+  '<div class="hint" style="flex-basis:100%;font-size:12px">☁ '+esc(t('driveEvidence'))+' · '+esc(LANG==='zh'?'照片/PDF 不存本機，新增時直接上傳 Google Drive。':LANG==='km'?'រូបភាព/PDF មិនរក្សាទុកក្នុងម៉ាស៊ីនទេ។':'Photos/PDF are uploaded to Google Drive and not stored locally.')+'</div>';
 }
-function viewPhoto(i){const w=window.open('');w.document.write('<img src="'+FORM_PHOTOS[i]+'" style="max-width:100%">')}
+function viewPhoto(i){const p=FORM_PHOTOS[i], url=attUrl(p)||attDownload(p);if(!url)return toast('No file URL');const w=window.open(url,'_blank');if(!w){location.href=url}}
+function readFileAsDataURL(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(file)})}
+async function fileToUploadData(file){
+  if(file.type&&file.type.startsWith('image/')){
+    const dataUrl=await compressImage(file,1600,0.76);
+    return {dataUrl:dataUrl,mime:'image/jpeg',name:file.name.replace(/\.[^.]+$/, '')+'.jpg',originalName:file.name};
+  }
+  return {dataUrl:await readFileAsDataURL(file),mime:file.type||(/\.pdf$/i.test(file.name)?'application/pdf':'application/octet-stream'),name:file.name,originalName:file.name};
+}
+function attSignature(file){return [file.name,file.size,file.lastModified||0].join('|')}
+async function uploadEvidenceFile(file){
+  if(!CFG.gasUrl)throw new Error(t('driveRequired'));
+  const sig=attSignature(file);if(FORM_PHOTOS.some(p=>isDriveAtt(p)&&p.signature===sig)){toast(t('driveDup'));return null}
+  const up=await fileToUploadData(file);
+  const j=await gasCall({action:'uploadAttachment',module:CURRENT||'',name:up.name,originalName:up.originalName,mime:up.mime,size:file.size,lastModified:file.lastModified||0,signature:sig,dataUrl:up.dataUrl});
+  if(!j.ok)throw new Error(j.msg||j.error||'Drive upload failed');
+  if(j.duplicate)toast(t('driveDup'));
+  return j.file;
+}
 function pickPhotos(){$('#photoFile').onchange=async e=>{
-  for(const f of e.target.files){FORM_PHOTOS.push(await compressImage(f))}
-  e.target.value='';drawPhotoGrid();
+  const files=[...e.target.files];e.target.value='';
+  if(!files.length)return;
+  try{
+    toast(t('driveUploading'),6000);
+    for(const f of files){const info=await uploadEvidenceFile(f);if(info)FORM_PHOTOS.push(info);drawPhotoGrid()}
+    toast('☁ Drive upload ✓');
+  }catch(err){toast('⚠ '+err.message,5000)}
 };$('#photoFile').click()}
-function compressImage(file){return new Promise(res=>{
+function compressImage(file,maxSize,quality){return new Promise(res=>{
   const img=new Image(),fr=new FileReader();
   fr.onload=()=>{img.onload=()=>{
-    const MAX=900,r=Math.min(1,MAX/Math.max(img.width,img.height));
-    const c=document.createElement('canvas');c.width=img.width*r;c.height=img.height*r;
+    const MAX=maxSize||900,r=Math.min(1,MAX/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);
     c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-    res(c.toDataURL('image/jpeg',0.62));
+    res(c.toDataURL('image/jpeg',quality||0.62));
   };img.src=fr.result};fr.readAsDataURL(file);
 })}
 function closeModal(){$('#modalMask').classList.remove('show')}
@@ -1012,7 +1134,7 @@ function saveForm(k,id){
     if(f.req&&!v){toast(t('reqMiss')+L(f.L));el.focus();return}
     rec[f.k]=f.t==='number'?(v===''?'':Number(v)):v;
   }
-  rec._updated=Date.now();
+  rec._updated=Date.now();clearSentFlags(rec);
   if(M.onSave)M.onSave(rec,!id);
   if(!id)DB[k].push(rec);
   logAct((id?'✏️':'＋')+' '+t(k)+' · '+rec.id);
@@ -1027,6 +1149,7 @@ function saveForm(k,id){
 }
 function delRec(k,id){
   if(!confirm(t('confirmDel')+'\n'+id))return;
+  const old=(DB[k]||[]).find(r=>r.id===id);if(old)markDeleted(k,old);
   DB[k]=DB[k].filter(r=>r.id!==id);
   logAct('🗑 '+t(k)+' · '+id);saveDB();toast(t('deleted'));drawTable(k);
 }
@@ -1122,7 +1245,7 @@ function importExcel(k){
           const idKey=keys.find(h=>String(h).trim().toUpperCase()==='ID');
           rec.id=(idKey&&String(row[idKey]).trim())||uid(M.prefix);
           const ex=DB[k].findIndex(r=>r.id===rec.id);
-          if(ex>=0)DB[k][ex]=Object.assign(DB[k][ex],rec,{_updated:Date.now()});else DB[k].push(rec);
+          if(ex>=0){DB[k][ex]=clearSentFlags(Object.assign(DB[k][ex],rec,{_updated:Date.now()}));}else DB[k].push(clearSentFlags(rec));
           n++;
         });
         logAct('📊 Import Excel · '+t(k)+' × '+n);saveDB();drawTable(k);toast('📊 Import ✓ '+n+' rows');requestAutoUpload('IMPORT_'+k);
@@ -1245,7 +1368,7 @@ function commitHubImport(){
   if(route==='__backup')return toast('Backup restore should use Settings → Restore JSON');
   if(!DB[route])return toast('Unsupported route: '+route);
   let add=0,upd=0,skip=0;
-  HUB_ROWS.forEach(row=>{const rec=mapHubRecord(route,row);if(!rec){skip++;return}const i=findHubDuplicate(route,rec);if(i>=0){DB[route][i]=Object.assign(DB[route][i],rec,{_updated:Date.now()});upd++;}else{DB[route].push(rec);add++;}});
+  HUB_ROWS.forEach(row=>{const rec=mapHubRecord(route,row);if(!rec){skip++;return}const i=findHubDuplicate(route,rec);if(i>=0){DB[route][i]=clearSentFlags(Object.assign(DB[route][i],rec,{_updated:Date.now()}));upd++;}else{DB[route].push(clearSentFlags(rec));add++;}});
   logAct('📥 Unified Import · '+route+' +'+add+' / update '+upd+' / skip '+skip);saveDB();toast('📥 Import done: +'+add+' / update '+upd+' / skip '+skip);go(route);requestAutoUpload('HUB_IMPORT_'+route);
 }
 function mapHubRecord(route,row){
@@ -1306,7 +1429,7 @@ function moduleAnalysis(k,rows){
   const issue=[];if(overdue)issue.push('Overdue '+overdue);if(high)issue.push('High Risk '+high);if(exp)issue.push('Expiring 60D '+exp);if(!issue.length)issue.push('No major abnormality');
   return {total,open,overdue,high,exp,issue:issue.join(' / ')};
 }
-function buildModuleSummary(k,mode,approval){
+function buildModuleSummary(k,mode,approval,checker){
   const rows=rowsByPeriod(k,mode), pr=periodRange(mode), a=moduleAnalysis(k,rows);
   const title=(approval?'✅ Approval / 核可':'📤 Summary / 摘要');
   const lines=rows.slice(0,8).map((r,i)=>{
@@ -1317,17 +1440,22 @@ function buildModuleSummary(k,mode,approval){
     '📆 Period: <b>'+esc(t(mode==='day'?'daily':mode==='week'?'weekly':mode==='year'?'yearly':'monthly'))+'</b> · '+esc(pr.label)+'\n'+
     '📝 Records: <b>'+a.total+'</b> | Open: <b>'+a.open+'</b>\n'+
     '⏰ Overdue: <b>'+a.overdue+'</b> | 🔴 High: <b>'+a.high+'</b> | 📁 Expiring: <b>'+a.exp+'</b>\n'+
-    '📌 Analysis: '+esc(a.issue)+'\n'+(approval?'👤 Approver: <b>Paul Weng / 神大</b>\n':'')+
+    '👤 Check: <b>'+esc(checker||'')+'</b>\n'+
+    '📌 Analysis: '+esc(a.issue)+'\n'+(a.overdue||a.high||a.exp?'⚠️ Abnormal / 異常: '+esc([a.overdue?'Overdue '+a.overdue:'',a.high?'High Risk '+a.high:'',a.exp?'Expiring '+a.exp:''].filter(Boolean).join(' / '))+'\n':'✅ No major abnormality / 無重大異常\n')+(approval?'👤 Approver: <b>Paul Weng / 神大</b>\n':'')+
     (lines?'━━━━━━━━━━━━━━━━━━━━\n'+lines+'\n':'')+
     '━━━━━━━━━━━━━━━━━━━━\n🕐 '+esc(fmtDT(new Date()))+'\n📊 <a href="'+esc(location.href.split('#')[0]+'#'+k)+'">Open Dashboard</a>';
 }
 async function sendModuleSummary(k){
-  const mode=getPeriodChoice(k);try{const j=await gasCall({action:'tg',text:buildModuleSummary(k,mode,false)});if(!j.ok&&j.status!=='ok')throw new Error(j.msg||j.error||'Telegram failed');toast('📤 '+t('sendSummary')+' ✓');await cloudUpload(true,'SUMMARY_'+k+'_'+mode)}catch(e){toast('⚠ '+e.message)}
+  const mode=getPeriodChoice(k);
+  const checker=prompt(LANG==='zh'?'請輸入 Check 人員姓名（摘要必填）':'Enter checker name for summary (required)', localStorage.getItem('ac_audit_checker')||'');
+  if(!checker||!checker.trim())return toast(LANG==='zh'?'摘要必須填寫 Check 人員':'Checker is required');
+  localStorage.setItem('ac_audit_checker',checker.trim());
+  try{const j=await gasCall({action:'tg',text:buildModuleSummary(k,mode,false,checker.trim())});if(!j.ok&&j.status!=='ok')throw new Error(j.msg||j.error||'Telegram failed');markRowsSent(k,mode,'summary');const pr=periodRange(mode),key=k+'|'+mode+'|'+pr.label;if(DB.meta.summaryLog&&DB.meta.summaryLog[key])DB.meta.summaryLog[key].checker=checker.trim();saveDB(false);toast('📤 '+t('sendSummary')+' ✓');await cloudUpload(true,'SUMMARY_'+k+'_'+mode)}catch(e){toast('⚠ '+e.message)}
 }
 async function sendModuleApproval(k){
   const mode=getPeriodChoice(k), rows=rowsByPeriod(k,mode), pr=periodRange(mode);
   if(!confirm('Paul Weng / 神大 '+t('sendApproval')+'?\n'+t(k)+' · '+pr.label+' · '+rows.length+' records'))return;
-  try{const j=await gasCall({action:'approval',module:t(k),period:pr.label+' / '+mode,count:rows.length,comment:'Approved',hash:'#'+k});if(!j.ok&&j.status!=='ok')throw new Error(j.msg||j.error||'Approval failed');DB.meta.lastApproval={module:k,period:pr.label,approver:'Paul Weng / 神大',time:Date.now(),count:rows.length};saveDB();toast('✅ '+t('sendApproval')+' ✓');await cloudUpload(true,'APPROVAL_'+k+'_'+mode)}catch(e){toast('⚠ '+e.message)}
+  try{const j=await gasCall({action:'approval',module:t(k),period:pr.label+' / '+mode,count:rows.length,comment:'Approved',hash:'#'+k});if(!j.ok&&j.status!=='ok')throw new Error(j.msg||j.error||'Approval failed');markRowsSent(k,mode,'approval');DB.meta.lastApproval={module:k,period:pr.label,approver:'Paul Weng / 神大',time:Date.now(),count:rows.length};saveDB(false);toast('✅ '+t('sendApproval')+' ✓');await cloudUpload(true,'APPROVAL_'+k+'_'+mode)}catch(e){toast('⚠ '+e.message)}
 }
 
 /* =====================================================================
@@ -1349,10 +1477,36 @@ async function pingCloud(){
   try{await gasCall({action:'ping'});setCloudDot('ok');$('#dot-tg').className='dot ok'}
   catch(e){setCloudDot('bad')}
 }
-async function cloudUpload(){
+
+async function migrateLegacyAttachmentsToDrive(){
+  let changed=0;
+  for(const k of MODULE_KEYS){
+    for(const rec of (DB[k]||[])){
+      if(!Array.isArray(rec.photos)||!rec.photos.length)continue;
+      const out=[];
+      for(const p of rec.photos){
+        if(isDriveAtt(p)){out.push(p);continue}
+        if(typeof p==='string'&&p.startsWith('data:')){
+          const mime=(p.match(/^data:([^;]+);/)||[])[1]||'application/octet-stream';
+          const ext=mime.includes('pdf')?'pdf':(mime.includes('png')?'png':'jpg');
+          const name=(rec.id||k)+'_legacy_'+(out.length+1)+'.'+ext;
+          const sig='legacy|'+k+'|'+(rec.id||'')+'|'+out.length+'|'+p.length;
+          const j=await gasCall({action:'uploadAttachment',module:k,recordId:rec.id||'',name:name,originalName:name,mime:mime,size:p.length,signature:sig,dataUrl:p});
+          if(j&&j.ok&&j.file){out.push(j.file);changed++;}
+        }
+      }
+      rec.photos=out;
+    }
+  }
+  if(changed){DB.meta.updatedAt=Date.now();localStorage.setItem(DB_KEY,JSON.stringify(DB));toast('☁ Drive evidence migrated: '+changed,4000)}
+}
+async function cloudUpload(force,reason){
   try{
+    if(!force && DB.meta.lastSync && Number(DB.meta.updatedAt||0)<=Number(DB.meta.lastSync||0)){toast(LANG==='zh'?'☁ 無新資料，不重複上傳':'☁ No new data; upload skipped');setCloudDot('ok');return}
     toast('☁⬆ …');setCloudDot('wait');
-    await gasCall({action:'upload',data:DB,updatedAt:DB.meta.updatedAt});
+    await migrateLegacyAttachmentsToDrive();
+    const upRes=await gasCall({action:'upload',data:DB,updatedAt:DB.meta.updatedAt,reason:reason||'MANUAL',deleted:DB.meta.deleted||{}});
+    if(upRes.data)DB=mergeAuditDB(DB,upRes.data);
     DB.meta.lastSync=Date.now();saveDB(false);setCloudDot('ok');
     logAct('☁⬆ Upload');saveDB(false);toast(t('upDone'));
     if(CFG.notif.upload)tgNotify('☁⬆ <b>AC Audit</b> upload complete · '+esc(fmtDT(new Date())));
@@ -1361,11 +1515,11 @@ async function cloudUpload(){
 }
 async function cloudDownload(quiet){
   try{
-    if(!quiet&&!confirm(t('confirmDown')))return;
+    if(!quiet&&!confirm(LANG==='zh'?'將下載雲端變更並與本機合併，不會覆蓋本機新增資料，繼續？':LANG==='km'?'ទាញយកពី Cloud ហើយបញ្ចូលជាមួយទិន្នន័យក្នុងម៉ាស៊ីន។ បន្តទេ?':'Download cloud changes and merge with local records without overwriting local new data. Continue?'))return;
     toast('☁⬇ …');setCloudDot('wait');
     const j=await gasCall({action:'download'});
     if(!j.data)throw new Error('No cloud data');
-    DB=migrate(j.data);DB.meta.lastSync=Date.now();
+    DB=mergeAuditDB(DB,j.data);DB.meta.lastSync=Date.now();
     saveDB(false);setCloudDot('ok');logAct('☁⬇ Download');saveDB(false);
     go(CURRENT);toast(t('downDone'));
     if(CFG.notif.download)tgNotify('☁⬇ <b>AC Audit</b> download complete · '+esc(fmtDT(new Date())));
@@ -1437,6 +1591,9 @@ function renderDashboard(){
     kpi('incOpen',s.incOpen,'🚨',s.incOpen?'var(--danger)':'var(--ok)','incidents')+
     kpi('training',trainingSnapshot().trainings.length,'🎓','var(--khaki)','training')+
    '</div>'+
+   '<div class="panel" style="margin-top:14px"><h3>🧭 '+(LANG==='zh'?'獨立作業分頁':'Independent Operation Pages')+'<span class="rule"></span></h3><div class="quickgrid">'+
+   ['training','wse_assessment','dcc_control','incoming_control','factory_rules','cambodia_law','damage_report','importHub'].map(x=>'<button class="qcard" onclick="go(\''+x+'\')"><b>'+((PAGE_ICONS[x]||MODULES[x]?.icon)||'•')+'</b><span>'+esc(t(x))+'</span></button>').join('')+
+   '</div></div>'+
    '<div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:14px" id="dashLow">'+
     '<div class="panel"><h3>🕘 '+esc(t('recentAct'))+'<span class="rule"></span></h3><ul class="actlist">'+
       (DB.activities.length?DB.activities.slice(0,40).map(a=>'<li><time>'+esc(fmtDT(new Date(a.t)))+'</time><span>'+esc(a.x)+'</span></li>').join(''):'<li>'+esc(t('noData'))+'</li>')+
