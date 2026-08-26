@@ -894,9 +894,8 @@ function markTabs(){
     a.classList.toggle('active',(CURRENT===k)||(k==='grs'&&GRS_SUBS.includes(CURRENT)))});
 }
 function renderGrsSubtabs(){
-  const st=$('#subtabs');st.classList.remove('hide');
-  st.innerHTML=GRS_SUBS.map(s=>'<div class="subtab '+(GRS_CUR===s?'active':'')+
-    '" onclick="goGrs(\''+s+'\')">'+esc(MODULES[s].icon+' '+t(s))+'</div>').join('');
+  // v4: GRS no longer shows the extra subtab row on top; keep internal routes available by hash only.
+  const st=$('#subtabs'); if(st){st.classList.add('hide'); st.innerHTML='';}
 }
 function goGrs(sub){
   GRS_CUR=sub;CURRENT=sub;location.hash=sub;

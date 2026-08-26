@@ -667,11 +667,11 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
         <div class="fg full"><label>📷 證據 / Evidence（照片、拍照、PDF → Google Drive）</label>
           <div style="display:flex;gap:7px;flex-wrap:wrap;margin:5px 0 7px">
             <button type="button" class="btn btn-sm" onclick="document.getElementById('r-evi-camera').click()">📷 拍照</button>
-            <button type="button" class="btn btn-sm" onclick="document.getElementById('r-evi-file').click()">🖼 照片 / PDF</button>
+            <button type="button" class="btn btn-sm" onclick="document.getElementById('r-evi-file').click()">📎 照片/PDF/Excel/Word/PPT</button>
             <span style="font-size:10px;color:var(--txt2);align-self:center">附件只存 Google Drive 連結，不存大型 base64。</span>
           </div>
           <input id="r-evi-camera" type="file" accept="image/*" capture="environment" hidden onchange="trainingEvidenceFiles(this.files)">
-          <input id="r-evi-file" type="file" accept="image/*,.pdf,application/pdf" multiple hidden onchange="trainingEvidenceFiles(this.files)">
+          <input id="r-evi-file" type="file" accept="image/*,.pdf,application/pdf,.xlsx,.xls,.csv,.doc,.docx,.ppt,.pptx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" multiple hidden onchange="trainingEvidenceFiles(this.files)">
           <div id="r-evi-list" style="display:flex;gap:6px;flex-wrap:wrap"></div>
         </div>
         <div class="fg full">
@@ -2880,6 +2880,26 @@ function archiveAndNewYear(){
   },LANG==='en'?'Confirm Archive':'確認歸檔');
 }
 
+
+function autoMarkPastPending(){
+  const now=new Date();
+  const y=now.getFullYear();
+  const curM=now.getMonth()+1;
+  let changed=false;
+  if(Number(CURRENT_YEAR)>y)return;
+  S.trainings.forEach(tr=>{
+    if(!tr.months)tr.months={};
+    MK.forEach(m=>{
+      const v=Number(tr.months[m]||0);
+      if(v===1 && (Number(CURRENT_YEAR)<y || m<curM)){
+        tr.months[m]=3; // past planned but no completed record => Pending / 延後
+        changed=true;
+      }
+    });
+  });
+  if(changed){save();}
+}
+
 // =====================================================
 //  INIT
 // =====================================================
@@ -2887,6 +2907,7 @@ let CURRENT_YEAR=2026;
 try{const sy=localStorage.getItem('vrt3_year');if(sy) CURRENT_YEAR=parseInt(sy)||2026;}catch(e){}
 
 load();
+autoMarkPastPending();
 applyAuditBridge();
 rebuildDataLists();
 applyI18n();
