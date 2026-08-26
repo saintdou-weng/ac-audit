@@ -195,6 +195,24 @@ table.dt tbody tr:hover{background:rgba(168,146,114,.07);cursor:pointer}
   .fgrid{grid-template-columns:1fr}
   .toolbar input[type=search]{width:100%}
 }
+
+/* ===== Direct embedded module view: HRA Portal style, no extra "Open" button ===== */
+body.direct-module main{padding:8px;background:#f7f4ed;}
+.direct-module-shell{height:calc(100vh - 118px);min-height:560px;display:flex;flex-direction:column;background:var(--white);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.direct-module-bar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--white);flex-shrink:0;min-height:46px}
+.direct-module-bar .dm-title{font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.direct-module-bar .dm-note{color:var(--ink2);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.direct-module-bar .dm-actions{margin-left:auto;display:flex;gap:6px;align-items:center}
+.direct-module-bar .dm-actions .btn{padding:6px 9px;font-size:12px}
+.direct-module-frame{width:100%;height:100%;border:0;background:#fff;display:block;flex:1}
+@media(max-width:760px){
+  body.direct-module main{padding:0}
+  .direct-module-shell{height:calc(100vh - 104px);min-height:520px;border-left:0;border-right:0;border-radius:0}
+  .direct-module-bar{padding:7px 8px;gap:6px}
+  .direct-module-bar .dm-note{display:none}
+  .direct-module-bar .dm-actions .optional{display:none}
+}
+
 </style>
 </head>
 <body>
@@ -834,6 +852,33 @@ const INTEGRATIONS={
   {u:'MSG_Processor.html',i:'📨',zh:'外來文件管制',en:'Incoming MSG Control',route:'msg',action:'migrateMSG',descZH:'MSG/EML/TXT 優先在本分頁與匯入中心處理，可直接在本頁完成分類與轉 CAP。',descEN:'MSG/EML/TXT should be handled here or through Import Hub.'}
  ]
 };
+
+const DIRECT_MODULES={
+  training:{u:'vrt_training_v1.html',i:'🎓',zh:'培訓管理',en:'Training',km:'ការបណ្តុះបណ្តាល'},
+  wse_assessment:{u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment',km:'WSE Audit'},
+  dcc_control:{u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 文件管制',en:'DCC Document Control',km:'DCC'},
+  incoming_control:{u:'MSG_Processor.html',i:'📨',zh:'外來文件管制',en:'Incoming Document Control',km:'ឯកសារចូល'},
+  factory_rules:{u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules',km:'ច្បាប់រោងចក្រ'},
+  cambodia_law:{u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law Reference',km:'ច្បាប់កម្ពុជា'},
+  damage_report:{u:'vrt_damage_report.html',i:'📝',zh:'損壞 / 遺失報告',en:'Damage / Loss Report',km:'របាយការណ៍ខូច/បាត់'},
+  msg:{u:'MSG_Processor.html',i:'📨',zh:'MSG 處理器',en:'MSG Processor',km:'MSG'},
+  audits:{u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'稽核管理',en:'Audit Management',km:'Audit'},
+  documents:{u:'VRT_DCC_v2.html',i:'🗄',zh:'文件管制中心',en:'Document Control',km:'DCC'},
+  incidents:{u:'vrt_damage_report.html',i:'📝',zh:'事故中心',en:'Incident Center',km:'Incident'},
+  policies:{u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'政策中心',en:'Policy Center',km:'Policy'}
+};
+function directModuleLabel(k){const x=DIRECT_MODULES[k];if(!x)return tabLabel(k);return LANG==='zh'?x.zh:(LANG==='km'?(x.km||x.en):x.en)}
+function renderDirectModule(k){
+  const x=DIRECT_MODULES[k]; if(!x)return false;
+  document.body.classList.add('direct-module');
+  $('#main').innerHTML='<div class="direct-module-shell">'+
+    '<div class="direct-module-bar"><div class="dm-title">'+x.i+' '+esc(directModuleLabel(k))+'</div>'+
+    '<div class="dm-note">'+(LANG==='zh'?'已直接在 AC Audit 平台內開啟，不需要再按「開啟系統」。':'Opened directly inside AC Audit; no extra Open button required.')+'</div>'+
+    '<div class="dm-actions"><button class="btn optional" onclick="try{document.getElementById(\'dmFrame\').contentWindow.location.reload()}catch(e){}">⟳ '+(LANG==='zh'?'刷新':'Refresh')+'</button><button class="btn optional" onclick="presetImportRoute(\''+(k==='training'?'training':'auto')+'\')">📥 '+(LANG==='zh'?'匯入':'Import')+'</button></div></div>'+
+    '<iframe id="dmFrame" class="direct-module-frame" src="'+esc(x.u)+'" title="'+esc(directModuleLabel(k))+'"></iframe></div>';
+  return true;
+}
+
 function tabLabel(k){
   if(k==='grs')return 'GRS';
   if(k==='training')return t('training');
@@ -936,10 +981,11 @@ function go(k){
   $('#subtabs').classList.add('hide');
   markTabs();
   const m=$('#main');if(m)m.scrollTop=0;
+  document.body.classList.remove('direct-module');
   if(k==='dashboard')return renderDashboard();
   if(k==='analytics')return renderAnalytics();
   if(k==='importHub')return renderImportHub();
-  if(k==='training')return renderTrainingHub();
+  if(DIRECT_MODULES[k])return renderDirectModule(k);
   if(k==='settings')return renderSettings();
   if(k==='subsys')return renderSubsys();
   if(MODULES[k])return renderModule(k);
