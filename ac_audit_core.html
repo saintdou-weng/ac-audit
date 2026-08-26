@@ -243,6 +243,7 @@ body.direct-module main{padding:8px;background:#f7f4ed;}
 <input type="file" id="xlsxFile" accept=".xlsx,.xls,.csv" style="display:none">
 <input type="file" id="jsonFile" accept=".json" style="display:none">
 <input type="file" id="photoFile" accept="image/*,.pdf,application/pdf" multiple style="display:none">
+<input type="file" id="cameraFile" accept="image/*" capture="environment" style="display:none">
 <input type="file" id="msgFile" accept=".msg,.eml,.txt" style="display:none">
 <input type="file" id="unifiedImportFile" accept=".xlsx,.xls,.csv,.json,.txt,.eml,.msg" style="display:none">
 
@@ -250,8 +251,7 @@ body.direct-module main{padding:8px;background:#f7f4ed;}
 /* =====================================================================
    AC Audit Platform v1.2  ·  VRT Admin Center  ·  SAINTDOU
    Single-file integrated platform:
-   Dashboard / Analytics / Audit / CAP-CAPA / GRS / DCC / Incident /
-   Policy / MSG Processor / Settings
+   Dashboard / Analytics / WSE / WRAP / GRS / DCC / Cambodia Law / Settings
    Storage: localStorage ac_audit_db  ·  Cloud: Unified GAS + Drive JSON
    Bot: @ac_audit_bot  ·  Group: -5456651485
 ===================================================================== */
@@ -823,48 +823,38 @@ const MODULE_KEYS=Object.keys(MODULES);
 ===================================================================== */
 let CURRENT='dashboard', GRS_CUR='grs_certs';
 const GRS_SUBS=['grs_certs','grs_tc','grs_suppliers','grs_trace'];
-const TAB_ORDER=['dashboard','analytics','importHub','training','wse_assessment','audits','caps','grs','dcc_control','incoming_control','damage_report','cambodia_law','settings'];
+const TAB_ORDER=['dashboard','analytics','importHub','training','wse_assessment','audits','grs','dcc_control','cambodia_law','settings'];
 const PAGE_ICONS={dashboard:'◧',analytics:'📈',importHub:'📥',training:'🎓',wse_assessment:'📋',dcc_control:'🗄',incoming_control:'📨',factory_rules:'📕',cambodia_law:'⚖️',damage_report:'📝',settings:'⚙',grs:'🏅'};
 const INTEGRATIONS={
- wse_assessment:[{u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'原 WSE 稽核評估工具',en:'Original WSE Assessment Tool',descZH:'本頁已可線上新增/修改/匯入/核可；舊工具僅作參考或對照。',descEN:'This page supports online CRUD/import/approval; the old tool is kept for reference.'}],
- dcc_control:[{u:'VRT_DCC_v2.html',i:'🗄',zh:'原 DCC 工具',en:'Original DCC Tool',descZH:'本頁為新正式作業入口；舊 DCC 可作歷史資料參考。',descEN:'This page is the new operation entry; old DCC is for reference.'}],
- incoming_control:[{u:'MSG_Processor.html',i:'📨',zh:'原外來文件 / MSG 工具',en:'Original Incoming / MSG Tool',descZH:'可直接在本頁建檔與發摘要，也可用匯入中心處理 MSG/EML/TXT。',descEN:'Create records here or process MSG/EML/TXT through Import Hub.'}],
- factory_rules:[{u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'原廠規手冊',en:'Original Factory Rules',descZH:'條文更新、版本、核可與照片/PDF 證據改由本頁管理。',descEN:'Rule updates, version, approval and photo/PDF evidence are handled here.'}],
- cambodia_law:[{u:'cambodia_law_v1.html',i:'⚖️',zh:'原法律參考頁',en:'Original Law Reference',descZH:'法律條文可轉為正式政策/法規記錄，避免只留靜態參考。',descEN:'Law references can become formal policy/legal records.'}],
- damage_report:[{u:'vrt_damage_report.html',i:'📝',zh:'原損壞/遺失表',en:'Original Damage/Loss Form',descZH:'本頁可直接記錄事件、關聯 CAPA、發摘要與核可。',descEN:'Record incidents, link CAPA and send summary/approval here.'}],
- training:[
-  {u:'vrt_training_v1.html',i:'🎓',zh:'培訓計劃系統',en:'Training System',descZH:'培訓獨立分頁；資料、Telegram、雲端全部走同一支 AC Audit Unified GAS。',descEN:'Training stays as a separate tab; data, Telegram and cloud all use the same AC Audit Unified GAS.'}
+ wse_assessment:[
+  {u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 原版稽核評估',en:'Original WSE Assessment',descZH:'保留之前版本，原有內容與歷史評估不刪除。',descEN:'Original WSE assessment retained without deleting prior content.'},
+  {u:'WSE_BIGW_Tracker_v7_1.html',i:'🧭',zh:'BIG W / WSE Technical Tracker v7.1',en:'BIG W / WSE Technical Tracker v7.1',descZH:'新增技術稽核 Readiness Tracker、答案/表格/流程中心。',descEN:'New technical readiness tracker with answer/form/flow center.'}
  ],
+ dcc_control:[{u:'VRT_DCC_v2.html',i:'🗄',zh:'原 DCC 工具',en:'Original DCC Tool',descZH:'本頁為新正式作業入口；舊 DCC 可作歷史資料參考。',descEN:'This page is the new operation entry; old DCC is for reference.'}],
+ incoming_control:[],
  audits:[
-  {u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment',route:'audits',descZH:'WSE/客戶稽核表可從這裡開啟，或由匯入中心寫入WRAP 稽核。',descEN:'Open WSE tool or import files into Audit Management.'}
+  {u:'audit_hub_main.html',i:'📋',zh:'WRAP Audit Hub',en:'WRAP Audit Hub',route:'audits',descZH:'WRAP 稽核主工具。',descEN:'WRAP audit main tool.'},
+  {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'Factory Rules 廠規',en:'Factory Rules',route:'audits',descZH:'與 WRAP 同頁使用的廠規手冊。',descEN:'Factory rules used in the WRAP module.'}
  ],
  documents:[
   {u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 文件管制',en:'DCC Document Control',route:'documents',action:'migrateDCC',descZH:'文件、證書、外來文件資料可遷移到本分頁。',descEN:'Migrate document/certificate/external document records here.'}
  ],
- incidents:[
-  {u:'vrt_damage_report.html',i:'📝',zh:'損壞/遺失報告表',en:'Damage Report Form',route:'incidents',descZH:'損壞、遺失、事故資料整合到事故中心。',descEN:'Damage/loss/incident records are managed in Incident Center.'}
- ],
+ incidents:[],
  policies:[
   {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules',route:'policies',descZH:'廠規、政策、SOP 內容歸到政策中心管理。',descEN:'Factory rules, policy and SOP content belong in Policy Center.'},
   {u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law',route:'policies',descZH:'法規參考可轉為政策或文件記錄，避免只留靜態頁。',descEN:'Legal references can be converted to policy/document records.'}
  ],
- msg:[
-  {u:'MSG_Processor.html',i:'📨',zh:'外來文件管制',en:'Incoming MSG Control',route:'msg',action:'migrateMSG',descZH:'MSG/EML/TXT 優先在本分頁與匯入中心處理，可直接在本頁完成分類與轉 CAP。',descEN:'MSG/EML/TXT should be handled here or through Import Hub.'}
- ]
+ msg:[]
 };
 
 const DIRECT_MODULES={
   training:{u:'vrt_training_v1.html',i:'🎓',zh:'培訓管理',en:'Training',km:'ការបណ្តុះបណ្តាល'},
-  wse_assessment:{u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment',km:'WSE Audit'},
-  dcc_control:{u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 文件管制',en:'DCC Document Control',km:'DCC'},
-  incoming_control:{u:'MSG_Processor.html',i:'📨',zh:'外來文件管制',en:'Incoming Document Control',km:'ឯកសារចូល'},
+  wse_assessment:{u:'wse_audit_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment',km:'WSE Audit'},
+  dcc_control:{u:'dcc_audit_v1.html',i:'🗄',zh:'DCC 文件管制',en:'DCC Document Control',km:'DCC'},
   factory_rules:{u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules',km:'ច្បាប់រោងចក្រ'},
-  cambodia_law:{u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law Reference',km:'ច្បាប់កម្ពុជា'},
-  damage_report:{u:'vrt_damage_report.html',i:'📝',zh:'損壞 / 遺失報告',en:'Damage / Loss Report',km:'របាយការណ៍ខូច/បាត់'},
-  msg:{u:'MSG_Processor.html',i:'📨',zh:'MSG 處理器',en:'MSG Processor',km:'MSG'},
+  cambodia_law:{u:'law_audit_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law Reference',km:'ច្បាប់កម្ពុជា'},
   audits:{u:'wrap_audit_v1.html',i:'♻️',zh:'WRAP 稽核',en:'WRAP Audit',km:'WRAP Audit'},
   documents:{u:'VRT_DCC_v2.html',i:'🗄',zh:'文件管制中心',en:'Document Control',km:'DCC'},
-  incidents:{u:'vrt_damage_report.html',i:'📝',zh:'事故中心',en:'Incident Center',km:'Incident'},
   policies:{u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'政策中心',en:'Policy Center',km:'Policy'}
 };
 function directModuleLabel(k){const x=DIRECT_MODULES[k];if(!x)return tabLabel(k);return LANG==='zh'?x.zh:(LANG==='km'?(x.km||x.en):x.en)}
@@ -976,12 +966,10 @@ function renderTrainingHub(){
 function renderSubsys(){go('training')}
 const EXTERNAL_ROUTES={
   training:'vrt_training_v1.html',
-  wse_assessment:'WSE_Audit_Assessment_v1.html',
+  wse_assessment:'wse_audit_v1.html',
   audits:'wrap_audit_v1.html',
-  dcc_control:'VRT_DCC_v2.html',
-  incoming_control:'MSG_Processor.html',
-  damage_report:'vrt_damage_report.html',
-  cambodia_law:'cambodia_law_v1.html'
+  dcc_control:'dcc_audit_v1.html',
+  cambodia_law:'law_audit_v1.html'
 };
 function go(k){
   if(EXTERNAL_ROUTES[k]){ window.location.href=EXTERNAL_ROUTES[k]; return; }
@@ -1137,7 +1125,7 @@ function drawPhotoGrid(){
     return '<div class="ph '+(pdf?'pdf':'')+'" '+bg+' title="'+nm+'" onclick="viewPhoto('+i+')">'+
       (pdf?'<div class="pdfico">📄 PDF</div>':'')+(drive?'<span style="position:absolute;left:3px;bottom:3px;background:#fff;border-radius:6px;padding:1px 4px;font-size:10px">☁Drive</span>':'')+
       '<button class="rm" onclick="event.stopPropagation();FORM_PHOTOS.splice('+i+',1);drawPhotoGrid()">✕</button></div>';
-  }).join('')+'<button class="add" onclick="pickPhotos()">＋<br><small>Drive</small></button>'+
+  }).join('')+'<button class="add" onclick="pickCamera()">📷<br><small>Camera</small></button><button class="add" onclick="pickPhotos()">＋<br><small>Photo/PDF</small></button>'+
   '<div class="hint" style="flex-basis:100%;font-size:12px">☁ '+esc(t('driveEvidence'))+' · '+esc(LANG==='zh'?'照片/PDF 不存本機，新增時直接上傳 Google Drive。':LANG==='km'?'រូបភាព/PDF មិនរក្សាទុកក្នុងម៉ាស៊ីនទេ។':'Photos/PDF are uploaded to Google Drive and not stored locally.')+'</div>';
 }
 function viewPhoto(i){const p=FORM_PHOTOS[i], url=attUrl(p)||attDownload(p);if(!url)return toast('No file URL');const w=window.open(url,'_blank');if(!w){location.href=url}}
@@ -1159,6 +1147,7 @@ async function uploadEvidenceFile(file){
   if(j.duplicate)toast(t('driveDup'));
   return j.file;
 }
+function pickCamera(){$('#cameraFile').onchange=async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;try{toast(t('driveUploading'),6000);const info=await uploadEvidenceFile(f);if(info&&!FORM_PHOTOS.some(x=>x.driveId===info.driveId||x.signature===info.signature))FORM_PHOTOS.push(info);drawPhotoGrid();toast('☁ Camera → Drive ✓')}catch(err){toast('⚠ '+err.message,5000)}};$('#cameraFile').click()}
 function pickPhotos(){$('#photoFile').onchange=async e=>{
   const files=[...e.target.files];e.target.value='';
   if(!files.length)return;
@@ -1333,7 +1322,7 @@ function restoreJSON(){
    UNIFIED IMPORT CENTER  (MSG / Excel / CSV / JSON → Audit DB or Training Bridge)
 ===================================================================== */
 let HUB_ROWS=[], HUB_FILE='', HUB_ROUTE='msg';
-const HUB_TARGETS=['auto','training','audits','caps','documents','incidents','policies','msg'];
+const HUB_TARGETS=['auto','training','audits','documents','policies'];
 function renderImportHub(){
   $('#main').innerHTML=
    '<div class="pgtitle"><h2>📥 '+esc(t('importHub'))+'</h2><span class="sub">'+(LANG==='zh'?'MSG / Excel / CSV / JSON 統一入口；先預覽、再寫入，不直接覆蓋。':'One import gate for MSG / Excel / CSV / JSON. Preview first, then commit.')+'</span></div>'+ 
@@ -1350,7 +1339,7 @@ function renderImportHub(){
       '<p class="hint" id="hubInfo" style="margin-top:10px">'+(LANG==='zh'?'尚未載入資料。':'No file loaded.')+'</p></div>'+ 
    '</div><div class="panel"><h3>③ Preview<span class="rule"></span></h3><div id="hubPreview" class="tblwrap"><div class="empty"><div class="e1">📥</div>'+(LANG==='zh'?'請先選擇檔案或貼上內容。':'Choose a file or paste content first.')+'</div></div></div>';
 }
-function hubTargetLabel(x){return ({auto:'Auto Detect',training:'Training Bridge',audits:t('audits'),caps:t('caps'),documents:t('documents'),incidents:t('incidents'),policies:t('policies'),msg:t('msg')})[x]||x}
+function hubTargetLabel(x){return ({auto:'Auto Detect',training:'Training Bridge',audits:t('audits'),documents:t('documents'),policies:t('policies')})[x]||x}
 function pickUnifiedImport(){
   const inp=$('#unifiedImportFile');
   inp.onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)readUnifiedFile(f)};
@@ -1395,13 +1384,13 @@ function msgTextToRow(body,name){
 function detectHubRoute(rows,name){
   const keys=Object.keys(rows[0]||{}).join('|').toLowerCase();const s=(keys+'|'+(name||'')).toLowerCase();
   if(/__training|training|trainings|trainer|trainee|attendees|absences|培訓/.test(s))return 'training';
-  if(/finding|root.?cause|corrective|preventive|capa|cap_|due.?date/.test(s))return 'caps';
+  if(/finding|root.?cause|corrective|preventive|capa|cap_|due.?date/.test(s))return 'audits';
   if(/doc.?no|document|revision|version|effective|expiry|dcc|文件/.test(s))return 'documents';
-  if(/damage|lost|incident|injury|cost|損壞|遺失|事故/.test(s))return 'incidents';
+  if(/damage|lost|incident|injury|cost|損壞|遺失|事故/.test(s))return 'audits';
   if(/policy|legal|law|factory.?rule|法規|廠規/.test(s))return 'policies';
   if(/audit|auditor|score|wse|wrap|稽核/.test(s))return 'audits';
-  if(/from|subject|body|email|msg|寄件|主旨/.test(s))return 'msg';
-  return 'msg';
+  if(/from|subject|body|email|msg|寄件|主旨/.test(s))return 'documents';
+  return 'documents';
 }
 function renderHubPreview(){
   const sel=$('#hubRoute');if(sel)sel.value=HUB_ROUTE||'auto';
@@ -1626,43 +1615,30 @@ function dashStats(){
   };
 }
 function renderDashboard(){
-  const s=dashStats();
-  const kpi=(key,val,ico,color,goK)=>'<div class="card kpi" style="--kc:'+color+'" onclick="go(\''+goK+'\')">'+
-    '<div class="kico">'+ico+'</div><div class="kv">'+val+'</div><div class="kl">'+esc(t(key))+'</div></div>';
+  const kpi=(label,val,ico,color,goK)=>'<div class="card kpi" style="--kc:'+color+'" onclick="go(\''+goK+'\')"><div class="kico">'+ico+'</div><div class="kv">'+val+'</div><div class="kl">'+esc(label)+'</div></div>';
   const lastSync=DB.meta.lastSync?fmtDT(new Date(DB.meta.lastSync)):t('never');
+  const dcc=(DB.dcc_control||[]).length+(DB.documents||[]).length;
+  const law=(DB.cambodia_law||[]).length+(DB.policies||[]).length;
+  const grs=(DB.grs_certs||[]).length+(DB.grs_tc||[]).length+(DB.grs_suppliers||[]).length+(DB.grs_trace||[]).length;
   $('#main').innerHTML=
-   '<div class="pgtitle"><h2>◧ '+esc(t('dashboard'))+'</h2><span class="sub">'+esc(fmtDate(new Date()))+' · VRT Admin Center</span></div>'+
+   '<div class="pgtitle"><h2>◧ '+esc(t('dashboard'))+'</h2><span class="sub">'+esc(fmtDate(new Date()))+' · VRT Audit Center</span></div>'+
    '<div class="grid g-kpi">'+
-    kpi('todayAudit',s.todayAudit,'📋','var(--khaki)','audits')+
-    kpi('upcoming',s.upcoming,'🗓','var(--info)','audits')+
-    kpi('capOpen',s.capOpen,'🛠','var(--warn)','caps')+
-    kpi('capOverdue',s.capOverdue,'⏰',s.capOverdue?'var(--danger)':'var(--ok)','caps')+
-    kpi('hiRisk',s.hiRisk,'🔴',s.hiRisk?'var(--crit)':'var(--ok)','caps')+
-    kpi('findings',s.findings,'⚠','var(--graphite2)','caps')+
-    kpi('avgScore',s.avgScore,'🎯','var(--khaki)','analytics')+
-    kpi('certExp',s.certExp,'🏅',s.certExp?'var(--warn)':'var(--ok)','grs_certs')+
-    kpi('grsValid',s.grsValid,'✅','var(--ok)','grs_certs')+
-    kpi('docExp',s.docExp,'📁',s.docExp?'var(--warn)':'var(--ok)','documents')+
-    kpi('dccActive',s.dccActive,'🗄','var(--info)','documents')+
-    kpi('incOpen',s.incOpen,'🚨',s.incOpen?'var(--danger)':'var(--ok)','incidents')+
-    kpi('training',trainingSnapshot().trainings.length,'🎓','var(--khaki)','training')+
+    kpi('WSE Records',(DB.wse_assessment||[]).length,'📋','var(--khaki)','wse_assessment')+
+    kpi('WRAP Audits',(DB.audits||[]).length,'♻️','var(--info)','audits')+
+    kpi('GRS Records',grs,'🏅','var(--ok)','grs')+
+    kpi('DCC Documents',dcc,'🗄','var(--info)','dcc_control')+
+    kpi('Cambodia Legal',law,'⚖️','var(--khaki)','cambodia_law')+
+    kpi('Training',trainingSnapshot().trainings.length,'🎓','var(--ok)','training')+
    '</div>'+
    '<div class="panel" style="margin-top:14px"><h3>🧭 '+(LANG==='zh'?'獨立作業分頁':'Independent Operation Pages')+'<span class="rule"></span></h3><div class="quickgrid">'+
-   ['training','wse_assessment','dcc_control','incoming_control','factory_rules','cambodia_law','damage_report','importHub'].map(x=>'<button class="qcard" onclick="go(\''+x+'\')"><b>'+((PAGE_ICONS[x]||MODULES[x]?.icon)||'•')+'</b><span>'+esc(t(x))+'</span></button>').join('')+
+   ['training','wse_assessment','audits','grs','dcc_control','cambodia_law','importHub','analytics'].map(x=>'<button class="qcard" onclick="go(\''+x+'\')"><b>'+((PAGE_ICONS[x]||MODULES[x]?.icon)||'•')+'</b><span>'+esc(x==='grs'?'GRS':t(x))+'</span></button>').join('')+
    '</div></div>'+
-   '<div class="grid" style="grid-template-columns:1.4fr 1fr;margin-top:14px" id="dashLow">'+
-    '<div class="panel"><h3>🕘 '+esc(t('recentAct'))+'<span class="rule"></span></h3><ul class="actlist">'+
-      (DB.activities.length?DB.activities.slice(0,40).map(a=>'<li><time>'+esc(fmtDT(new Date(a.t)))+'</time><span>'+esc(a.x)+'</span></li>').join(''):'<li>'+esc(t('noData'))+'</li>')+
-    '</ul></div>'+
-    '<div class="panel"><h3>⚙ '+esc(t('sysStatus'))+'<span class="rule"></span></h3>'+
+   '<div class="panel" style="margin-top:14px"><h3>⚙ '+esc(t('sysStatus'))+'<span class="rule"></span></h3>'+
       '<div class="kv-row"><span>☁ Cloud</span><b id="dashCloud">'+(CFG.gasUrl?'…':esc(t('cloudBad')))+'</b></div>'+
-      '<div class="kv-row"><span>✈ Telegram</span><b>GAS Script Properties</b></div>'+
-      '<div class="kv-row"><span>🔐 Token</span><b>Not stored in browser</b></div>'+
+      '<div class="kv-row"><span>✈ Telegram</span><b>Unified GAS</b></div>'+
+      '<div class="kv-row"><span>📷 Evidence</span><b>Google Drive</b></div>'+
       '<div class="kv-row"><span>'+esc(t('lastSync'))+'</span><b>'+esc(lastSync)+'</b></div>'+
-      '<div class="kv-row"><span>💾 Local records</span><b>'+MODULE_KEYS.reduce((n,k)=>n+DB[k].length,0)+'</b></div>'+
-      '<div class="hint" style="margin-top:10px">'+esc(t('openPlatform'))+'</div>'+
-    '</div></div>';
-  if(window.innerWidth<900)$('#dashLow').style.gridTemplateColumns='1fr';
+   '</div>';
   if(CFG.gasUrl)gasCall({action:'ping'}).then(()=>{const e=$('#dashCloud');if(e)e.textContent=t('cloudOk')}).catch(()=>{const e=$('#dashCloud');if(e)e.textContent=t('cloudBad')});
 }
 
@@ -1677,58 +1653,22 @@ function renderAnalytics(){
   CHARTS.forEach(c=>c.destroy());CHARTS=[];
   const months=last12();
   const box=(id,title)=>'<div class="panel"><h3>'+title+'<span class="rule"></span></h3><div class="chartbox"><canvas id="'+id+'"></canvas></div></div>';
-  $('#main').innerHTML=
-   '<div class="pgtitle"><h2>📈 '+esc(t('analytics'))+'</h2></div>'+
-   '<div class="grid g-charts">'+
-    box('chAuditTrend',LANG==='zh'?'稽核趨勢（月）':'Audit Trend / Month')+
-    box('chScore',LANG==='zh'?'每月平均稽核分數':'Monthly Avg Audit Score')+
-    box('chCapTrend',LANG==='zh'?'CAP 開立 / 結案趨勢':'CAP Open vs Closed Trend')+
-    box('chClosure',LANG==='zh'?'CAP 結案率':'CAP Closure Rate')+
-    box('chDept',LANG==='zh'?'各部門 Finding 分布':'Findings by Department')+
-    box('chPriority',LANG==='zh'?'Finding 優先級分布':'Finding Priority Distribution')+
-    box('chRoot',LANG==='zh'?'根本原因分析 Pareto':'Root Cause Pareto')+
-    box('chCert',LANG==='zh'?'證書 / 文件狀態':'Certificate & Document Status')+
-   '</div>';
-  const KH='#A89272',GR='#26282C',palette=['#A89272','#5A7A9A','#4E7A5A','#C7962E','#B0492F','#7A2E4A','#8A8D95'];
+  $('#main').innerHTML='<div class="pgtitle"><h2>📈 '+esc(t('analytics'))+'</h2></div><div class="grid g-charts">'+
+    box('chWse',LANG==='zh'?'WSE 記錄趨勢':'WSE Record Trend')+
+    box('chWrap',LANG==='zh'?'WRAP 稽核趨勢':'WRAP Audit Trend')+
+    box('chDcc',LANG==='zh'?'DCC 文件狀態':'DCC Document Status')+
+    box('chGrs',LANG==='zh'?'GRS 資料狀態':'GRS Record Status')+'</div>';
+  const KH='#A89272',GR='#26282C',BL='#5A7A9A',GN='#4E7A5A';
   const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12,font:{size:10.5}}}}};
   const cnt=(arr,fn)=>{const m={};arr.forEach(r=>{const k=fn(r);if(k)m[k]=(m[k]||0)+1});return m};
-  // audit trend
-  const at=cnt(DB.audits,a=>monthKey(a.date));
-  CHARTS.push(new Chart($('#chAuditTrend'),{type:'line',data:{labels:months,
-    datasets:[{label:'Audits',data:months.map(m=>at[m]||0),borderColor:KH,backgroundColor:'rgba(168,146,114,.15)',fill:true,tension:.3}]},options:base}));
-  // monthly score
-  const sm={},sc={};DB.audits.forEach(a=>{const m=monthKey(a.date),v=Number(a.score);
-    if(m&&!isNaN(v)&&v>0){sm[m]=(sm[m]||0)+v;sc[m]=(sc[m]||0)+1}});
-  CHARTS.push(new Chart($('#chScore'),{type:'line',data:{labels:months,
-    datasets:[{label:'Score',data:months.map(m=>sc[m]?Math.round(sm[m]/sc[m]*10)/10:null),borderColor:GR,tension:.3,spanGaps:true}]},options:base}));
-  // cap trend
-  const co=cnt(DB.caps,r=>monthKey(fmtDate(new Date(r._created)))),cc=cnt(DB.caps.filter(r=>r.status==='closed'),r=>monthKey(r.verifyDate||fmtDate(new Date(r._updated))));
-  CHARTS.push(new Chart($('#chCapTrend'),{type:'bar',data:{labels:months,datasets:[
-    {label:'Open',data:months.map(m=>co[m]||0),backgroundColor:'#C7962E'},
-    {label:'Closed',data:months.map(m=>cc[m]||0),backgroundColor:'#4E7A5A'}]},options:base}));
-  // closure rate
-  const tot=DB.caps.length,cl=DB.caps.filter(r=>r.status==='closed').length;
-  CHARTS.push(new Chart($('#chClosure'),{type:'doughnut',data:{labels:['Closed','Open'],
-    datasets:[{data:[cl,tot-cl],backgroundColor:['#4E7A5A','#B0492F']}]},options:base}));
-  // dept
-  const dp=cnt(DB.caps,r=>r.department);
-  CHARTS.push(new Chart($('#chDept'),{type:'bar',data:{labels:Object.keys(dp),
-    datasets:[{label:'Findings',data:Object.values(dp),backgroundColor:KH}]},options:Object.assign({indexAxis:'y'},base)}));
-  // priority
-  const pr=cnt(DB.caps,r=>optLabel('priority',r.priority));
-  CHARTS.push(new Chart($('#chPriority'),{type:'doughnut',data:{labels:Object.keys(pr),
-    datasets:[{data:Object.values(pr),backgroundColor:palette}]},options:base}));
-  // root cause pareto (first 12 chars grouping)
-  const rc={};DB.caps.forEach(r=>{const k=(r.rootCause||'').trim().split(/\n/)[0].slice(0,24);if(k)rc[k]=(rc[k]||0)+1});
-  const rcE=Object.entries(rc).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  CHARTS.push(new Chart($('#chRoot'),{type:'bar',data:{labels:rcE.map(e=>e[0]),
-    datasets:[{label:'Count',data:rcE.map(e=>e[1]),backgroundColor:'#5A7A9A'}]},options:base}));
-  // cert & doc status
-  const cs=cnt(DB.grs_certs,r=>optLabel('certStatus',r.status)),ds2=cnt(DB.documents,r=>optLabel('docStatus',r.status));
-  const labs=[...new Set([...Object.keys(cs),...Object.keys(ds2)])];
-  CHARTS.push(new Chart($('#chCert'),{type:'bar',data:{labels:labs,datasets:[
-    {label:'GRS Certs',data:labs.map(l=>cs[l]||0),backgroundColor:KH},
-    {label:'Documents',data:labs.map(l=>ds2[l]||0),backgroundColor:GR}]},options:base}));
+  const w=cnt(DB.wse_assessment||[],a=>monthKey(a.date||a._created&&fmtDate(new Date(a._created))));
+  const a=cnt(DB.audits||[],x=>monthKey(x.date||x._created&&fmtDate(new Date(x._created))));
+  CHARTS.push(new Chart($('#chWse'),{type:'line',data:{labels:months,datasets:[{label:'WSE',data:months.map(m=>w[m]||0),borderColor:BL,tension:.3}]},options:base}));
+  CHARTS.push(new Chart($('#chWrap'),{type:'line',data:{labels:months,datasets:[{label:'WRAP',data:months.map(m=>a[m]||0),borderColor:KH,tension:.3}]},options:base}));
+  const dcc=cnt((DB.dcc_control||[]).concat(DB.documents||[]),r=>r.status||'Other');
+  CHARTS.push(new Chart($('#chDcc'),{type:'doughnut',data:{labels:Object.keys(dcc),datasets:[{data:Object.values(dcc),backgroundColor:[KH,GR,BL,GN,'#C7962E']}]},options:base}));
+  const grs=cnt((DB.grs_certs||[]).concat(DB.grs_tc||[]).concat(DB.grs_suppliers||[]),r=>r.status||'Other');
+  CHARTS.push(new Chart($('#chGrs'),{type:'doughnut',data:{labels:Object.keys(grs),datasets:[{data:Object.values(grs),backgroundColor:[GN,KH,BL,GR,'#C7962E']}]},options:base}));
 }
 
 /* =====================================================================
