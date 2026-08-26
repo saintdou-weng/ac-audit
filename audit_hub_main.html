@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VRT Compliance Assessment v3</title>
+<style>
+:root {
+  --navy:#1A3E78; --navy2:#2a5298; --gold:#FFC107; --teal:#00ACC1;
+  --bg:#f5f7fa; --white:#fff; --border:#dce3ec; --text:#1a202c;
+  --muted:#6b7280; --red:#dc2626; --green:#16a34a; --amber:#d97706;
+  --row-alt:#f8fafc; --sec-bg:#eef2f8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body.lang-km{font-family:'Noto Sans Khmer','Segoe UI',sans-serif}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+
+/* TOP BAR */
+.topbar{background:var(--navy);color:#fff;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.topbar .logo{font-size:16px;font-weight:700;letter-spacing:.5px}
+.topbar .logo span{color:var(--gold)}
+.topbar-right{display:flex;gap:6px;align-items:center}
+.session-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:4px;padding:4px 10px;font-size:11px;font-weight:700;color:#fff}
+.session-badge.active{background:rgba(255,193,7,.2);border-color:var(--gold);color:var(--gold)}
+.btn{padding:5px 12px;border:none;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;transition:.2s}
+.btn-gold{background:var(--gold);color:var(--navy)}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4)}
+.btn-outline:hover{background:rgba(255,255,255,.1)}
+.btn-red{background:var(--red);color:#fff}
+.btn-sm{padding:3px 8px;font-size:11px}
+.btn-del{background:#fee2e2;color:var(--red);border:none;border-radius:3px;padding:2px 6px;cursor:pointer;font-size:11px;font-weight:700;line-height:1.4}
+.btn-del:hover{background:var(--red);color:#fff}
+.lang-toggle{display:flex;gap:3px;background:rgba(255,255,255,.12);border-radius:5px;padding:2px}
+.lang-btn{background:none;border:none;color:rgba(255,255,255,.7);padding:3px 9px;border-radius:3px;cursor:pointer;font-size:12px;font-weight:700;transition:.15s}
+.lang-btn.active{background:var(--gold);color:var(--navy)}
+.lang-btn:hover:not(.active){color:#fff;background:rgba(255,255,255,.15)}
+.btn-add-row{background:#eff6ff;color:var(--navy2);border:1px dashed #93c5fd;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600;width:100%;margin-top:4px}
+.btn-add-row:hover{background:#dbeafe}
+
+/* SESSION PANEL */
+.session-panel{background:#fff;border-bottom:2px solid var(--border);padding:10px 16px}
+.session-panel-inner{max-width:1100px;margin:0 auto;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.sess-field{display:flex;flex-direction:column;gap:2px;min-width:140px}
+.sess-field label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase}
+.sess-field input,.sess-field select{border:1px solid var(--border);border-radius:4px;padding:5px 8px;font-size:12px;color:var(--text)}
+.sess-divider{width:1px;height:36px;background:var(--border)}
+.sess-status{font-size:11px;padding:4px 10px;border-radius:12px;font-weight:700}
+.sess-status.active{background:#dcfce7;color:var(--green)}
+.sess-status.none{background:#f3f4f6;color:var(--muted)}
+
+/* TABS */
+.tabs{background:#fff;border-bottom:2px solid var(--border);padding:0 16px;display:flex;overflow-x:auto}
+.tab-btn{padding:10px 16px;background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:.2s}
+.tab-btn:hover{color:var(--navy);background:var(--sec-bg)}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--navy)}
+.tab-badge{background:var(--gold);color:var(--navy);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:5px}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* CONTAINER */
+.container{max-width:1100px;margin:0 auto;padding:14px}
+
+/* CARDS */
+.card{background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;overflow:hidden}
+.card-header{background:var(--navy);color:#fff;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.card-header h3{font-size:12px;font-weight:700}
+.card-badge{background:var(--gold);color:var(--navy);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.card-toggle{font-size:14px;transition:.2s}
+.card-header.closed .card-toggle{transform:rotate(-90deg)}
+.card-body{display:block}.card-body.hidden{display:none}
+.card-desc{background:var(--sec-bg);padding:8px 14px;font-size:11px;color:var(--muted);font-style:italic;border-bottom:1px solid var(--border)}
+.sub-hdr{background:var(--sec-bg);padding:7px 14px;font-size:12px;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border)}
+
+/* FACILITY FORM */
+.fac-table{width:100%;border-collapse:collapse}
+.fac-table td{padding:7px 12px;border:1px solid var(--border);vertical-align:top;font-size:12px}
+.fac-table .lbl{background:var(--sec-bg);font-weight:600;width:38%;color:var(--navy)}
+.hdr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hdr-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.fld{display:flex;flex-direction:column;gap:2px}
+.fld label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.fld input,.fld select,.fld textarea{border:1px solid var(--border);border-radius:4px;padding:5px 8px;font-size:12px;color:var(--text);background:#fff}
+.fld input:focus,.fld textarea:focus{outline:2px solid var(--navy)}
+
+/* QUESTION TABLE */
+.q-tbl{width:100%;border-collapse:collapse}
+.q-tbl th{background:var(--sec-bg);padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--navy);border:1px solid var(--border)}
+.q-tbl th.ctr{text-align:center}
+.q-tbl td{padding:7px 10px;border:1px solid var(--border);vertical-align:top;font-size:12px}
+.q-tbl tr:hover td{background:#eff6ff}
+.q-tbl tr.custom-row td{background:#fffbeb}
+.q-num{color:var(--muted);font-weight:700;font-size:11px;white-space:nowrap}
+.q-text{line-height:1.5}
+.radio-grp{display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
+.radio-opt{display:flex;flex-direction:column;align-items:center;gap:1px}
+.radio-opt input[type=radio]{cursor:pointer;accent-color:var(--navy);width:13px;height:13px}
+.radio-opt span{font-size:9px;font-weight:700}
+.lbl-y{color:var(--green)}.lbl-n{color:var(--red)}.lbl-na{color:var(--muted)}
+.q-txt{width:100%;border:1px solid var(--border);border-radius:3px;padding:4px 6px;font-size:11px;min-height:32px;resize:vertical}
+.q-inp{width:100%;border:1px solid var(--border);border-radius:3px;padding:4px 6px;font-size:12px}
+.chk-grp{display:flex;gap:8px;align-items:center}
+.chk-opt{display:flex;align-items:center;gap:3px;font-size:12px;cursor:pointer}
+.chk-opt input{cursor:pointer;accent-color:var(--navy)}
+
+/* SUBMIT BAR */
+.submit-bar{background:var(--sec-bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin:12px 0;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.submit-bar .sbinfo{font-size:12px;color:var(--muted);flex:1}
+.submit-status{font-size:11px;padding:3px 10px;border-radius:10px;font-weight:700}
+.status-saved{background:#dcfce7;color:var(--green)}
+.status-pending{background:#fef9c3;color:var(--amber)}
+.status-error{background:#fee2e2;color:var(--red)}
+
+/* HSE SCORE */
+.score-bar{background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 16px;margin-bottom:12px;display:flex;gap:20px;align-items:center}
+.score-item{text-align:center}
+.score-num{font-size:20px;font-weight:700;color:var(--navy)}
+.score-lbl{font-size:10px;color:var(--muted);text-transform:uppercase}
+.score-pct{font-size:26px;font-weight:700}
+.score-pct.good{color:var(--green)}.score-pct.med{color:var(--amber)}.score-pct.bad{color:var(--red)}
+
+/* RISK TABLE */
+.risk-tbl{width:100%;border-collapse:collapse;font-size:11px}
+.risk-tbl th{background:var(--navy);color:#fff;padding:6px 8px;text-align:center;border:1px solid var(--border);font-size:10px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.risk-tbl td{padding:5px 6px;border:1px solid var(--border);vertical-align:middle}
+.risk-tbl .dept-hdr td{background:#dbeafe;font-weight:700;color:var(--navy);font-size:12px}
+.r-sel{width:100%;border:1px solid var(--border);border-radius:3px;padding:3px 4px;font-size:11px}
+.risk-badge{display:inline-block;padding:2px 7px;border-radius:10px;font-weight:700;font-size:10px;white-space:nowrap}
+.rb-t{background:#dcfce7;color:#15803d}.rb-m{background:#fef9c3;color:#854d0e}
+.rb-M{background:#fed7aa;color:#c2410c}.rb-i{background:#fecaca;color:#b91c1c}
+
+/* SIGNATURE */
+.sig-sec{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:12px}
+.sig-sec h3{font-size:13px;color:var(--navy);margin-bottom:10px;border-bottom:2px solid var(--gold);padding-bottom:6px}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.sig-blk{border-top:2px solid var(--navy);padding-top:6px}
+.sig-blk label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase}
+.sig-blk input{width:100%;border:none;border-bottom:1px solid var(--border);padding:4px 0;font-size:12px;outline:none}
+.sig-line{margin-top:18px;border-top:1px solid var(--border);padding-top:3px;font-size:10px;color:var(--muted)}
+
+/* NOTICE */
+.notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:9px 13px;font-size:12px;margin-bottom:10px}
+.notice strong{color:var(--navy)}
+.alert-warn{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:9px 13px;font-size:12px;margin-bottom:10px}
+.alert-err{background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:9px 13px;font-size:12px;margin-bottom:10px}
+
+/* HISTORY MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;justify-content:center;align-items:flex-start;padding:30px 16px}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:10px;width:100%;max-width:900px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-hdr{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.modal-hdr h3{font-size:14px;font-weight:700}
+.modal-body{flex:1;overflow-y:auto;padding:14px}
+.modal-foot{padding:10px 16px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--sec-bg)}
+.hist-table{width:100%;border-collapse:collapse;font-size:12px}
+.hist-table th{background:var(--sec-bg);padding:7px 10px;text-align:left;border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--navy)}
+.hist-table td{padding:7px 10px;border:1px solid var(--border);vertical-align:middle}
+.hist-table tr:hover td{background:#eff6ff;cursor:pointer}
+.hist-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-right:4px}
+.tag-wrap{background:#eff6ff;color:var(--navy)}.tag-ctpat{background:#f0fdf4;color:var(--green)}
+.tag-hse{background:#fff7ed;color:var(--amber)}.tag-risk{background:#fef2f2;color:var(--red)}
+.tag-open{background:#dcfce7;color:var(--green)}.tag-closed{background:#f3f4f6;color:var(--muted)}
+
+/* COMPARE */
+.cmp-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.cmp-tbl th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;border:1px solid var(--border);font-size:11px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.cmp-tbl td{padding:6px 10px;border:1px solid var(--border);vertical-align:top}
+.cmp-same{background:#f0fdf4}.cmp-diff{background:#fef9c3}
+.cmp-ans{font-weight:700}
+.cmp-y{color:var(--green)}.cmp-n{color:var(--red)}.cmp-na{color:var(--muted)}
+.cmp-filter{display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap}
+
+/* POLICY TABLE */
+.pol-tbl{width:100%;border-collapse:collapse}
+.pol-tbl th{background:var(--navy);color:#fff;padding:7px 10px;font-size:11px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.pol-tbl td{padding:6px 10px;border:1px solid var(--border);font-size:12px}
+
+/* ZERO TOLERANCE */
+.zt-box{background:#fff1f2;border:2px solid #fca5a5;border-radius:8px;padding:12px 14px;margin:10px 0}
+.zt-box h4{color:var(--red);font-size:13px;margin-bottom:6px}
+.zt-box ul{padding-left:16px;font-size:12px}
+.zt-box li{margin-bottom:3px}
+
+/* FACI TABLE */
+.fac-table td .chk-grp{margin-bottom:4px}
+
+/* LOADING */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* PRINT */
+@media print{
+  .topbar .topbar-right,.tabs,.session-panel,.submit-bar,.modal-overlay,.btn-del,.btn-add-row{display:none!important}
+  .tab-content{display:block!important}
+  body{background:#fff}
+  .card{break-inside:avoid}
+}
+
+/* RESPONSIVE */
+@media(max-width:700px){
+  .hdr-grid,.hdr-grid-4{grid-template-columns:1fr 1fr}
+  .sig-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div>
+    <div class="logo">VRT <span>COMPLIANCE</span> PLATFORM <span style="font-size:10px;opacity:.7;margin-left:8px">v3.0</span></div>
+    <div style="font-size:10px;opacity:.6">Vantage River Textiles — Online Audit Assessment</div>
+  </div>
+  <div class="topbar-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="lang-btn-en" onclick="applyLang('en')">EN</button>
+      <button class="lang-btn" id="lang-btn-km" onclick="applyLang('km')" style="font-family:'Noto Sans Khmer',sans-serif">ខ្មែរ</button>
+    </div>
+    <span id="sess-badge" class="session-badge none">No Session</span>
+    <button class="btn btn-outline btn-sm" onclick="openHistoryModal()">📂 History</button>
+    <button class="btn btn-outline btn-sm" onclick="window.print()">🖨 Print</button>
+    <button class="btn btn-gold btn-sm" onclick="openHistoryModal('compare')">⚖ Compare</button>
+  </div>
+</div>
+
+<!-- SESSION PANEL -->
+<div class="session-panel">
+  <div class="session-panel-inner">
+    <div class="sess-field" style="min-width:180px">
+      <label>Your Name</label>
+      <input type="text" id="user-name" placeholder="Enter your name..." oninput="updateUserDisplay()">
+    </div>
+    <div class="sess-divider"></div>
+    <!-- Create -->
+    <div class="sess-field">
+      <label>Assessment Type</label>
+      <select id="sess-type">
+        <option value="WRAP">WRAP Pre-Audit</option>
+        <option value="CTPAT">C-TPAT</option>
+        <option value="HSE">HSE Audit</option>
+        <option value="RISK">Risk Assessment</option>
+        <option value="ALL">All Types</option>
+      </select>
+    </div>
+    <div class="sess-field">
+      <label>Reference / Round</label>
+      <input type="text" id="sess-ref" placeholder="e.g. Q1-2026 Audit">
+    </div>
+    <div class="sess-field">
+      <label>Assessment Date</label>
+      <input type="date" id="sess-date" value="">
+    </div>
+    <button class="btn btn-teal" onclick="createSession()">+ New Session</button>
+    <div class="sess-divider"></div>
+    <!-- Join -->
+    <div class="sess-field">
+      <label>Join Session ID</label>
+      <input type="text" id="join-sess-id" placeholder="e.g. WRAP-2026-001" style="width:170px">
+    </div>
+    <button class="btn btn-outline" style="background:var(--navy2);color:#fff" onclick="joinSession()">→ Join</button>
+    <div class="sess-divider"></div>
+    <span class="sess-status none" id="sess-status-badge">No active session</span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('wrap',this)">📋 WRAP <span class="tab-badge">12P</span></button>
+  <button class="tab-btn" onclick="switchTab('ctpat',this)">🛡 C-TPAT <span class="tab-badge">8S</span></button>
+  <button class="tab-btn" onclick="switchTab('hse',this)">⛑ HSE <span class="tab-badge">3S</span></button>
+  <button class="tab-btn" onclick="switchTab('risk',this)">⚠ Risk <span class="tab-badge">7D</span></button>
+</div>
+
+<!-- ======================================================== -->
+<!-- WRAP TAB -->
+<!-- ======================================================== -->
+<div id="tab-wrap" class="tab-content active">
+<div class="container">
+  <div class="submit-bar">
+    <div class="sbinfo">
+      <strong>WRAP Pre-Audit Self-Assessment</strong> — Jan 2022 Edition<br>
+      <span id="wrap-sess-info" style="color:var(--muted)">Create or join a session to save your answers to Google Sheets.</span>
+    </div>
+    <span id="wrap-status" class="submit-status status-pending">Not Saved</span>
+    <div class="fld"><label>Reviewed By</label><input type="text" id="wrap-reviewer" placeholder="Reviewer name" style="width:150px"></div>
+    <button class="btn btn-gold" onclick="submitSection('WRAP')">💾 Save WRAP Section</button>
+    <button class="btn btn-outline" style="background:var(--navy2);color:#fff" onclick="loadSectionData('WRAP')">📥 Load Saved</button>
+  </div>
+
+  <!-- WRAP Facility Details -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h3>📁 Facility Details & Workforce Information</h3><span class="card-toggle">▼</span>
+    </div>
+    <div class="card-body" style="padding:14px">
+      <div class="notice"><strong>Submit one copy to the monitoring company and one to WRAP.</strong> All fields in bold are required for the audit.</div>
+      <table class="fac-table">
+        <tr><td class="lbl">1. Completion Date of Pre-Audit Self-Assessment</td><td><input type="date" name="w_date" class="q-inp" style="width:180px"></td></tr>
+        <tr><td class="lbl">2. Facility Name (English & local language)</td><td><input type="text" name="w_name" class="q-inp" placeholder="Vantage River Textiles Co., Ltd / "></td></tr>
+        <tr><td class="lbl">3. Facility WRAP ID</td><td><input type="text" name="w_wrapid" class="q-inp" style="width:180px"></td></tr>
+        <tr><td class="lbl">4. Facility Address</td><td><input type="text" name="w_addr" class="q-inp" placeholder="Phum 1, Sangkat 1, Sihanoukville..."></td></tr>
+        <tr><td class="lbl">5. Last Certification Validation Period</td><td><input type="text" name="w_cert" class="q-inp" style="width:220px" placeholder="e.g. Jan 2025 – Jan 2026"></td></tr>
+        <tr><td class="lbl">6a. Year Facility Was Established</td><td><input type="text" name="w_estab" class="q-inp" style="width:100px"></td></tr>
+        <tr><td class="lbl">6b. Number of Years at This Location</td><td><input type="text" name="w_yrs" class="q-inp" style="width:100px"></td></tr>
+        <tr><td class="lbl">7. Full Description of Buildings (# buildings, floors, processes, size, age)</td><td><textarea name="w_bldgs" class="q-txt" rows="3" placeholder="Describe buildings..."></textarea></td></tr>
+        <tr><td class="lbl">8. Sister facilities nearby?</td><td>
+          <div class="chk-grp"><label class="chk-opt"><input type="radio" name="w_q8" value="yes"> Yes</label><label class="chk-opt"><input type="radio" name="w_q8" value="no"> No</label></div>
+          <input type="text" name="w_q8_detail" class="q-inp" style="margin-top:4px" placeholder="If Yes, describe...">
+        </td></tr>
+        <tr><td class="lbl">9. Share building with other facilities/businesses?</td><td>
+          <div class="chk-grp"><label class="chk-opt"><input type="radio" name="w_q9" value="yes"> Yes</label><label class="chk-opt"><input type="radio" name="w_q9" value="no"> No</label></div>
+          <div style="margin-top:4px;font-size:11px;color:var(--muted)">If Yes, joint evacuation drill? <label class="chk-opt"><input type="radio" name="w_q9b" value="yes"> Yes</label> <label class="chk-opt"><input type="radio" name="w_q9b" value="no"> No</label></div>
+        </td></tr>
+        <tr><td class="lbl">10. Share workers or production processes with other facilities?</td><td>
+          <div class="chk-grp"><label class="chk-opt"><input type="radio" name="w_q10" value="yes"> Yes</label><label class="chk-opt"><input type="radio" name="w_q10" value="no"> No</label></div>
+          <input type="text" name="w_q10_d" class="q-inp" style="margin-top:4px" placeholder="If Yes, describe in detail...">
+        </td></tr>
+        <tr><td class="lbl">11. Plans to relocate?</td><td>
+          <div class="chk-grp"><label class="chk-opt"><input type="radio" name="w_q11" value="yes"> Yes</label><label class="chk-opt"><input type="radio" name="w_q11" value="no"> No</label></div>
+          <input type="text" name="w_q11_d" class="q-inp" style="margin-top:4px" placeholder="If Yes, relocation date...">
+        </td></tr>
+        <tr><td class="lbl">12. Registered business name same as above?</td><td>
+          <div class="chk-grp"><label class="chk-opt"><input type="radio" name="w_q12" value="yes"> Yes</label><label class="chk-opt"><input type="radio" name="w_q12" value="no"> No</label></div>
+          <input type="text" name="w_q12_d" class="q-inp" style="margin-top:4px" placeholder="If No, explain & provide registered name...">
+        </td></tr>
+      </table>
+      <div style="margin-top:12px;" class="hdr-grid">
+        <div class="fld"><label>Contact 1 Name & Title</label><input type="text" name="w_c1name" placeholder=""></div>
+        <div class="fld"><label>Contact 1 Email</label><input type="email" name="w_c1email" placeholder=""></div>
+        <div class="fld"><label>Contact 1 Phone</label><input type="tel" name="w_c1tel" placeholder=""></div>
+        <div class="fld"><label>Contact 2 Name & Title</label><input type="text" name="w_c2name" placeholder=""></div>
+        <div class="fld"><label>Contact 2 Email</label><input type="email" name="w_c2email" placeholder=""></div>
+        <div class="fld"><label>Contact 2 Phone</label><input type="tel" name="w_c2tel" placeholder=""></div>
+      </div>
+      <div style="margin-top:12px">
+        <table class="fac-table">
+          <tr><td class="lbl">13a. Business licenses and permits</td><td><textarea name="w_licenses" class="q-txt" rows="2" placeholder="List all applicable licenses..."></textarea></td></tr>
+          <tr><td class="lbl">14. Main products manufactured</td><td><input type="text" name="w_products" class="q-inp" placeholder="e.g. Woven garments, knit apparel"></td></tr>
+          <tr><td class="lbl">15. Production processes</td><td><input type="text" name="w_processes" class="q-inp" placeholder="Cutting, Sewing, Finishing, Packing..."></td></tr>
+          <tr><td class="lbl">16. Production lines & main equipment</td><td><input type="text" name="w_lines" class="q-inp" placeholder="e.g. 12 sewing lines"></td></tr>
+          <tr><td class="lbl">17. Monthly production capacity</td><td><input type="text" name="w_capacity" class="q-inp" style="width:180px" placeholder="e.g. 200,000 pcs/month"></td></tr>
+          <tr><td class="lbl">18. Main buyers & export market</td><td><textarea name="w_buyers" class="q-txt" rows="2" placeholder="Buyer: %, export market..."></textarea></td></tr>
+          <tr><td class="lbl">19. Social/environmental/CTPAT audits past 6 months</td><td><textarea name="w_audits" class="q-txt" rows="2" placeholder="Audit type, date, result..."></textarea></td></tr>
+          <tr><td class="lbl">20. Employee Turnover Rate</td><td><input type="text" name="w_turnover" class="q-inp" style="width:120px" placeholder="e.g. 5%"></td></tr>
+          <tr><td class="lbl">Total Workers | Management (M/F) | Direct (M/F)</td>
+            <td><div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" name="w_total" class="q-inp" style="width:80px" placeholder="Total">
+              <input type="text" name="w_mgmt" class="q-inp" style="width:120px" placeholder="Mgmt M/F">
+              <input type="text" name="w_direct" class="q-inp" style="width:120px" placeholder="Direct M/F">
+            </div></td></tr>
+          <tr><td class="lbl">Young workers (15–18) | Migrant workers | Agency workers</td>
+            <td><div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" name="w_young" class="q-inp" style="width:100px" placeholder="Young M/F">
+              <input type="text" name="w_migrant" class="q-inp" style="width:110px" placeholder="Migrant M/F">
+              <input type="text" name="w_agency" class="q-inp" style="width:110px" placeholder="Agency M/F">
+            </div></td></tr>
+          <tr><td class="lbl">Workdays | Rest days | Shifts | Peak season</td>
+            <td><div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" name="w_workdays" class="q-inp" style="width:100px" placeholder="Mon-Sat">
+              <input type="text" name="w_restdays" class="q-inp" style="width:80px" placeholder="Sunday">
+              <input type="text" name="w_shifts" class="q-inp" style="width:130px" placeholder="7:30am–5:30pm">
+              <input type="text" name="w_peak" class="q-inp" style="width:100px" placeholder="Oct–Dec">
+            </div></td></tr>
+          <tr><td class="lbl">Minimum wage compliance</td><td>
+            <div class="chk-grp">
+              <label class="chk-opt"><input type="radio" name="w_wage" value="below"> Below Minimum</label>
+              <label class="chk-opt"><input type="radio" name="w_wage" value="at"> At Minimum</label>
+              <label class="chk-opt"><input type="radio" name="w_wage" value="above"> Above Minimum</label>
+            </div>
+          </td></tr>
+          <tr><td class="lbl">Worker representation</td><td><textarea name="w_union" class="q-txt" rows="2" placeholder="e.g. Union, Workers' Committee..."></textarea></td></tr>
+          <tr><td class="lbl">Workers unrest/strike past 12 months</td><td><textarea name="w_strike" class="q-txt" rows="2" placeholder="If none, state None..."></textarea></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ZERO TOLERANCE -->
+  <div class="zt-box">
+    <h4>⛔ WRAP Zero Tolerance Policy</h4>
+    <p style="font-size:12px;margin-bottom:8px">Facilities found in violation will be <strong>AUTOMATICALLY DECERTIFIED and PERMANENTLY BANNED</strong>:</p>
+    <ul><li>Deliberate and ongoing human rights violations (child labor, forced labor, inhumane treatment)</li>
+    <li>Bribing or threatening auditors</li><li>False representation of certificates, reports, or production processes</li></ul>
+    <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="fld"><label>Completed By</label><input type="text" name="w_zt_name" placeholder="Full name..."></div>
+      <div class="fld"><label>Title</label><input type="text" name="w_zt_title" placeholder="Job title..."></div>
+      <div class="fld"><label>Date</label><input type="date" name="w_zt_date"></div>
+    </div>
+  </div>
+
+  <!-- WRITTEN POLICY TABLE -->
+  <div class="card">
+    <div class="card-header" onclick="toggleCard(this)">
+      <h3>📝 Written Policy & Responsible Person — All 12 Principles</h3><span class="card-toggle">▼</span>
+    </div>
+    <div class="card-body"><table class="pol-tbl" id="policy-tbl">
+      <thead><tr><th style="width:40px">P#</th><th>WRAP Principle</th><th style="width:130px">Written Policy?</th><th>Responsible Person & Title</th></tr></thead>
+      <tbody id="policy-tbody"></tbody>
+    </table></div>
+  </div>
+
+  <!-- WRAP PRINCIPLES -->
+  <div id="wrap-principles"></div>
+
+  <!-- WRAP SIG -->
+  <div class="sig-sec">
+    <h3>Certification & Signatures</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:10px">I certify that all information provided is accurate and complete to the best of my knowledge.</p>
+    <div class="sig-grid">
+      <div class="sig-blk"><label>Completed By</label><input type="text" name="w_sig_by" placeholder="Print name"><div class="sig-line">Signature</div></div>
+      <div class="sig-blk"><label>Date</label><input type="date" name="w_sig_date"></div>
+      <div class="sig-blk"><label>Reviewed By</label><input type="text" name="w_rev_by" placeholder="Print name"><div class="sig-line">Signature</div></div>
+      <div class="sig-blk"><label>Review Date</label><input type="date" name="w_rev_date"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================================================== -->
+<!-- CTPAT TAB -->
+<!-- ======================================================== -->
+<div id="tab-ctpat" class="tab-content">
+<div class="container">
+  <div class="submit-bar">
+    <div class="sbinfo"><strong>C-TPAT Self-Assessment</strong> — Customs-Trade Partnership Against Terrorism<br>
+    <span id="ctpat-sess-info" style="color:var(--muted)">Create or join a session to save.</span></div>
+    <span id="ctpat-status" class="submit-status status-pending">Not Saved</span>
+    <div class="fld"><label>Reviewed By</label><input type="text" id="ctpat-reviewer" placeholder="Reviewer name" style="width:140px"></div>
+    <button class="btn btn-gold" onclick="submitSection('CTPAT')">💾 Save C-TPAT</button>
+    <button class="btn btn-outline" style="background:var(--navy2);color:#fff" onclick="loadSectionData('CTPAT')">📥 Load Saved</button>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-header"><h3>Factory Information</h3></div>
+    <div class="card-body" style="padding:12px">
+      <div class="hdr-grid">
+        <div class="fld"><label>Factory Name</label><input type="text" name="ct_fname" placeholder="Vantage River Textiles Co., Ltd"></div>
+        <div class="fld"><label>Address</label><input type="text" name="ct_addr" placeholder=""></div>
+        <div class="fld"><label>Assessment Date</label><input type="date" name="ct_date"></div>
+        <div class="fld"><label>Completed By</label><input type="text" name="ct_by" placeholder="Name..."></div>
+        <div class="fld"><label>Title / Department</label><input type="text" name="ct_title" placeholder=""></div>
+        <div class="fld"><label>Reviewed By</label><input type="text" name="ct_rev" placeholder=""></div>
+      </div>
+    </div>
+  </div>
+  <div id="ctpat-sections"></div>
+  <div class="sig-sec"><h3>Signatures</h3><div class="sig-grid">
+    <div class="sig-blk"><label>Completed By</label><input type="text" name="ct_sig_by"><div class="sig-line">Signature</div></div>
+    <div class="sig-blk"><label>Date</label><input type="date" name="ct_sig_date"></div>
+    <div class="sig-blk"><label>Reviewed By</label><input type="text" name="ct_sig_rev"><div class="sig-line">Signature</div></div>
+    <div class="sig-blk"><label>Review Date</label><input type="date" name="ct_rev_date"></div>
+  </div></div>
+</div>
+</div>
+
+<!-- ======================================================== -->
+<!-- HSE TAB -->
+<!-- ======================================================== -->
+<div id="tab-hse" class="tab-content">
+<div class="container">
+  <div class="submit-bar">
+    <div class="sbinfo"><strong>HSE Audit Checklist</strong> — Health, Safety & Environmental<br>
+    <span id="hse-sess-info" style="color:var(--muted)">Create or join a session to save.</span></div>
+    <span id="hse-status" class="submit-status status-pending">Not Saved</span>
+    <div class="fld"><label>Reviewed By</label><input type="text" id="hse-reviewer" placeholder="Reviewer name" style="width:140px"></div>
+    <button class="btn btn-gold" onclick="submitSection('HSE')">💾 Save HSE</button>
+    <button class="btn btn-outline" style="background:var(--navy2);color:#fff" onclick="loadSectionData('HSE')">📥 Load Saved</button>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-header"><h3>Audit Header</h3></div>
+    <div class="card-body" style="padding:12px"><div class="hdr-grid-4">
+      <div class="fld"><label>Report No.</label><input type="text" name="hse_rptno" placeholder="VRT-20XX-XX"></div>
+      <div class="fld"><label>Factory</label><input type="text" name="hse_factory" value="Vantage River Textiles Co., Ltd"></div>
+      <div class="fld"><label>Audit Date</label><input type="date" name="hse_date"></div>
+      <div class="fld"><label>Auditor</label><input type="text" name="hse_auditor" placeholder="Name..."></div>
+      <div class="fld"><label>Location</label><input type="text" name="hse_loc" placeholder="Sihanoukville, Cambodia"></div>
+      <div class="fld"><label>Country</label><input type="text" name="hse_country" value="Cambodia"></div>
+      <div class="fld"><label>Reviewed By</label><input type="text" name="hse_rev"></div>
+      <div class="fld"><label>Review Date</label><input type="date" name="hse_revdate"></div>
+    </div></div>
+  </div>
+  <div class="score-bar">
+    <div class="score-item"><div class="score-num" id="hse-total">0</div><div class="score-lbl">Questions</div></div>
+    <div class="score-item"><div class="score-num" id="hse-yes" style="color:var(--green)">0</div><div class="score-lbl">Yes</div></div>
+    <div class="score-item"><div class="score-num" id="hse-no" style="color:var(--red)">0</div><div class="score-lbl">No</div></div>
+    <div class="score-item"><div class="score-num" id="hse-na" style="color:var(--muted)">0</div><div class="score-lbl">N/A</div></div>
+    <div style="flex:1;border-left:1px solid var(--border);margin-left:8px;padding-left:12px">
+      <div class="score-pct" id="hse-pct">—</div><div class="score-lbl">Compliance Rate</div>
+    </div>
+  </div>
+  <div id="hse-sections"></div>
+  <div class="sig-sec"><h3>Signatures</h3><div class="sig-grid">
+    <div class="sig-blk"><label>Auditor</label><input type="text" name="hse_sig_aud"><div class="sig-line">Signature</div></div>
+    <div class="sig-blk"><label>Date</label><input type="date" name="hse_sig_date"></div>
+    <div class="sig-blk"><label>Reviewed By</label><input type="text" name="hse_sig_rev"><div class="sig-line">Signature</div></div>
+    <div class="sig-blk"><label>Review Date</label><input type="date" name="hse_sig_revdate"></div>
+  </div></div>
+</div>
+</div>
+
+<!-- ======================================================== -->
+<!-- RISK TAB -->
+<!-- ======================================================== -->
+<div id="tab-risk" class="tab-content">
+<div class="container">
+  <div class="submit-bar">
+    <div class="sbinfo"><strong>Process Risk Assessment</strong> — Risk Rating = Likelihood × Consequence<br>
+    <span id="risk-sess-info" style="color:var(--muted)">Create or join a session to save.</span></div>
+    <span id="risk-status" class="submit-status status-pending">Not Saved</span>
+    <div class="fld"><label>Reviewed By</label><input type="text" id="risk-reviewer" placeholder="Reviewer name" style="width:140px"></div>
+    <button class="btn btn-gold" onclick="submitSection('RISK')">💾 Save Risk Assessment</button>
+    <button class="btn btn-outline" style="background:var(--navy2);color:#fff" onclick="loadSectionData('RISK')">📥 Load Saved</button>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-header"><h3>Risk Matrix Legend</h3></div>
+    <div class="card-body" style="padding:12px;display:flex;gap:14px;flex-wrap:wrap">
+      <div><strong style="font-size:11px">LIKELIHOOD</strong><br><span style="font-size:11px;color:var(--muted)">1=Rare &nbsp; 2=Unlikely &nbsp; 3=Likely &nbsp; 4=Almost Certain</span></div>
+      <div><strong style="font-size:11px">CONSEQUENCE</strong><br><span style="font-size:11px;color:var(--muted)">1=Minor &nbsp; 2=Moderate &nbsp; 3=Major &nbsp; 4=Critical</span></div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="risk-badge rb-t">Trivial 1–3</span>
+        <span class="risk-badge rb-m">Moderate 4–6</span>
+        <span class="risk-badge rb-M">Major 7–9</span>
+        <span class="risk-badge rb-i">Intolerable ≥10</span>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>Risk Assessment Table</h3>
+      <button class="btn btn-gold btn-sm" onclick="addDeptSection()" style="margin-left:8px">+ Add Department</button>
+    </div>
+    <div style="overflow-x:auto"><table class="risk-tbl" id="risk-tbl">
+      <thead><tr>
+        <th style="width:36px">No.</th><th>Dept</th><th>Activity</th><th>Item at Risk</th>
+        <th>Hazard / Risk</th><th>Control Measures</th>
+        <th style="width:56px">Like<br>(1-4)</th><th style="width:56px">Con<br>(1-4)</th>
+        <th style="width:52px">Score</th><th style="width:90px">Level</th>
+        <th>Action</th><th>Responsible</th><th>Comment</th><th style="width:30px"></th>
+      </tr></thead>
+      <tbody id="risk-tbody"></tbody>
+    </table></div>
+    <div style="padding:10px 14px;display:flex;gap:8px">
+      <button class="btn-add-row" style="width:auto;padding:5px 14px" onclick="addRiskRow()">+ Add Risk Row</button>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <div class="card-header"><h3>Assessment Information</h3></div>
+    <div class="card-body" style="padding:12px"><div class="hdr-grid">
+      <div class="fld"><label>Factory / Department</label><input type="text" name="risk_factory" value="Vantage River Textiles Co., Ltd"></div>
+      <div class="fld"><label>Assessment Date</label><input type="date" name="risk_date"></div>
+      <div class="fld"><label>Prepared By</label><input type="text" name="risk_by" placeholder="Name..."></div>
+      <div class="fld"><label>Approved By</label><input type="text" name="risk_approver" placeholder="Name..."></div>
+      <div class="fld"><label>Reviewed By</label><input type="text" name="risk_rev" placeholder=""></div>
+      <div class="fld"><label>Review Date</label><input type="date" name="risk_revdate"></div>
+    </div></div>
+  </div>
+  <div class="sig-sec"><h3>Signatures</h3><div class="sig-grid">
+    <div class="sig-blk"><label>Prepared By</label><input type="text" name="risk_sig_by"><div class="sig-line">Signature</div></div>
+    <div class="sig-blk"><label>Date</label><input type="date" name="risk_sig_date"></div>
+    <div class="sig-blk"><label>Reviewed & Approved By</label><input type="text" name="risk_sig_rev"><div class="sig-line">Signature</div></div>
+    <div class="sig-blk"><label>Review Date</label><input type="date" name="risk_sig_revdate"></div>
+  </div></div>
+</div>
+</div>
+
+<!-- ======================================================== -->
+<!-- HISTORY / COMPARE MODAL -->
+<!-- ======================================================== -->
+<div class="modal-overlay" id="history-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3 id="modal-title">📂 Assessment History</h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">✕ Close</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <div style="text-align:center;padding:30px;color:var(--muted)">Loading...</div>
+    </div>
+    <div class="modal-foot" id="modal-foot"></div>
+  </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ======================================================== -->
+<script>
+
+// ============================================================
+// CONFIG — FILL IN YOUR GAS URL AFTER DEPLOYMENT
+// ============================================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxN61TQr2S_tKxSgGKJe_yjNVpPAdu_YRw-8pByWiHDCWdJpcGNCk2c2Li1yGQdkRcB_Q/exec';
+let LANG = 'en';
+// e.g. 'https://script.google.com/macros/s/AKfycb.../exec'
+
+// ============================================================
+// STATE
+// ============================================================
+let SESSION = null;   // { sessionId, reference, type, ... }
+let HISTORY = [];     // all sessions from GAS
+
+// ============================================================
+// DATA DEFINITIONS
+// ============================================================
+const WRAP_PRINCIPLES = [
+  { num:1,
+    title_en:'Compliance with Laws and Workplace Regulations',
+    title_km:'ការអនុលោមតាមច្បាប់ និងបទប្បញ្ញត្តិការងារ',
+    desc_en:'Facilities will comply with all labor, employment, ethics, anti-corruption, and environmental laws.',
+    desc_km:'ទីតាំងត្រូវអនុលោមតាមច្បាប់ការងារ ការជ្រើសរើស윤理 ប្រឆាំងអំពើពុករលួយ និងបរិស្ថាន។',
+    qs:[
+      {id:'1.1a',en:'Does your facility obtain current information on all relevant laws and regulations concerning each of the 12 Principles?',km:'តើទីតាំងរបស់អ្នកទទួលបានព័ត៌មានថ្មីៗអំពីច្បាប់ និងបទប្បញ្ញត្តិទាំងអស់ពាក់ព័ន្ធនឹងគោលការណ៍ WRAP ១២ ចំណុចទេ?'},
+      {id:'1.1b',en:"Labor and employment laws — is your facility's hiring process in accordance with the law?",km:'ច្បាប់ការងារ — តើដំណើរការជ្រើសរើសបុគ្គលិករបស់ទីតាំងស្របតាមច្បាប់ទេ?'},
+      {id:'1.1c',en:'Ethics, anti-bribery, and anti-corruption laws',km:'ច្បាប់윤理 ការប្រឆាំងការប្រថាប់ប្រាក់ និងការប្រឆាំងអំពើពុករលួយ'},
+      {id:'1.1d',en:'Environmental laws',km:'ច្បាប់បរិស្ថាន'},
+      {id:'1.2a',en:'Does the facility incorporate current information on all relevant laws in its business practices in a timely manner?',km:'តើទីតាំងបញ្ចូលព័ត៌មានច្បាប់ថ្មីៗទៅក្នុងការអនុវត្តអាជីវកម្មទាន់ពេលវេលាទេ?'},
+      {id:'1.2b',en:'Do you have written procedures for current information on all relevant laws on each of the ALL 12 WRAP Principles?',km:'តើអ្នកមាននីតិវិធីជាលាយលក្ខណ៍អក្សរសម្រាប់ព័ត៌មានច្បាប់ទាក់ទងនឹងគោលការណ៍ WRAP ទាំង ១២ ទេ?'},
+      {id:'1.2c',en:'Does your facility have a qualified person responsible for informing the facility and workforce of changes to laws and regulations?',km:'តើទីតាំងមានបុគ្គលដែលមានលក្ខណៈសម្បត្តិទទួលខុសត្រូវជូនដំណឹងអំពីការផ្លាស់ប្តូរច្បាប់ ទេ?'},
+      {id:'1.2d',en:'Please state the last major update your facility conducted concerning laws and regulations.',km:'សូមរៀបរាប់អំពីការធ្វើបច្ចប្បន្នភាពច្បាប់ចុងក្រោយសំខាន់ៗរបស់ទីតាំង។',type:'text'},
+      {id:'1.3a',en:'Does your facility have a policy ensuring that a worker can raise workplace concerns without fear of retaliation?',km:'តើទីតាំងមានគោលនយោបាយដែលធានាថាកម្មករអាចលើកឡើងពីបញ្ហាការងារដោយគ្មានការខ្លាចការជំទាស់ទេ?'},
+      {id:'1.3b',en:'How is the policy implemented?',km:'តើគោលនយោបាយត្រូវបានអនុវត្តយ៉ាងដូចម្តេច?',type:'text'},
+      {id:'1.4a',en:'Does your facility undertake at least twice (02) a year internal monitoring of its management system?',km:'តើទីតាំងធ្វើការត្រួតពិនិត្យខាងក្នុងលើប្រព័ន្ធគ្រប់គ្រងយ៉ាងហោចណាស់ ២ ដងក្នុងមួយឆ្នាំទេ?'},
+      {id:'1.4b',en:'Does the scope of internal monitoring cover whether written procedures are meeting local/national law and WRAP 12 Principles?',km:'តើវិសាលភាពនៃការត្រួតពិនិត្យខាងក្នុងគ្របដណ្តប់លើការអនុលោមនឹងច្បាប់ជាតិ និងគោលការណ៍ WRAP ១២ ទេ?'},
+      {id:'1.4c',en:'Were findings communicated with top management?',km:'តើលទ្ធផលត្រូវបានជម្រាបជូនថ្នាក់ដឹកនាំទេ?'},
+      {id:'1.4d',en:'What were the findings from the last internal monitoring?',km:'តើការរកឃើញពីការត្រួតពិនិត្យខាងក្នុងចុងក្រោយមានអ្វីខ្លះ?',type:'text'},
+      {id:'1.5',en:'During the previous two years has your facility had any notices of noncompliance or legal proceedings?',km:'ក្នុងរយៈពេល ២ ឆ្នាំចុងក្រោយ តើទីតាំងទទួលបានការជូនដំណឹងអំពីការមិនអនុលោម ឬការបន្តបណ្ដឹងផ្លូវច្បាប់ទេ?'},
+      {id:'1.6',en:'Does your facility subcontract any production operations?',km:'តើទីតាំងចាត់ចែងការងារផលិតកម្មមួយផ្នែកទៅឱ្យអ្នកម៉ៅការរងទេ?'},
+      {id:'1.7',en:'Does your facility subcontract any other operations (canteen, security, shipping, cleaning, labor suppliers, etc.)?',km:'តើទីតាំងចាត់ចែងប្រតិបត្តិការផ្សេងទៀត (ភោជនីយដ្ឋាន សន្តិសុខ ដឹកជញ្ជូន ការសម្អាត អ្នកផ្គត់ផ្គង់ការងារ) ទៅម៉ៅការរងទេ?'},
+      {id:'1.8',en:'Has your facility informed subcontractors in writing of their obligations under local labor law and WRAP 12 Principles?',km:'តើទីតាំងបានជូនដំណឹងជាលាយលក្ខណ៍អក្សរដល់អ្នកម៉ៅការរងអំពីកាតព្វកិច្ចរបស់ពួកគេតាមច្បាប់ការងារ និងគោលការណ៍ WRAP ១២ ទេ?'},
+      {id:'1.11',en:'Has your facility informed its top 3 raw materials suppliers in writing of the expectation to run operations in accordance with WRAP Principles?',km:'តើទីតាំងបានជូនដំណឹងជាលាយលក្ខណ៍អក្សរដល់អ្នកផ្គត់ផ្គង់វត្ថុធាតុដើម ៣ ធំបំផុតអំពីការរំពឹងទុកក្នុងការប្រតិបត្តិស្របតាមគោលការណ៍ WRAP ទេ?'},
+    ]},
+  { num:2,
+    title_en:'Prohibition of Forced Labor',
+    title_km:'ការហាមឃាត់ការងារបង្ខំ',
+    desc_en:'Facilities will not use involuntary, forced, trafficked, bonded, or prison labor.',
+    desc_km:'ទីតាំងមិនត្រូវប្រើការងារដោយបង្ខំ ជួញដូរ ឬការងារគុក។',
+    qs:[
+      {id:'2.1a',en:'Does your facility have a written policy prohibiting forced/bonded/trafficked labor?',km:'តើទីតាំងមានគោលនយោបាយជាលាយលក្ខណ៍អក្សរហាមឃាត់ការងារបង្ខំ/ជួញដូរ/ចងទេ?'},
+      {id:'2.1b',en:'Is this policy communicated to all workers in their language?',km:'តើគោលនយោបាយនេះត្រូវបានជម្រាបជូនកម្មករទាំងអស់ជាភាសារបស់ពួកគេទេ?'},
+      {id:'2.2',en:'Does the facility retain any original identity documents (passports, IDs) of workers?',km:'តើទីតាំងរក្សាទុកឯកសារអត្តសញ្ញាណដើម (លិខិតឆ្លងដែន អត្តសញ្ញាណប័ណ្ណ) របស់កម្មករទេ?'},
+      {id:'2.3',en:'Are workers free to terminate employment with reasonable notice per local law?',km:'តើកម្មករអាចបញ្ចប់ការងារបានដោយសេរីដោយជូនដំណឹងតាមសមហេតុផលទៅតាមច្បាប់មូលដ្ឋានទេ?'},
+      {id:'2.4',en:'Are workers free to leave the facility premises at the end of their shift?',km:'តើកម្មករអាចចេញពីបរិវេណទីតាំងដោយសេរីពេលអស់វេនការងារទេ?'},
+      {id:'2.5a',en:'Did workers pay any recruitment fees to get the job?',km:'តើកម្មករបានបង់ប្រាក់ថ្លៃជ្រើសរើសណាមួយដើម្បីទទួលបានការងារទេ?'},
+      {id:'2.6',en:'Are all workers free from any form of debt bondage or financial penalty preventing them from leaving?',km:'តើកម្មករទាំងអស់គ្មានទម្រង់ណាមួយនៃការចងបំណុល ឬការផាកពិន័យហិរញ្ញវត្ថុដែលរារាំងពួកគេពីការចាកចេញទេ?'},
+      {id:'2.8a',en:'Does the facility use labor brokers/agencies to source workers?',km:'តើទីតាំងប្រើប្រាស់ភ្នាក់ងារ/ក្រុមហ៊ុនជ្រើសរើសកម្មករទេ?'},
+      {id:'2.8b',en:'If Yes: Has the facility conducted due diligence on labor brokers to ensure they comply with WRAP Principles?',km:'បើបាទ/ចាស: តើទីតាំងបានធ្វើការពិនិត្យជាបណ្តំដើម្បីធានាថាភ្នាក់ងារអនុលោមតាមគោលការណ៍ WRAP ទេ?'},
+      {id:'2.9',en:'Are workers required to work overtime against their will?',km:'តើកម្មករត្រូវបានបង្ខំឱ្យធ្វើការបន្ថែមពេលដោយប្រឆាំងនឹងឆន្ទៈរបស់ពួកគេទេ?'},
+      {id:'2.10',en:'Does the facility have a grievance mechanism for workers to report forced labor concerns?',km:'តើទីតាំងមានយន្តការតវ៉ាសម្រាប់កម្មករដើម្បីរាយការណ៍ពីការព្រួយបារម្ភអំពីការងារបង្ខំទេ?'},
+    ]},
+  { num:3,
+    title_en:'Prohibition of Child Labor',
+    title_km:'ការហាមឃាត់ការងារកុមារ',
+    desc_en:'Facilities will not use child labor. Minimum working age shall be 15.',
+    desc_km:'ទីតាំងមិនត្រូវប្រើការងារកុមារ។ អាយុការងារអប្បបរមា ១៥ ឆ្នាំ។',
+    qs:[
+      {id:'3.1',en:'Does your facility have a written policy prohibiting child labor?',km:'តើទីតាំងមានគោលនយោបាយជាលាយលក្ខណ៍អក្សរហាមឃាត់ការងារកុមារទេ?'},
+      {id:'3.2',en:'What is the minimum working age at your facility?',km:'តើអាយុការងារអប្បបរមានៅទីតាំងរបស់អ្នកមានប៉ុន្មានឆ្នាំ?',type:'text'},
+      {id:'3.3a',en:'Does the facility verify the age of all new employees through official documents?',km:'តើទីតាំងផ្ទៀងផ្ទាត់អាយុបុគ្គលិកថ្មីទាំងអស់តាមរយៈឯកសារផ្លូវការទេ?'},
+      {id:'3.3b',en:'Are copies of age verification documents kept on file?',km:'តើច្បាប់ចម្លងឯកសារផ្ទៀងផ្ទាត់អាយុត្រូវបានរក្សាទុកទេ?'},
+      {id:'3.4',en:'Are young workers (15–18) prohibited from overtime or night shifts?',km:'តើកម្មករជំទង់ (អាយុ ១៥-១៨ ឆ្នាំ) ត្រូវបានហាមឃាត់ពីការបន្ថែមពេលការងារ ឬការងារពេលយប់ទេ?'},
+      {id:'3.5',en:'Are young workers prohibited from hazardous work (heavy machinery, chemicals, lifting)?',km:'តើកម្មករជំទង់ត្រូវបានហាមឃាត់ពីការងារប្រថុយប្រថាន (ម៉ាស៊ីនធ្ងន់ គីមី លើករបស់ធ្ងន់) ទេ?'},
+      {id:'3.7',en:'Does the facility have a remediation plan if a child worker is discovered?',km:'តើទីតាំងមានផែនការដោះស្រាយក្នុងករណីរកឃើញកម្មករកុមារទេ?'},
+    ]},
+  { num:4,
+    title_en:'Prohibition of Harassment or Abuse',
+    title_km:'ការហាមឃាត់ការបៀតបៀន ឬការរំលោភ',
+    desc_en:'Facilities will provide a workplace free of harassment, abuse, or corporal punishment.',
+    desc_km:'ទីតាំងត្រូវផ្តល់បរិយាកាសការងារដែលគ្មានការបៀតបៀន ការរំលោភ ឬការផាកពិន័យរាងកាយ។',
+    qs:[
+      {id:'4.1a',en:'Does your facility have a written policy prohibiting harassment, abuse, or corporal punishment?',km:'តើទីតាំងមានគោលនយោបាយជាលាយលក្ខណ៍អក្សរហាមឃាត់ការបៀតបៀន ការរំលោភ ឬការផាកពិន័យរាងកាយទេ?'},
+      {id:'4.1b',en:'Is this policy communicated to all employees in their language?',km:'តើគោលនយោបាយនេះត្រូវបានជម្រាបជូនបុគ្គលិកទាំងអស់ជាភាសារបស់ពួកគេទេ?'},
+      {id:'4.2a',en:'Does your facility have documented disciplinary procedures?',km:'តើទីតាំងមាននីតិវិធីវិន័យដែលបានចងក្រងជាឯកសារទេ?'},
+      {id:'4.3',en:'Does the facility have a confidential grievance mechanism for workers to report harassment?',km:'តើទីតាំងមានយន្តការតវ៉ាសម្ងាត់សម្រាប់កម្មករដើម្បីរាយការណ៍ពីការបៀតបៀនទេ?'},
+      {id:'4.4',en:'Are there records of investigations and outcomes for harassment/abuse complaints?',km:'តើមានកំណត់ត្រានៃការស៊ើបអង្កេត និងលទ្ធផលសម្រាប់ពាក្យបណ្តឹងការបៀតបៀន/រំលោភទេ?'},
+      {id:'4.5',en:'Are supervisors/managers trained on anti-harassment policies?',km:'តើអ្នកត្រួតពិនិត្យ/អ្នកគ្រប់គ្រងទទួលការបណ្តុះបណ្តាលស្តីពីគោលនយោបាយប្រឆាំងការបៀតបៀនទេ?'},
+      {id:'4.7',en:'Does the facility have procedures to protect complainants from retaliation?',km:'តើទីតាំងមាននីតិវិធីការពារអ្នកប្តឹងពីការសងសឹកទេ?'},
+      {id:'4.8',en:'[NEW] Does the facility have a written sexual harassment prevention policy?',km:'[ថ្មី] តើទីតាំងមានគោលនយោបាយជាលាយលក្ខណ៍អក្សរស្តីពីការទប់ស្កាត់ការបៀតបៀនផ្លូវភេទទេ?'},
+    ]},
+  { num:5,
+    title_en:'Compensation and Benefits',
+    title_km:'ប្រាក់បំណាច់ និងអត្ថប្រយោជន៍',
+    desc_en:'Facilities will pay at least the legally required minimum wage and provide all legally mandated benefits.',
+    desc_km:'ទីតាំងត្រូវបង់ប្រាក់ខែអប្បបរមាតាមច្បាប់ និងផ្តល់អត្ថប្រយោជន៍ទាំងអស់ដែលច្បាប់តម្រូវ។',
+    qs:[
+      {id:'5.1a',en:'Does your facility pay at least the legally mandated minimum wage to all workers?',km:'តើទីតាំងបង់ប្រាក់ខែអប្បបរមាតាមច្បាប់ដល់កម្មករទាំងអស់ទេ?'},
+      {id:'5.1b',en:'Current national/regional minimum wage — does your facility pay at or above this?',km:'ប្រាក់ខែអប្បបរមាជាតិ/តំបន់បច្ចុប្បន្ន — តើទីតាំងបង់ប្រាក់ស្មើ ឬលើសកម្រិតនេះទេ?',type:'text'},
+      {id:'5.2a',en:'Is overtime compensated at the legally required premium rate?',km:'តើការបន្ថែមម៉ោងត្រូវបានបង់ប្រាក់ក្នុងអត្រាបន្ថែមតាមច្បាប់ទេ?'},
+      {id:'5.2b',en:'Are there records showing overtime hours and overtime pay?',km:'តើមានកំណត់ត្រាបង្ហាញម៉ោងបន្ថែម និងប្រាក់ខែបន្ថែមទេ?'},
+      {id:'5.3',en:'Are all legally mandated benefits provided (annual leave, sick leave, maternity leave, health insurance, etc.)?',km:'តើអត្ថប្រយោជន៍ទាំងអស់ដែលច្បាប់តម្រូវត្រូវបានផ្តល់ (휴가ប្រចាំឆ្នាំ ជំងឺ មាតុភាព ធានារ៉ាប់រងសុខភាព) ទេ?'},
+      {id:'5.4',en:'Are wage deductions lawful and clearly documented and explained to workers?',km:'តើការកាត់ប្រាក់ខែស្របច្បាប់ ត្រូវបានចងក្រងជាឯកសារ និងពន្យល់ដល់កម្មករទេ?'},
+      {id:'5.5',en:'Are wages paid on time and on a regular schedule?',km:'តើប្រាក់ខែត្រូវបានបង់ទាន់ពេលវេលា និងតាមកំណត់ពេលទៀងទាត់ទេ?'},
+      {id:'5.6',en:'Are wage slips/payroll records provided to workers?',km:'តើប្រាក់ខែ/កំណត់ត្រាប្រាក់ខែត្រូវបានផ្តល់ដល់កម្មករទេ?'},
+      {id:'5.8',en:'Are workers aware of their compensation package and how wages are calculated?',km:'តើកម្មករដឹងពីកញ្ចប់ប្រាក់ខែ និងវិធីគណនាប្រាក់ខែរបស់ពួកគេទេ?'},
+    ]},
+  { num:6,
+    title_en:'Hours of Work',
+    title_km:'ម៉ោងធ្វើការ',
+    desc_en:'Facilities will maintain legal working hours. Overtime must be voluntary and compensated.',
+    desc_km:'ទីតាំងត្រូវរក្សាម៉ោងធ្វើការតាមច្បាប់។ ម៉ោងបន្ថែមត្រូវជាស្ម័គ្រចិត្ត និងត្រូវបានបង់ប្រាក់។',
+    qs:[
+      {id:'6.1a',en:'Does your facility comply with the legally mandated maximum working hours per day and per week?',km:'តើទីតាំងអនុលោមតាមម៉ោងធ្វើការអតិបរមាតាមច្បាប់ក្នុងមួយថ្ងៃ និងក្នុងមួយសប្តាហ៍ទេ?'},
+      {id:'6.1b',en:'Maximum regular hours per week at your facility? What is the legal limit?',km:'ម៉ោងធ្វើការធម្មតាអតិបរមាក្នុងមួយសប្តាហ៍នៅទីតាំង? តម្រូវការច្បាប់ប៉ុន្មាន?',type:'text'},
+      {id:'6.2a',en:'Is overtime voluntary (workers can refuse overtime without penalty)?',km:'តើម៉ោងបន្ថែមជាស្ម័គ្រចិត្ត (កម្មករអាចបដិសេធដោយគ្មានការផាកពិន័យ) ទេ?'},
+      {id:'6.2b',en:'Are there written procedures for requesting and documenting voluntary overtime?',km:'តើមាននីតិវិធីជាលាយលក្ខណ៍អក្សរសម្រាប់ស្នើ និងចងក្រងម៉ោងបន្ថែមស្ម័គ្រចិត្តទេ?'},
+      {id:'6.3',en:'Do workers receive at least one rest day in every seven days?',km:'តើកម្មករទទួលបានថ្ងៃសម្រាកយ៉ាងហោចណាស់ ១ ថ្ងៃក្នុងរៀងរាល់ ៧ ថ្ងៃទេ?'},
+      {id:'6.4',en:'Are legally required rest breaks (meal breaks) provided?',km:'តើការសម្រាកដែលច្បាប់តម្រូវ (ការសម្រាកទទួលទានអាហារ) ត្រូវបានផ្តល់ទេ?'},
+      {id:'6.5',en:'Are accurate time records (attendance) maintained for all workers?',km:'តើកំណត់ត្រាម៉ោង (ការចូលរួម) ត្រឹមត្រូវត្រូវបានរក្សាទុកសម្រាប់កម្មករទាំងអស់ទេ?'},
+    ]},
+  { num:7,
+    title_en:'Prohibition of Discrimination',
+    title_km:'ការហាមឃាត់ការរើសអើង',
+    desc_en:'Facilities will not discriminate in hiring, salary, benefits, training, advancement, discipline, or termination.',
+    desc_km:'ទីតាំងមិនត្រូវរើសអើងក្នុងការជ្រើសរើស ប្រាក់ខែ អត្ថប្រយោជន៍ ការបណ្តុះបណ្តាល ឬការបញ្ចប់ការងារ។',
+    qs:[
+      {id:'7.1a',en:'Does your facility have a written anti-discrimination policy?',km:'តើទីតាំងមានគោលនយោបាយប្រឆាំងការរើសអើងជាលាយលក្ខណ៍អក្សរទេ?'},
+      {id:'7.1b',en:'Is the policy communicated to all employees?',km:'តើគោលនយោបាយនេះត្រូវបានជម្រាបជូនបុគ្គលិកទាំងអស់ទេ?'},
+      {id:'7.2',en:'Are hiring, promotions, and training based on skill and merit rather than discriminatory factors?',km:'តើការជ្រើសរើស ការដំឡើងឋានៈ និងការបណ្តុះបណ្តាលផ្អែកលើជំនាញ និងសមត្ថភាព មិនមែនលើកត្តារើសអើងទេ?'},
+      {id:'7.3',en:'Are all workers paid equally for equal work regardless of gender, race, or nationality?',km:'តើកម្មករទាំងអស់ត្រូវបានបង់ប្រាក់ស្មើៗគ្នាសម្រាប់ការងារស្មើៗ ដោយមិនគិតពីភេទ ពូជសាសន៍ ឬជាតិសាសន៍ទេ?'},
+      {id:'7.4',en:'Is there a documented process for workers to file discrimination complaints?',km:'តើមានដំណើរការដែលបានចងក្រងជាឯកសារសម្រាប់កម្មករដើម្បីដាក់ពាក្យបណ្តឹងការរើសអើងទេ?'},
+      {id:'7.5',en:'Are pregnancy tests required for employment or continued employment? (Should be No)',km:'តើការធ្វើតេស្តផ្ទៃពោះត្រូវបានតម្រូវសម្រាប់ការជ្រើសរើស ឬការបន្តការងារទេ? (ត្រូវតែ ទេ)'},
+      {id:'7.7',en:'Are migrant workers treated equally and not subject to discriminatory conditions?',km:'តើកម្មករចំណាកស្រុកត្រូវបានទទួលការប្រព្រឹត្តស្មើ និងមិនស្ថិតក្រោមលក្ខខណ្ឌរើសអើងទេ?'},
+    ]},
+  { num:8,
+    title_en:'Health and Safety',
+    title_km:'សុខភាព និងសុវត្ថិភាព',
+    desc_en:'Facilities will provide a safe and healthy work environment including fire safety, machine guarding, PPE, emergency preparedness, first aid.',
+    desc_km:'ទីតាំងត្រូវផ្តល់បរិស្ថានការងារដែលមានសុវត្ថិភាព និងល្អប្រើ រួមមានសុវត្ថិភាពអគ្គីភ័យ ការការពារម៉ាស៊ីន PPE ការត្រៀមអាសន្ន និងការព្យាបាលដំបូង។',
+    qs:[
+      {id:'8.1a',en:'Does the facility have a written Health & Safety policy signed by top management?',km:'តើទីតាំងមានគោលនយោបាយសុខភាព និងសុវត្ថិភាពជាលាយលក្ខណ៍អក្សរដែលចុះហត្ថលេខាដោយថ្នាក់ដឹកនាំទេ?'},
+      {id:'8.1b',en:'Is the H&S policy updated within the last 12 months?',km:'តើគោលនយោបាយ H&S ត្រូវបានធ្វើបច្ចប្បន្នភាពក្នុងរយៈ ១២ ខែចុងក្រោយទេ?'},
+      {id:'8.2',en:'Is there a designated H&S committee or H&S officer?',km:'តើមានគណៈកម្មការ H&S ឬអ្នកទទួលខុសត្រូវ H&S ដែលត្រូវបានកំណត់ទេ?'},
+      {id:'8.3a',en:'Is a written emergency action / evacuation plan in place and accessible to all employees?',km:'តើមានផែនការសកម្មភាពអាសន្ន/ជម្លៀសជាលាយលក្ខណ៍អក្សរ ហើយអាចចូលប្រើបានដោយបុគ្គលិកទាំងអស់ទេ?'},
+      {id:'8.3b',en:'Are evacuation drills conducted at least twice per year with documentation?',km:'តើការហ្វឹកហាត់ជម្លៀសត្រូវបានធ្វើយ៉ាងហោចណាស់ ២ ដងក្នុងមួយឆ្នាំដោយមានឯកសារយ៉ាងដូចម្តេច?'},
+      {id:'8.3c',en:'Last two fire drill dates and next planned date:',km:'កាលបរិច្ឆេទហ្វឹកហាត់អគ្គីភ័យ ២ ដងចុងក្រោយ និងកាលបរិច្ឆេទបន្ទាប់:',type:'text'},
+      {id:'8.4a',en:'Are all fire exits unobstructed, clearly marked, and equipped with illuminated exit signs?',km:'តើផ្លូវចេញអគ្គីភ័យទាំងអស់ គ្មានឧបសគ្គ មានស្លាកច្បាស់ ហើយមានស្លាកចេញដែលភ្លឺទេ?'},
+      {id:'8.4b',en:'Are fire extinguishers checked monthly, accessible, and properly maintained?',km:'តើម៉ាស៊ីនពន្លត់អគ្គីភ័យត្រូវបានពិនិត្យប្រចាំខែ ងាយចូលប្រើ ហើយត្រូវបានថែទាំត្រឹមត្រូវទេ?'},
+      {id:'8.5',en:'Are all machines properly installed with safety guards as required?',km:'តើម៉ាស៊ីនទាំងអស់ត្រូវបានតំឡើងត្រឹមត្រូវ ដោយមានឧបករណ៍ការពារសុវត្ថិភាពតាមតម្រូវការទេ?'},
+      {id:'8.6',en:'Is PPE provided and are employees required to wear PPE as appropriate?',km:'តើ PPE ត្រូវបានផ្តល់ ហើយបុគ្គលិកត្រូវបំពាក់ PPE ត្រឹមត្រូវតាមតម្រូវការទេ?'},
+      {id:'8.7',en:'Is first aid equipment available in all work areas? Is there at least one trained first-aider?',km:'តើឧបករណ៍ការព្យាបាលដំបូងមាននៅគ្រប់តំបន់ការងារ? តើមានអ្នកចេះការព្យាបាលដំបូងយ៉ាងហោចណាស់ ១ នាក់ទេ?'},
+      {id:'8.8',en:'Are written risk assessments generated and maintained on file?',km:'តើការវាយតម្លៃហានិភ័យជាលាយលក្ខណ៍អក្សរត្រូវបានបង្កើត និងរក្សាទុកទេ?'},
+      {id:'8.9',en:'Is there an on-site clinic or medical personnel available?',km:'តើមានគ្លីនិកក្នុងទីតាំង ឬបុគ្គលិកវេជ្ជបណ្ឌិតដែលអាចប្រើបានទេ?'},
+      {id:'8.10',en:'Are H&S training records maintained for all workers?',km:'តើកំណត់ត្រាការបណ្តុះបណ្តាល H&S ត្រូវបានរក្សាទុកសម្រាប់កម្មករទាំងអស់ទេ?'},
+      {id:'8.11',en:'Are electrical systems properly maintained, covered, and unobstructed?',km:'តើប្រព័ន្ធអគ្គិសនីត្រូវបានថែទាំ គ្របបិទ ហើយគ្មានឧបសគ្គទេ?'},
+      {id:'8.12',en:'For dormitories: Equipped with fire extinguishers, emergency exits, and illuminated exit signs?',km:'សម្រាប់ហាលដំនេក: មានម៉ាស៊ីនពន្លត់ ផ្លូវចេញអាសន្ន និងស្លាកចេញភ្លឺទេ?'},
+      {id:'8.13',en:'Does the facility have adequate ventilation, lighting, and temperature control in work areas?',km:'តើទីតាំងមានខ្យល់ចេញចូល ពន្លឺ និងការគ្រប់គ្រងសីតុណ្ហភាពត្រឹមត្រូវក្នុងតំបន់ការងារទេ?'},
+      {id:'8.14',en:'Are chemical storage areas properly labeled, ventilated, and equipped with safety equipment?',km:'តើតំបន់ស្តុកគីមីមានស្លាក ខ្យល់ចេញចូល ហើយមានឧបករណ៍សុវត្ថិភាពត្រឹមត្រូវទេ?'},
+    ]},
+  { num:9,
+    title_en:'Freedom of Association and Collective Bargaining',
+    title_km:'សេរីភាពនៃការរួបរួម និងការចរចារជាសមូហភាព',
+    desc_en:'Facilities will recognize and respect the rights of workers to exercise lawful freedom of association.',
+    desc_km:'ទីតាំងត្រូវទទួលស្គាល់ និងគោរពសិទ្ធិកម្មករក្នុងការប្រើប្រាស់សេរីភាពនៃការរួបរួមតាមច្បាប់។',
+    qs:[
+      {id:'9.1a',en:'Does your facility have a written policy on freedom of association?',km:'តើទីតាំងមានគោលនយោបាយជាលាយលក្ខណ៍អក្សរស្តីពីសេរីភាពនៃការរួបរួមទេ?'},
+      {id:'9.2',en:'Are workers free to form or join trade unions without interference?',km:'តើកម្មករអាចបង្កើត ឬចូលសហជីពដោយគ្មានការជ្រៀតជ្រែកទេ?'},
+      {id:'9.3',en:'Is there a functioning and accessible grievance mechanism for workers?',km:'តើមានយន្តការតវ៉ាដែលដំណើរការ និងអាចចូលប្រើបានសម្រាប់កម្មករទេ?'},
+      {id:'9.4a',en:'[NEW] Does the grievance mechanism allow anonymous complaints?',km:'[ថ្មី] តើយន្តការតវ៉ាអនុញ្ញាតពាក្យបណ្តឹងអនាមិកទេ?'},
+      {id:'9.4b',en:'[NEW] Are there multiple channels for workers to raise grievances?',km:'[ថ្មី] តើមានបណ្តាញច្រើនសម្រាប់កម្មករក្នុងការលើកឡើងពីការតវ៉ាទេ?'},
+      {id:'9.4c',en:'[NEW] Are workers informed of available grievance channels during onboarding and regularly?',km:'[ថ្មី] តើកម្មករត្រូវបានជម្រាបអំពីបណ្តាញតវ៉ាដែលមាននៅពេលចូលធ្វើការ និងប្រចាំ ទេ?'},
+      {id:'9.4d',en:'[NEW] Are grievance records maintained (complaints received, investigated, resolved)?',km:'[ថ្មី] តើកំណត់ត្រាតវ៉ាត្រូវបានរក្សាទុក (ពាក្យបណ្តឹងដែលទទួល ស៊ើបអង្កេត ដោះស្រាយ) ទេ?'},
+      {id:'9.5',en:'Are workers who exercise freedom of association protected from anti-union discrimination?',km:'តើកម្មករដែលប្រើប្រាស់សេរីភាពនៃការរួបរួមត្រូវបានការពារពីការរើសអើងប្រឆាំងសហជីពទេ?'},
+      {id:'9.7',en:'Are worker representatives given time and resources to fulfill their representative functions?',km:'តើតំណាងកម្មករត្រូវបានផ្តល់ពេលវេលា និងធនធានដើម្បីបំពេញមុខងារតំណាងរបស់ពួកគេទេ?'},
+    ]},
+  { num:10,
+    title_en:'Environment',
+    title_km:'បរិស្ថាន',
+    desc_en:'Facilities will comply with all environmental laws, minimize waste, manage chemicals, and prevent pollution.',
+    desc_km:'ទីតាំងត្រូវអនុលោមតាមច្បាប់បរិស្ថានទាំងអស់ កាត់បន្ថយសំណល់ គ្រប់គ្រងគីមី និងការពារការបំcontaminer។',
+    qs:[
+      {id:'10.1a',en:'Does the facility have a written environmental policy signed by top management (within last 12 months)?',km:'តើទីតាំងមានគោលនយោបាយបរិស្ថានជាលាយលក្ខណ៍អក្សរ ចុះហត្ថលេខាដោយថ្នាក់ដឹកនាំ (ក្នុង ១២ ខែចុងក្រោយ) ទេ?'},
+      {id:'10.2',en:'Does the facility have all legally required environmental licenses and permits?',km:'តើទីតាំងមានអាជ្ញាប័ណ្ណ និងលិខិតអនុញ្ញាតបរិស្ថានទាំងអស់ដែលច្បាប់តម្រូវទេ?'},
+      {id:'10.3',en:'Does the facility maintain records of its environmental impact (waste, water, energy)?',km:'តើទីតាំងរក្សាទុកកំណត់ត្រានៃផលប៉ះពាល់បរិស្ថាន (សំណល់ ទឹក ថាមពល) ទេ?'},
+      {id:'10.4',en:'Are chemicals stored, handled, and disposed of in accordance with law?',km:'តើគីមីត្រូវបានស្តុក ដោះស្រាយ និងបោះចោលស្របតាមច្បាប់ (MSDS ស្លាក ផ្ទុក) ទេ?'},
+      {id:'10.5',en:'Is wastewater treated and tested by a certified lab at least monthly?',km:'តើទឹកស្ទុះត្រូវបានព្យាបាល និងធ្វើតេស្តដោយមន្ទីរពិសោធន៍ដែលមានការបញ្ជាក់យ៉ាងហោចណាស់ ១ ដងក្នុងខែទេ?'},
+      {id:'10.6',en:'Does the facility have an effective pest control program monitored and documented?',km:'តើទីតាំងមានកម្មវិធីគ្រប់គ្រងសត្វល្អិតដែលមានប្រសិទ្ធភាព ត្រូវបានត្រួតពិនិត្យ និងចងក្រងជាឯកសារទេ?'},
+      {id:'10.7',en:'Is non-hazardous waste stored separately and disposed of legally?',km:'តើសំណល់ដែលគ្មានគ្រោះថ្នាក់ត្រូវបានស្តុកដោយឡែក ហើយបោះចោលស្របច្បាប់ទេ?'},
+      {id:'10.8',en:'Does the facility track and seek to reduce energy consumption and greenhouse gas emissions?',km:'តើទីតាំងតាមដាន និងព្យាយាមកាត់បន្ថយការប្រើប្រាស់ថាមពល និងការបំភាយឧស្ម័ន CO2 ទេ?'},
+    ]},
+  { num:11,
+    title_en:'Customs Compliance',
+    title_km:'ការអនុលោមតាមគយ',
+    desc_en:'Facilities will comply with applicable customs laws and have documented processes to meet C-TPAT requirements.',
+    desc_km:'ទីតាំងត្រូវអនុលោមតាមច្បាប់គយ និងមានដំណើរការចងក្រងជាឯកសារដើម្បីបំពេញតម្រូវការ C-TPAT។',
+    qs:[
+      {id:'11.1',en:'Does the facility have written customs compliance policies and procedures?',km:'តើទីតាំងមានគោលនយោបាយ និងនីតិវិធីអនុលោមតាមគយជាលាយលក្ខណ៍អក្សរទេ?'},
+      {id:'11.2',en:'Are accurate import/export records maintained and available for review?',km:'តើកំណត់ត្រានាំចូល/នាំចេញត្រឹមត្រូវត្រូវបានរក្សាទុក ហើយអាចពិនិត្យបានទេ?'},
+      {id:'11.3',en:'Is there a designated person responsible for customs compliance?',km:'តើមានបុគ្គលដែលត្រូវបានកំណត់ទទួលខុសត្រូវសម្រាប់ការអនុលោមតាមគយទេ?'},
+      {id:'11.5',en:'Has the facility implemented C-TPAT or equivalent supply chain security measures?',km:'តើទីតាំងបានអនុវត្ត C-TPAT ឬវិធានការសុវត្ថិភាពខ្សែច្រវ៉ាក់ផ្គត់ផ្គង់ស្មើដូចគ្នាទេ?'},
+      {id:'11.6',en:'Are staff involved in import/export operations trained on customs compliance?',km:'តើបុគ្គលិកដែលពាក់ព័ន្ធក្នុងប្រតិបត្តិការនាំចូល/នាំចេញទទួលការបណ្តុះបណ្តាលអំពីការអនុលោមតាមគយទេ?'},
+    ]},
+  { num:12,
+    title_en:'Security',
+    title_km:'សន្តិសុខ',
+    desc_en:'Facilities will maintain security procedures to guard against the introduction of non-manifested cargo into outbound shipments.',
+    desc_km:'ទីតាំងត្រូវរក្សានីតិវិធីសន្តិសុខ ដើម្បីការពារការបញ្ចូលទំនិញដែលមិនបានប្រកាសក្នុងការដឹកជញ្ជូន។',
+    qs:[
+      {id:'12.1a',en:'Does the facility have a written security policy?',km:'តើទីតាំងមានគោលនយោបាយសន្តិសុខជាលាយលក្ខណ៍អក្សរទេ?'},
+      {id:'12.1b',en:'Is there a designated security manager or officer?',km:'តើមានអ្នកគ្រប់គ្រង ឬមន្ត្រីសន្តិសុខដែលត្រូវបានកំណត់ទេ?'},
+      {id:'12.2a',en:'Does perimeter fencing enclose the cargo handling and storage facility?',km:'តើរបង់ព័ទ្ធជុំវិញតំបន់ដោះស្រាយ និងស្តុកទំនិញទេ?'},
+      {id:'12.2b',en:'Are all entrances and exits manned and/or monitored?',km:'តើចំណូល និងចំណេញទាំងអស់ត្រូវបានការពារ ឬត្រួតពិនិត្យទេ?'},
+      {id:'12.3a',en:'Do all employees carry a photo identification badge at all times on premises?',km:'តើបុគ្គលិកទាំងអស់ពាក់ប័ណ្ណ\u200bអត្តសញ្ញាណមានរូបថតគ្រប់ពេលក្នុងបរិវេណទេ?'},
+      {id:'12.3b',en:'Are visitors required to show photo ID and wear a temporary badge?',km:'តើភ្ញៀវត្រូវការបង្ហាញ ID មានរូបថត ហើយពាក់ប័ណ្ណបណ្តោះអាសន្នទេ?'},
+      {id:'12.4a',en:'Does the facility have CCTV cameras monitoring cargo handling areas, packing areas, entrances, and exits?',km:'តើទីតាំងមានកាមេរ៉ា CCTV ត្រួតពិនិត្យតំបន់ដោះស្រាយទំនិញ បន្ទប់ខ្ចប់ ចំណូល និងចំណេញទេ?'},
+      {id:'12.4b',en:'Are CCTV records maintained for at least 30 days (45 days recommended) continuously 24/7?',km:'តើកំណត់ត្រា CCTV ត្រូវបានរក្សាទុកយ៉ាងហោចណាស់ ៣០ ថ្ងៃ (ណែនាំ ៤៥ ថ្ងៃ) ២៤/៧ ជាប់ ជាប់ ទេ?'},
+      {id:'12.5',en:'Are containers/trucks inspected before loading (17-point inspection)?',km:'តើផ្ទុក/ камion ត្រូវបានត្រួតពិនិត្យមុនដំណើរ (ការត្រួតពិនិត្យ ១៧ ចំណុច) ទេ?'},
+      {id:'12.6',en:'Are high-grade ISO 17712 PAS security seals affixed to all loaded containers bound for the US?',km:'តើស៊ីលសន្តិសុខ ISO 17712 PAS ត្រូវបានដាក់លើ containers ទាំងអស់ដែលដឹកទៅ US ទេ?'},
+      {id:'12.7',en:'Are seal numbers recorded and verified before departure?',km:'តើលេខស៊ីលត្រូវបានកត់ត្រា និងផ្ទៀងផ្ទាត់មុនចេញដំណើរទេ?'},
+      {id:'12.8',en:'Does the facility conduct background checks on personnel in sensitive areas?',km:'តើទីតាំងធ្វើការត្រួតពិនិត្យប្រវត្តិរូបបុគ្គលិកនៅតំបន់រសើបទេ?'},
+      {id:'12.9',en:'Is security awareness training provided to all employees?',km:'តើការបណ្តុះបណ្តាលការយល់ដឹងសន្តិសុខត្រូវបានផ្តល់ដល់បុគ្គលិកទាំងអស់ទេ?'},
+      {id:'12.10',en:'Are security incidents logged and reported to appropriate management/authorities?',km:'តើឧប្បត្តិហេតុសន្តិសុខត្រូវបានកត់ត្រា ហើយរាយការណ៍ទៅថ្នាក់ដឹកនាំ/អាជ្ញាធរដែលសមស្របទេ?'},
+    ]},
+];
+
+const CTPAT_SECTIONS = [
+  {code:'BPR',title_en:'Business Partner Requirements',title_km:'តម្រូវការដៃគូអាជីវកម្ម',qs:[
+    {en:'Does the factory have written and verifiable processes for the selection of companies responsible for moving merchandise from your site to the CFS/Terminal/Port?',km:'តើរោងចក្រមានដំណើរការជាលាយលក្ខណ៍អក្សរ និងអាចផ្ទៀងផ្ទាត់បានសម្រាប់ការជ្រើសរើសក្រុមហ៊ុនដឹកជញ្ជូនទំនិញទៅ CFS/កំពង់ផែ ទេ?'},
+    {en:'Are there key criteria for selecting a business partner in terms of supply chain security (security control, financial stability, corporate history, hiring practices)?',km:'តើមានលក្ខណៈវិនិច្ឆ័យសំខាន់ៗសម្រាប់ការជ្រើសរើសដៃគូអាជីវកម្មក្នុងបរិបទសន្តិសុខខ្សែច្រវ៉ាក់ (ការត្រួតពិនិត្យ ស្ថិរភាពហិរញ្ញវត្ថុ ប្រវត្តិក្រុមហ៊ុន) ទេ?'},
+    {en:'Does the factory require trucking companies to demonstrate C-TPAT security criteria compliance via written/electronic confirmation?',km:'តើរោងចក្រតម្រូវឱ្យក្រុមហ៊ុនដឹកជញ្ជូនបង្ហាញការអនុលោមតាមលក្ខណៈវិនិច្ឆ័យសន្តិសុខ C-TPAT តាមរយៈការបញ្ជាក់ជាលាយលក្ខណ៍/អេឡិចត្រូនិក ទេ?'},
+    {en:'Are there legally binding contracts with contractors covering specific delivery routes?',km:'តើមានកិច្ចសន្យាមានភាពចងក្រងតាមផ្លូវច្បាប់ជាមួយអ្នកម៉ៅការ ដែលគ្របដណ្តប់ផ្លូវដឹកជញ្ជូនជាក់លាក់ ទេ?'},
+    {en:'Are written processes in place to conduct security checks (announced and unannounced) to all contractors?',km:'តើមានដំណើរការជាលាយលក្ខណ៍អក្សរសម្រាប់ធ្វើការត្រួតពិនិត្យសន្តិសុខ (ជូនដំណឹងមុន និងគ្មានជូនដំណឹងមុន) ដល់អ្នកម៉ៅការទាំងអស់ ទេ?'},
+  ]},
+  {code:'CTS',title_en:'Container and Trailer Security',title_km:'សន្តិសុខ Container និង Trailer',qs:[
+    {en:'Are written procedures in place stipulating how seals are to be controlled and affixed to loaded containers and trucks?',km:'តើមាននីតិវិធីជាលាយលក្ខណ៍អក្សរស្តីពីរបៀបគ្រប់គ្រង និងដាក់ស៊ីលទៅ container និងរថយន្ដដឹកជញ្ជូន ទេ?'},
+    {en:'Do you maintain written procedures for recognizing and reporting compromised seals/containers to US Customs or appropriate foreign authority?',km:'តើអ្នករក្សាទុកនីតិវិធីជាលាយលក្ខណ៍អក្សរសម្រាប់ស្គាល់ និងរាយការណ៍ស៊ីល/container ដែលត្រូវបានរំខាន ទៅគយ US ឬអាជ្ញាធរបរទេសពាក់ព័ន្ធ ទេ?'},
+    {en:'Are procedures in place to maintain the integrity of shipping containers/trucks including how to report unauthorized entry?',km:'តើមាននីតិវិធីសម្រាប់ថែរក្សាភាពត្រឹមត្រូវរបស់ container/រថយន្ត រួមទាំងរបៀបរាយការណ៍ការចូលដោយគ្មានការអនុញ្ញាត ទេ?'},
+    {en:'Are there documented procedures for affixing, replacing, recording, and tracking seals on containers, trailers, and trucks?',km:'តើមាននីតិវិធីចងក្រងជាឯកសារសម្រាប់ការដាក់ ដូរ កត់ត្រា និងតាមដានស៊ីលនៅ container, trailer និងរថយន្ត ទេ?'},
+    {en:'Prior to loading, does the factory inspect the locking mechanism of the doors of the containers/trucks?',km:'មុនពេលផ្ទុកទំនិញ តើរោងចក្រត្រួតពិនិត្យយន្តការចាក់សោទ្វារ container/រថយន្ត ទេ?'},
+    {en:'Is there a seventeen-point inspection process to verify the physical integrity of the container structure prior to loading?',km:'តើមានដំណើរការត្រួតពិនិត្យ ១៧ ចំណុច ដើម្បីផ្ទៀងផ្ទាត់ភាពត្រឹមត្រូវរាងកាយរបស់ container មុនពេលផ្ទុក ទេ?'},
+    {en:'Does the security guard, shipping manager, and driver verify the 17-point inspection by signing off on the checklist?',km:'តើអ្នកសន្តិសុខ អ្នកគ្រប់គ្រងការដឹកជញ្ជូន និងអ្នកបើកបរ ផ្ទៀងផ្ទាត់ការត្រួតពិនិត្យ ១៧ ចំណុច ដោយចុះហត្ថលេខាលើបញ្ជីត្រួតពិនិត្យ ទេ?'},
+    {en:'Are procedures in place to outline how purchased seals are stored, logged, and handled?',km:'តើមាននីតិវិធីដែលបង្ហាញពីរបៀបស្តុក កត់ត្រា និងដោះស្រាយស៊ីលដែលបានទិញ ទេ?'},
+    {en:'Is a high-grade security seal (meeting PAS ISO 17712) affixed to all loaded containers/trucks bound for the US or CFS warehouse?',km:'តើស៊ីលសន្តិសុខកម្រិតខ្ពស់ (ស្របតាម PAS ISO 17712) ត្រូវបានដាក់នៅ container/រថយន្ដដែលដឹកទៅ US ឬ CFS ទាំងអស់ ទេ?'},
+    {en:'After loading, does the factory take a digital photo of the back of the container before the doors are closed and sealed?',km:'បន្ទាប់ពីផ្ទុករួច តើរោងចក្រថតរូបឌីជីថលខាងក្រោយ container មុនពេលបិទ និងដាក់ស៊ីលទ្វារ ទេ?'},
+    {en:'After sealing, does the factory take digital photos of the seal and all sides of the container/truck?',km:'បន្ទាប់ពីដាក់ស៊ីល តើរោងចក្រថតរូបឌីជីថលនៃស៊ីល និងគ្រប់ជ្រុងនៃ container/រថយន្ត ទេ?'},
+    {en:'Are only designated employees authorized to distribute seals, including handling unused seals?',km:'តើតែបុគ្គលិកដែលត្រូវបានកំណត់ប៉ុណ្ណោះ ដែលមានការអនុញ្ញាតចែកចាយស៊ីល រួមទាំងដោះស្រាយស៊ីលដែលមិនទាន់ប្រើ ទេ?'},
+    {en:'Is the loading and unloading of containers/trucks supervised by a security officer or designated person?',km:'តើការផ្ទុក និងដោះទំនិញ container/រថយន្ត ត្រូវបានត្រួតពិនិត្យដោយមន្ត្រីសន្តិសុខ ឬបុគ្គលដែលត្រូវបានកំណត់ ទេ?'},
+    {en:'Are containers/trucks stored in a secure area to prevent unauthorized access?',km:'តើ container/រថយន្ត ត្រូវបានផ្ទុកក្នុងតំបន់សុវត្ថិភាព ដើម្បីការពារការចូលដោយគ្មានការអនុញ្ញាត ទេ?'},
+    {en:'Are containers/trucks parked an adequate distance away from perimeter walls or fencing?',km:'តើ container/រថយន្ត ត្រូវបានចតក្នុងចំងាយគ្រប់គ្រាន់ ឆ្ងាយពីជញ្ជាំង ឬរបង់ ទេ?'},
+    {en:'Is there any system to monitor and track cargo conveyance by trucks/containers on the way to CFS/port?',km:'តើមានប្រព័ន្ធណាមួយដើម្បីត្រួតពិនិត្យ និងតាមដានការដឹកជញ្ជូនទំនិញតាមមាគ៌ាទៅ CFS/កំពង់ផែ ទេ?'},
+  ]},
+  {code:'PAC',title_en:'Physical Access Controls',title_km:'ការត្រួតពិនិត្យការចូលដំណើរការ',qs:[
+    {en:'Are all employees given an identification badge including new recruits?',km:'តើបុគ្គលិកទាំងអស់ រួមទាំងបុគ្គលិកថ្មី ត្រូវបានផ្តល់ប័ណ្ណអត្តសញ្ញាណ ទេ?'},
+    {en:'Does the employee ID badge include: photo, name, department, and employee ID?',km:'តើប័ណ្ណ ID បុគ្គលិករួមមាន: រូបថត ឈ្មោះ នាយកដ្ឋាន និងលេខ ID ទេ?'},
+    {en:'Is employee access to restricted areas limited to access needed for the performance of their duties?',km:'តើការចូលដំណើរការតំបន់ហាមឃាត់របស់បុគ្គលិក ត្រូវបានកំណត់ចំពោះតែការចូលដែលចាំបាច់សម្រាប់ការបំពេញតួនាទី ទេ?'},
+    {en:'Is the issuance and removal of employee ID badges adequately controlled?',km:'តើការចេញ និងដកហូតប័ណ្ណ ID បុគ្គលិក ត្រូវបានគ្រប់គ្រងគ្រប់គ្រាន់ ទេ?'},
+    {en:'Do employees wear an ID badge while on the premises?',km:'តើបុគ្គលិកពាក់ប័ណ្ណ ID ពេលនៅក្នុងបរិវេណ ទេ?'},
+    {en:'Does the factory have a system to verify employee identity and require annual badge renewal?',km:'តើរោងចក្រមានប្រព័ន្ធផ្ទៀងផ្ទាត់អត្តសញ្ញាណបុគ្គលិក ហើយតម្រូវការបន្ថែមសុពលភាពប័ណ្ណប្រចាំឆ្នាំ ទេ?'},
+    {en:'Is a list of terminated employees (names and photos) given to security to aid in access control?',km:'តើបញ្ជីបុគ្គលិកដែលបានបញ្ចប់ (ឈ្មោះ និងរូបថត) ត្រូវបានផ្តល់ដល់ផ្នែកសន្តិសុខ ដើម្បីជួយគ្រប់គ្រងការចូល ទេ?'},
+    {en:'Are there documented procedures for the issuance, removal, and changing of access devices (keys, key cards)?',km:'តើមាននីតិវិធីចងក្រងជាឯកសារសម្រាប់ការចេញ ដក និងប្ដូរឧបករណ៍ចូលដំណើរការ (គ្រាប់សោ កាត) ទេ?'},
+    {en:'Do guards have standing operating procedures (SOP) indicating security performance standards?',km:'តើអ្នកសន្តិសុខមាន SOP ដែលបង្ហាញស្តង់ដារការអនុវត្តសន្តិសុខ ទេ?'},
+    {en:'Do guards lock all factory entrances and remain manned during non-operating hours?',km:'តើអ្នកសន្តិសុខចាក់សោចំណូលរោងចក្រទាំងអស់ ហើយរក្សាការការពារក្នុងម៉ោងមិនដំណើរការ ទេ?'},
+    {en:'Do guards conduct inspection of personal belongings carried by employees or visitors?',km:'តើអ្នកសន្តិសុខធ្វើការត្រួតពិនិត្យទ្រព្យសម្បត្តិផ្ទាល់ខ្លួនរបស់បុគ្គលិក ឬភ្ញៀវ ទេ?'},
+    {en:'Do security guards log and report incidents including security violations and compromised seals?',km:'តើអ្នកសន្តិសុខកត់ត្រា និងរាយការណ៍ហេតុការណ៍ រួមទាំងការបំពានសន្តិសុខ និងស៊ីលដែលត្រូវបានរំខាន ទេ?'},
+    {en:'Do security guards receive specific training and periodic updates on terrorism threat awareness?',km:'តើអ្នកសន្តិសុខទទួលការបណ្ដុះបណ្ដាលជាក់លាក់ និងការធ្វើបច្ចប្បន្នភាពទៀងទាត់ស្តីពីការយល់ដឹងហានិភ័យភេរវកម្ម ទេ?'},
+    {en:'Are there procedures to identify, challenge, and address unauthorized/unidentified persons?',km:'តើមាននីតិវិធីដើម្បីស្គាល់ ជំទាស់ និងដោះស្រាយបុគ្គលដែលគ្មានការអនុញ្ញាត/មិនស្គាល់ ទេ?'},
+    {en:'Do visitors/vendors present photo identification for documentation upon arrival?',km:'តើភ្ញៀវ/អ្នកលក់បង្ហាញ ID មានរូបថតសម្រាប់ចងក្រងជាឯកសារពេលមកដល់ ទេ?'},
+    {en:'Do visitors/vendors enter through a separate entrance from factory employees?',km:'តើភ្ញៀវ/អ្នកលក់ចូលតាមចំណូលដែលដាច់ដោយឡែកពីបុគ្គលិករោងចក្រ ទេ?'},
+    {en:'Are visitors/vendors required to wear temporary ID badges while on premises?',km:'តើភ្ញៀវ/អ្នកលក់ត្រូវតែពាក់ប័ណ្ណ ID បណ្ដោះអាសន្ន ពេលនៅក្នុងបរិវេណ ទេ?'},
+    {en:'Do visitor/vendor badges have a system to identify missing/theft (numbering, color coding, logging)?',km:'តើប័ណ្ណភ្ញៀវ/អ្នកលក់មានប្រព័ន្ធកំណត់អត្តសញ្ញាណករណីបាត់/លួច (លេខរៀង ពណ៌ ការកត់ត្រា) ទេ?'},
+    {en:'Does the factory have an up-to-date list of all on-site contractors, vendors, and repairers?',km:'តើរោងចក្រមានបញ្ជីបច្ចប្បន្នរបស់អ្នកម៉ៅការ អ្នកលក់ និងអ្នកជួសជុលទាំងអស់ ដែលបំពេញការងារនៅទីតាំង ទេ?'},
+    {en:'Are visitors escorted by an authorized person while on the factory premises?',km:'តើភ្ញៀវត្រូវបានមនុស្សដែលមានការអនុញ្ញាតជាអ្នកនាំផ្លូវ ពេលនៅក្នុងបរិវេណរោងចក្រ ទេ?'},
+    {en:'Are arriving packages and mail periodically screened before dissemination?',km:'តើកញ្ចប់ និងសំបុត្រដែលមកដល់ ត្រូវបានត្រួតពិនិត្យជាទៀងទាត់ មុនពេលចែកចាយ ទេ?'},
+    {en:'Is advance information required from a visitor/vendor before the visit?',km:'តើព័ត៌មានជាមុនត្រូវបានតម្រូវពីភ្ញៀវ/អ្នកលក់ មុនពេលមក ទេ?'},
+  ]},
+  {code:'PSC',title_en:'Personnel Security',title_km:'សន្តិសុខបុគ្គលិក',qs:[
+    {en:'Does the factory have written and verifiable processes to screen prospective employees (permanent or temporary)?',km:'តើរោងចក្រមានដំណើរការជាលាយលក្ខណ៍អក្សរ និងអាចផ្ទៀងផ្ទាត់បានសម្រាប់ការត្រួតពិនិត្យបុគ្គលិកដែលចង់ចូលធ្វើការ (អចិន្ត្រៃយ៍ ឬបណ្ដោះអាសន្ន) ទេ?'},
+    {en:'Is an employee application and interview required before hiring?',km:'តើការដាក់ពាក្យ និងការសម្ភាសន៍ ត្រូវបានតម្រូវ មុនពេលជ្រើសរើស ទេ?'},
+    {en:'Is employee application information (employment history, references) verified prior to employment?',km:'តើព័ត៌មានពាក្យសុំបុគ្គលិក (ប្រវត្តិការងារ អ្នកណែនាំ) ត្រូវបានផ្ទៀងផ្ទាត់ មុនពេលជ្រើសរើស ទេ?'},
+    {en:"Does the facility retain copies of each employee's official identification?",km:'តើទីតាំងរក្សាទុកច្បាប់ចម្លងឯកសារអត្តសញ្ញាណផ្លូវការរបស់បុគ្គលិកម្នាក់ៗ ទេ?'},
+    {en:'Does the factory conduct background checks consistent with local regulations (criminal records, previous addresses)?',km:'តើរោងចក្រធ្វើការត្រួតពិនិត្យប្រវត្តិរូប ស្របតាមបទប្បញ្ញត្តិមូលដ្ឋាន (ប្រវត្តិឧក្រិដ្ឋកម្ម អាស័យដ្ឋានមុន) ទេ?'},
+    {en:'For countries prohibiting criminal background checks: does the factory use alternative investigation methods?',km:'សម្រាប់ប្រទេសដែលហាមការត្រួតពិនិត្យប្រវត្តិឧក្រិដ្ឋកម្ម: តើរោងចក្រប្រើវិធីស៊ើបអង្កេតជំនួស ទេ?'},
+    {en:"Does the factory perform periodic checks and reinvestigations based on cause or sensitivity of employee's position?",km:'តើរោងចក្រធ្វើការត្រួតពិនិត្យ និងស៊ើបអង្កេតឡើងវិញជាទៀងទាត់ ដោយផ្អែកលើហេតុផល ឬភាពរសើបនៃមុខតំណែង ទេ?'},
+    {en:'Are there procedures to remove identification, facility, and system access for terminated employees?',km:'តើមាននីតិវិធីដើម្បីដកការចូលដំណើរការ (ប័ណ្ណ ទីតាំង ប្រព័ន្ធ) ពីបុគ្គលិកដែលបានបញ្ចប់ ទេ?'},
+    {en:'Does the factory have written employee termination procedures?',km:'តើរោងចក្រមាននីតិវិធីបញ្ចប់ការងារបុគ្គលិកជាលាយលក្ខណ៍អក្សរ ទេ?'},
+    {en:'Upon termination, does the factory use a checklist to ensure the employee returns all facility property?',km:'ពេលបញ្ចប់ការងារ តើរោងចក្រប្រើបញ្ជីត្រួតពិនិត្យ ដើម្បីធានាថាបុគ្គលិកប្រគល់ទ្រព្យសម្បត្តិទីតាំងទាំងអស់ ទេ?'},
+  ]},
+  {code:'PSM',title_en:'Procedural Security — Cargo & Manifests',title_km:'សន្តិសុខនីតិវិធី — ទំនិញ និងបញ្ជីទំនិញ',qs:[
+    {en:'Does the factory have procedures to ensure the accuracy of all information on manifests and shipping documentation?',km:'តើរោងចក្រមាននីតិវិធីដើម្បីធានាភាពត្រឹមត្រូវនៃព័ត៌មានទាំងអស់នៅលើបញ្ជីទំនិញ និងឯកសារដឹកជញ្ជូន ទេ?'},
+    {en:'Does the factory have a written procedure for examining container contents against the packing list at time of loading?',km:'តើរោងចក្រមាននីតិវិធីជាលាយលក្ខណ៍អក្សរសម្រាប់ត្រួតពិនិត្យខ្លឹមសារ container ទៅនឹងបញ្ជីខ្ចប់ ពេលផ្ទុកទំនិញ ទេ?'},
+    {en:'Are seal numbers recorded for outgoing container/truck seals?',km:'តើលេខស៊ីលត្រូវបានកត់ត្រា សម្រាប់ស៊ីល container/រថយន្ដដែលចេញ ទេ?'},
+    {en:'Are seal numbers verified at the time of final sealing before departure?',km:'តើលេខស៊ីលត្រូវបានផ្ទៀងផ្ទាត់ ពេលដាក់ស៊ីលចុងក្រោយ មុនចេញដំណើរ ទេ?'},
+    {en:'Is there a written procedure to verify seal numbers against facility documentation when container/truck is handed over?',km:'តើមាននីតិវិធីជាលាយលក្ខណ៍អក្សរ ដើម្បីផ្ទៀងផ្ទាត់លេខស៊ីលទៅនឹងឯកសារទីតាំង ពេលប្រគល់ container/រថយន្ត ទេ?'},
+    {en:'Is there a written procedure to report broken seals/padlocks and examine container contents?',km:'តើមាននីតិវិធីជាលាយលក្ខណ៍អក្សរ ដើម្បីរាយការណ៍ស៊ីល/សោចាក់ដែលបានខូច ហើយត្រួតពិនិត្យខ្លឹមសារ container ទេ?'},
+    {en:'Is there a documented system to ensure management is informed of and investigates all anomalies in shipments?',km:'តើមានប្រព័ន្ធចងក្រងជាឯកសារ ដើម្បីធានាថាការគ្រប់គ្រងត្រូវបានជ្រាបដំណឹង ហើយស៊ើបអង្កេតភាពខុសប្រក្រតីទាំងអស់ក្នុងការដឹកជញ្ជូន ទេ?'},
+    {en:'Is there a documented procedure for contractors to report security violations to facility management?',km:'តើមាននីតិវិធីចងក្រងជាឯកសារ សម្រាប់អ្នកម៉ៅការ ដើម្បីរាយការណ៍ការបំពានសន្តិសុខ ទៅថ្នាក់ដឹកនាំទីតាំង ទេ?'},
+    {en:'Is loading dock access restricted to authorized personnel only?',km:'តើការចូលដំណើរការចំណតផ្ទុកទំនិញ ត្រូវបានកំណត់ចំពោះតែបុគ្គលិកដែលមានការអនុញ្ញាត ទេ?'},
+    {en:'Is the cargo moved directly from storage/assembly line to conveyance without intermediate staging?',km:'តើទំនិញត្រូវបានផ្លាស់ទីដោយផ្ទាល់ ពីការស្តុក/ខ្សែផ្គុំ ទៅការដឹកជញ្ជូន ដោយគ្មានការតាំងទុកពាក់កណ្ដាល ទេ?'},
+    {en:'Are trucks sealed after loading is complete?',km:'តើរថយន្ដត្រូវបានដាក់ស៊ីល បន្ទាប់ពីផ្ទុករួច ទេ?'},
+    {en:'Does the facility assign a designated representative responsible for providing accurate product information to carriers?',km:'តើទីតាំងកំណត់តំណាងទទួលខុសត្រូវ ក្នុងការផ្តល់ព័ត៌មានផលិតផលត្រឹមត្រូវ ដល់អ្នកដឹក ទេ?'},
+    {en:'Does the facility keep all shipment records in electronic format?',km:'តើទីតាំងរក្សាទុកកំណត់ត្រាការដឹកជញ្ជូនទាំងអស់ ក្នុងទម្រង់អេឡិចត្រូនិក ទេ?'},
+    {en:'Is there a documented procedure to conduct periodic unannounced security checks?',km:'តើមាននីតិវិធីចងក្រងជាឯកសារ ដើម្បីធ្វើការត្រួតពិនិត្យសន្តិសុខជាទៀងទាត់ ដោយគ្មានការជូនដំណឹងមុន ទេ?'},
+    {en:'Is there a documented security improvement plan identifying vulnerabilities and corrective actions?',km:'តើមានផែនការកែលម្អសន្តិសុខចងក្រងជាឯកសារ ដែលកំណត់ភាពងាយរងគ្រោះ និងសកម្មភាពកែតម្រូវ ទេ?'},
+  ]},
+  {code:'PSY',title_en:'Physical Security',title_km:'សន្តិសុខរូបវន្ត',qs:[
+    {en:'Does perimeter fencing enclose the cargo handling and storage facilities?',km:'តើរបង់ព័ទ្ធព័ទ្ធជុំវិញ សម្ភារ និងទីតាំងស្តុកទំនិញ ទេ?'},
+    {en:'Are gates through which vehicles and/or personnel enter or exit manned and/or monitored?',km:'តើទ្វារចំណូលចំណេញ ដែលយានយន្ត/បុគ្គលិកចូលឬចេញ ត្រូវបានការពារ ឬត្រួតពិនិត្យ ទេ?'},
+    {en:'Are private passenger vehicles and parking lots separated from cargo handling and storage areas?',km:'តើយានយន្ត និងចំណតឯកជន ត្រូវបានបំបែកចេញពីតំបន់ដោះស្រាយ និងស្តុកទំនិញ ទេ?'},
+    {en:'Are all buildings constructed of materials which prevent unlawful entry?',km:'តើអាគារទាំងអស់ ត្រូវបានសាងសង់ដោយសម្ភារ ដែលការពារការចូលដោយខុសច្បាប់ ទេ?'},
+    {en:'Are all external and internal windows, gates, and fences secured with locking devices?',km:'តើបង្អួច ទ្វារ និងរបង់ ទាំងខាងក្រៅ និងខាងក្នុងទាំងអស់ ត្រូវបានចាក់សោ ទេ?'},
+    {en:'Is a lost, misplaced, or stolen key reported immediately to factory management?',km:'តើគ្រាប់សោដែលបាត់ ដាក់ខុស ឬត្រូវបានលួច ត្រូវបានរាយការណ៍ភ្លាមៗ ទៅថ្នាក់ដឹកនាំ ទេ?'},
+    {en:'Does the facility have an automatic intrusion detection or alarm system that is tested regularly?',km:'តើទីតាំងមានប្រព័ន្ធរកឃើញការ/សញ្ញាម្ហូបស្វ័យប្រវត្តិ ដែលត្រូវបានសាកល្បងជាទៀងទាត់ ទេ?'},
+    {en:'Do alarm systems and CCTV cameras monitor activities inside/outside the facility including sensitive areas?',km:'តើប្រព័ន្ធសញ្ញាម្ហូប និងកាមេរ៉ា CCTV ត្រួតពិនិត្យសកម្មភាពខាងក្នុង/ខាងក្រៅ រួមទាំងតំបន់រសើប ទេ?'},
+    {en:'Are CCTV records kept for at least 45 days?',km:'តើកំណត់ត្រា CCTV ត្រូវបានរក្សាទុកយ៉ាងហោចណាស់ ៤៥ ថ្ងៃ ទេ?'},
+    {en:'Is access to CCTV monitors controlled?',km:'តើការចូលដំណើរការម៉ូនីទ័រ CCTV ត្រូវបានគ្រប់គ្រង ទេ?'},
+    {en:'Is there adequate lighting inside and outside the factory (entrances, exits, cargo, storage, parking, fences)?',km:'តើមានពន្លឺគ្រប់គ្រាន់ ខាងក្នុង និងខាងក្រៅរោងចក្រ (ចំណូល ចំណេញ ទំនិញ ការស្តុក ចំណត របង់) ទេ?'},
+    {en:'Are parking lots for visitors separated from employee parking?',km:'តើចំណតសម្រាប់ភ្ញៀវ ត្រូវបានបំបែកចេញពីចំណតបុគ្គលិក ទេ?'},
+    {en:'Are there security measures to prevent tampering of goods during production and packing?',km:'តើមានវិធានការសន្តិសុខ ដើម្បីការពារការរំខានទំនិញ ក្នុងពេលផលិតកម្ម និងខ្ចប់ ទេ?'},
+  ]},
+  {code:'ITS',title_en:'IT Security',title_km:'សន្តិសុខបច្ចេកវិទ្យាព័ត៌មាន',qs:[
+    {en:'Are there IT security policies, procedures, and standards in place and communicated to all employees?',km:'តើមានគោលនយោបាយ នីតិវិធី និងស្តង់ដារសន្តិសុខ IT ហើយត្រូវបានជម្រាបដល់បុគ្គលិកទាំងអស់ ទេ?'},
+    {en:'Is there a designated system administrator?',km:'តើមានអ្នកគ្រប់គ្រងប្រព័ន្ធដែលត្រូវបានកំណត់ ទេ?'},
+    {en:'Does the factory limit IT access via individually assigned accounts requiring periodic password changes?',km:'តើរោងចក្រកំណត់ការចូលដំណើរការ IT តាម account ប្ដូរដល់បុគ្គលម្នាក់ ដែលតម្រូវការប្ដូរពាក្យសម្ងាត់ជាទៀងទាត់ ទេ?'},
+    {en:'Are individual passwords using a combination of letters, numbers, and symbols (not personal identifiers)?',km:'តើពាក្យសម្ងាត់ប្រើការបញ្ចូលគ្នា នៃអក្សរ លេខ និងនិមិត្តសញ្ញា (មិនមែនព័ត៌មានផ្ទាល់ខ្លួន) ទេ?'},
+    {en:'Are IT passwords changed at least once every 90 days?',km:'តើពាក្យសម្ងាត់ IT ត្រូវបានប្ដូរយ៉ាងហោចណាស់ ១ ដងរៀងរាល់ ៩០ ថ្ងៃ ទេ?'},
+    {en:'Are users locked out after 3 unsuccessful login attempts?',km:'តើអ្នកប្រើប្រាស់ ត្រូវបានចាក់សោ បន្ទាប់ពីព្យាយាមចូល ៣ ដងដែលបរាជ័យ ទេ?'},
+    {en:'Do computers lock after a short period of inactivity?',km:'តើកុំព្យូទ័រ ចាក់សោ ក្រោយពេលអសកម្ម ទេ?'},
+    {en:'Does the facility have documented procedures identifying which employees can access electronic shipping/cargo data?',km:'តើទីតាំងមាននីតិវិធីចងក្រងជាឯកសារ កំណត់ថាបុគ្គលិកណា អាចចូលដំណើរការទិន្នន័យដឹកជញ្ជូន/ទំនិញអេឡិចត្រូនិក ទេ?'},
+    {en:'Is there a system to identify abuse of IT (improper access, tampering, altering business data)?',km:'តើមានប្រព័ន្ធ ដើម្បីកំណត់ការប្រើប្រាស់ IT ខុស (ការចូលដំណើរការមិនត្រឹមត្រូវ ការរំខាន ការផ្លាស់ប្ដូរទិន្នន័យ) ទេ?'},
+    {en:'Is all computer information backed up to a fire-resistant or off-site location?',km:'តើព័ត៌មានកុំព្យូទ័រទាំងអស់ ត្រូវបានចម្លងបម្រុងទុក ក្នុងទីតាំងដែលមានភ្លើងការពារ ឬពីចម្ងាយ ទេ?'},
+    {en:'Is a network security system implemented (Firewall, Intrusion Warning System, Anti-Virus)?',km:'តើប្រព័ន្ធសន្តិសុខបណ្ដាញ (Firewall ប្រព័ន្ធព្រមាន Anti-Virus) ត្រូវបានអនុវត្ត ទេ?'},
+  ]},
+  {code:'STA',title_en:'Security Training & Threat Awareness',title_km:'ការបណ្ដុះបណ្ដាលសន្តិសុខ និងការយល់ដឹងហានិភ័យ',qs:[
+    {en:'Does the factory have a threat awareness program to recognize threats from terrorists and contraband smugglers?',km:'តើរោងចក្រមានកម្មវិធីយល់ដឹងហានិភ័យ ដើម្បីស្គាល់ការគំរាមកំហែងពីភេរវករ និងអ្នករត់ទំនិញ ទេ?'},
+    {en:'Are employees made aware of security procedures and how to report suspicious activities?',km:'តើបុគ្គលិកត្រូវបានជ្រាបដំណឹងអំពីនីតិវិធីសន្តិសុខ និងរបៀបរាយការណ៍សកម្មភាពសង្ស័យ ទេ?'},
+    {en:'Is additional training provided to employees in shipping, receiving, and mail areas?',km:'តើការបណ្ដុះបណ្ដាលបន្ថែម ត្រូវបានផ្ដល់ ដល់បុគ្គលិកក្នុងផ្នែកដឹកជញ្ជូន ទទួល និងសំបុត្រ ទេ?'},
+    {en:'Is specific training offered to assist employees in maintaining cargo integrity and recognizing internal conspiracies?',km:'តើការបណ្ដុះបណ្ដាលជាក់លាក់ ត្រូវបានផ្ដល់ ដើម្បីជួយបុគ្គលិក ក្នុងការថែរក្សាភាពត្រឹមត្រូវទំនិញ និងស្គាល់ការគំរាមកំហែងខាងក្នុង ទេ?'},
+    {en:'Does the factory integrate all security training into employee orientation with periodic refresher sessions?',km:'តើរោងចក្របញ្ចូលការបណ្ដុះបណ្ដាលសន្តិសុខទាំងអស់ ទៅក្នុងការបណ្ដុះបណ្ដាលស្ថានភាពបុគ្គលិក ជាមួយការបន្ធូរបន្ថូរជាទៀងទាត់ ទេ?'},
+    {en:'Does the facility conduct new employee orientation?',km:'តើទីតាំងធ្វើការបណ្ដុះបណ្ដាលស្ថានភាពបុគ្គលិកថ្មី ទេ?'},
+    {en:'Does the factory maintain an employee code of conduct such as an employee handbook?',km:'តើរោងចក្ររក្សាទុកក្រមប្រតិបត្តិបុគ្គលិក ដូចជាសៀវភៅណែនាំបុគ្គលិក ទេ?'},
+    {en:'Are periodic meetings held with guards to discuss factory security and alerts?',km:'តើការប្រជុំជាទៀងទាត់ ត្រូវបានរៀបចំ ជាមួយអ្នកសន្តិសុខ ដើម្បីពិភាក្សាអំពីសន្តិសុខ និងការព្រឹបប្រយ័ត្ន ទេ?'},
+    {en:'Is all security program training documented (subject, date, attendees, photos, training material)?',km:'តើការបណ្ដុះបណ្ដាលកម្មវិធីសន្តិសុខទាំងអស់ ត្រូវបានចងក្រងជាឯកសារ (ប្រធានបទ កាលបរិច្ឆេទ អ្នកចូលរួម រូបថត ឯកសារ) ទេ?'},
+  ]},
+];
+
+const HSE_SECTIONS = [
+  {code:'A',title_en:'Safety Management',title_km:'ការគ្រប់គ្រងសុវត្ថិភាព',subs:[
+    {sub:'A1',title_en:'Safety Practices',title_km:'ការអនុវត្តន៍សុវត្ថិភាព',items:[
+      {en:'Written Current Safety Policy (within the last 12 months) is signed by top management and published to employees',km:'គោលនយោបាយសុវត្ថិភាពបច្ចុប្បន្ន (ក្នុង ១២ ខែចុងក្រោយ) ចុះហត្ថលេខាដោយថ្នាក់ដឹកនាំ ហើយបានបោះផ្សាយដល់បុគ្គលិក'},
+      {en:'Written Risk Assessment is generated and maintained on file',km:'ការវាយតម្លៃហានិភ័យជាលាយលក្ខណ៍អក្សរត្រូវបានបង្កើត ហើយរក្សាទុកក្នុងឯកសារ'},
+      {en:'All H&S orientation documents (rules, regulations, emergency procedures) are adequately filed',km:'ឯកសារបណ្តុះបណ្តាលស្ថានភាព H&S ទាំងអស់ (ច្បាប់ បទប្បញ្ញត្តិ នីតិវិធីអាសន្ន) ត្រូវបានរក្សាទុកត្រឹមត្រូវ'},
+      {en:'Health and safety training documents are filed properly',km:'ឯកសារបណ្តុះបណ្តាលសុខភាព និងសុវត្ថិភាពត្រូវបានរក្សាទុកត្រឹមត្រូវ'},
+      {en:'All PPE training documents are filed',km:'ឯកសារបណ្តុះបណ្តាល PPE ទាំងអស់ត្រូវបានរក្សាទុក'},
+      {en:'Employees and supervisors wear PPE as required',km:'បុគ្គលិក និងអ្នកត្រួតពិនិត្យពាក់ PPE តាមតម្រូវការ'},
+      {en:'All machines are properly installed with safety guards as required',km:'ម៉ាស៊ីនទាំងអស់ត្រូវបានតំឡើងត្រឹមត្រូវ ដោយមានឧបករណ៍ការពារសុវត្ថិភាពតាមតម្រូវការ'},
+      {en:'Employees can only smoke at designated areas as indicated by signage',km:'បុគ្គលិកអាចជក់បារីបានតែក្នុងតំបន់ដែលបានកំណត់ ដូចដែលបានបង្ហាញដោយស្លាក'},
+    ]},
+    {sub:'A2',title_en:'Emergency Action',title_km:'សកម្មភាពអាសន្ន',items:[
+      {en:'Evacuation drills are conducted for all employees once every six months and documented',km:'ការហ្វឹកហ្វឺនជម្លៀសត្រូវបានធ្វើសម្រាប់បុគ្គលិកទាំងអស់ ១ ដងរៀងរាល់ ៦ ខែ ហើយបានចងក្រងជាឯកសារ'},
+      {en:'All exits are unobstructed during working hours',km:'ផ្លូវចេញទាំងអស់គ្មានឧបសគ្គក្នុងម៉ោងធ្វើការ'},
+      {en:'Alarm systems are provided and checked monthly',km:'ប្រព័ន្ធសញ្ញាម្ហូបត្រូវបានផ្តល់ ហើយពិនិត្យប្រចាំខែ'},
+      {en:'Emergency lighting system is installed and checked monthly throughout working area, canteen, and dormitory',km:'ប្រព័ន្ធភ្លឺអាសន្នត្រូវបានតំឡើង ហើយពិនិត្យប្រចាំខែ នៅគ្រប់តំបន់ការងារ ភោជនីយដ្ឋាន និងហាលដំណេក'},
+      {en:'Manually activated alarm switch is unobstructed, clearly marked, and accessible',km:'ប៊ូតុងសញ្ញាម្ហូបដោយដៃគ្មានឧបសគ្គ ស្លាកច្បាស់ ហើយអាចចូលប្រើបាន'},
+      {en:'Written Emergency Action Plan is in place and accessible to employees at all times',km:'ផែនការសកម្មភាពអាសន្នជាលាយលក្ខណ៍អក្សរ ត្រូវបានដាក់ ហើយបុគ្គលិកអាចចូលប្រើបានគ្រប់ពេល'},
+      {en:'First aid kits are available in all working areas and dormitory. List of medicines and person-in-charge posted.',km:'ប្រអប់ការព្យាបាលដំបូងមាននៅគ្រប់តំបន់ការងារ និងហាលដំណេក ។ បញ្ជីថ្នាំ និងអ្នកទទួលខុសត្រូវបានបិទ។'},
+      {en:'Emergency contact numbers are posted on bulletin boards and at conspicuous locations',km:'លេខទំនាក់ទំនងអាសន្នត្រូវបានបិទនៅក្តារប្រកាស និងកន្លែងដែលអាចមើលឃើញ'},
+    ]},
+    {sub:'A3',title_en:'Fire Prevention',title_km:'ការទប់ស្កាត់អគ្គីភ័យ',items:[
+      {en:'Fire extinguisher training is conducted yearly and documents are filed properly',km:'ការបណ្តុះបណ្តាលម៉ាស៊ីនពន្លត់អគ្គីភ័យត្រូវបានធ្វើប្រចាំឆ្នាំ ហើយឯកសារត្រូវបានរក្សាទុកត្រឹមត្រូវ'},
+      {en:'Fire extinguishers are accessible and unobstructed',km:'ម៉ាស៊ីនពន្លត់អគ្គីភ័យអាចចូលប្រើបាន ហើយគ្មានឧបសគ្គ'},
+      {en:'Fire extinguisher signs are clearly seen at eye level and placed properly',km:'ស្លាកម៉ាស៊ីនពន្លត់អគ្គីភ័យអាចមើលឃើញច្បាស់ ហើយបានដាក់ត្រឹមត្រូវ'},
+      {en:'All fire fighting equipment (extinguishers, hoses, etc.) are checked monthly',km:'ឧបករណ៍ប្រយុទ្ធអគ្គីភ័យទាំងអស់ (ម៉ាស៊ីនពន្លត់ ទម្រ ។ល។) ត្រូវបានពិនិត្យប្រចាំខែ'},
+      {en:'Emergency lights are installed at all emergency exits and evacuation aisles',km:'ភ្លើងអាសន្នត្រូវបានតំឡើងនៅផ្លូវចេញអាសន្ន និងផ្លូវជម្លៀសទាំងអស់'},
+      {en:'Fire exits are marked with illuminated exit signs by a reliable light source',km:'ផ្លូវចេញអគ្គីភ័យត្រូវបានសំគាល់ដោយស្លាកចេញភ្លឺ ដោយប្រភពភ្លើងដែលអាចជឿទុកចិត្ត'},
+      {en:'Emergency lights are checked every month to ensure reliability',km:'ភ្លើងអាសន្នត្រូវបានពិនិត្យរៀងរាល់ខែ ដើម្បីធានាការអាចជឿទុកចិត្ត'},
+    ]},
+    {sub:'A4',title_en:'Electrical',title_km:'អគ្គិសនី',items:[
+      {en:'Electrical lines are flexible, free of splice, and covered by protector',km:'ខ្សែអគ្គិសនីមានភាពបត់បែន គ្មានការព្រឹបភ្ជាប់ ហើយត្រូវបានគ្របដោយឧបករណ៍ការពារ'},
+      {en:'Instruction signs and wiring diagrams are available for each electrical panel and posted nearby',km:'ស្លាកណែនាំ និងដ្យាក្រាមខ្សែអគ្គិសនីមានសម្រាប់ប្លង់អគ្គិសនីនីមួយៗ ហើយបានបិទជិតៗ'},
+      {en:'Electrical systems (switches, receptacles, junction boxes) are provided with tight fitting covers',km:'ប្រព័ន្ធអគ្គិសនី (ស្វីត ។ ។ ។) ត្រូវបានផ្តល់គម្របស្ណិតស្ណាល'},
+      {en:'Electrical equipment (panels, fuse/breaker boxes) are accessible and unobstructed at all times',km:'ឧបករណ៍អគ្គិសនី (ប្លង់ ប្រអប់ fuse/breaker) អាចចូលប្រើបាន ហើយគ្មានឧបសគ្គគ្រប់ពេល'},
+    ]},
+    {sub:'A5',title_en:'Material Handling & Housekeeping',title_km:'ការដោះស្រាយសម្ភារ និងការថែទាំអនាម័យ',items:[
+      {en:'Forklift drivers are required to be certified by an outside party. Certificates maintained on file.',km:'អ្នកបើកបណ្ដាលក្រចើត្រូវការការបញ្ជាក់ដោយភាគីខាងក្រៅ ។ វិញ្ញាបនប័ត្រត្រូវបានរក្សាទុក។'},
+      {en:'Floors and aisles including emergency aisles are clean, unobstructed, and contain evacuation signs',km:'ជាន់ និងផ្លូវ រួមទាំងផ្លូវអាសន្ន ស្អាត គ្មានឧបសគ្គ ហើយមានស្លាកជម្លៀស'},
+      {en:'Stairs are unobstructed and in good condition',km:'ជណ្ដើរគ្មានឧបសគ្គ ហើយស្ថិតក្នុងស្ថានភាពល្អ'},
+      {en:'Stairs are illuminated (top to bottom)',km:'ជណ្ដើរត្រូវបានបំភ្លឺ (ពីលើដល់ក្រោម)'},
+      {en:'Forklifts are inspected by an outside party bi-yearly and certificates are kept properly',km:'រថយន្ត forklift ត្រូវបានត្រួតពិនិត្យដោយភាគីខាងក្រៅ ២ ដងក្នុងឆ្នាំ ហើយវិញ្ញាបនប័ត្រត្រូវបានរក្សាទុកត្រឹមត្រូវ'},
+    ]},
+    {sub:'A6',title_en:'Workshop',title_km:'បន្ទប់ជួសជុល',items:[
+      {en:'Materials and equipment are kept tidy and in a safe manner',km:'សម្ភារ និងឧបករណ៍ត្រូវបានរក្សាទុកស្អាតស្អំ ហើយដោយសុវត្ថិភាព'},
+      {en:'Technician uses proper PPE when doing mechanical, welding, or any hazardous works',km:'បច្ចេកទេសករប្រើ PPE ត្រឹមត្រូវពេលធ្វើការងារម៉ាស៊ីន ។ ។ ។ ឬការងារប្រថុយប្រថានណាមួយ'},
+      {en:'Workshop area is clear, unobstructed, and tidy',km:'តំបន់ workshop ច្បាស់ គ្មានឧបសគ្គ ហើយស្អាត'},
+    ]},
+  ]},
+  {code:'B',title_en:'Health Management',title_km:'ការគ្រប់គ្រងសុខភាព',subs:[
+    {sub:'B1',title_en:'Sanitation – All Spaces',title_km:'អនាម័យ – គ្រប់ទីកន្លែង',items:[
+      {en:'Washing basins are available in toilets',km:'អាងលាងដៃមានក្នុងបន្ទប់ទឹក'},
+      {en:'All waste bins are maintained in good condition in toilets',km:'ធុងសំណល់ទាំងអស់ក្នុងបន្ទប់ទឹកត្រូវបានថែទាំក្នុងស្ថានភាពល្អ'},
+      {en:'Use of toilets is unrestricted',km:'ការប្រើប្រាស់បន្ទប់ទឹកគ្មានការរឹតបន្ត'},
+      {en:'Soap is available in toilets',km:'សាប៊ូមាននៅក្នុងបន្ទប់ទឹក'},
+      {en:'Water is available at all times',km:'ទឹកអាចប្រើបានគ្រប់ពេល'},
+      {en:'Toilets are kept clean with disinfectant and cleaned whenever necessary',km:'បន្ទប់ទឹកត្រូវបានថែរក្សាស្អាតដោយថ្នាំបំបាត់មេរោគ ហើយសម្អាតពេលចាំបាច់'},
+      {en:'Drinking water is easily accessible to employees in every work area',km:'ទឹកផឹកអាចរកបានយ៉ាងងាយដល់បុគ្គលិកក្នុងរាល់តំបន់ការងារ'},
+      {en:'Toilets are adequately ventilated and the ventilation is working properly',km:'បន្ទប់ទឹកមានខ្យល់ចេញចូលគ្រប់គ្រាន់ ហើយការខ្យល់ចេញចូលដំណើរការត្រឹមត្រូវ'},
+    ]},
+    {sub:'B2',title_en:'Canteen',title_km:'ភោជនីយដ្ឋាន',items:[
+      {en:'Floors and drains are clean',km:'ជាន់ និងប្រព័ន្ធបង្ហូរទឹកស្អាត'},
+      {en:'Tabletops are clean',km:'ផ្ទៃតុស្អាត'},
+      {en:'The canteen has sufficient space for employees',km:'ភោជនីយដ្ឋានមានកន្លែងគ្រប់គ្រាន់សម្រាប់បុគ្គលិក'},
+      {en:'The facility has an effective pest control program',km:'ទីតាំងមានកម្មវិធីគ្រប់គ្រងសត្វល្អិតដែលមានប្រសិទ្ធភាព'},
+      {en:'The pest control program is monitored and documented on a regular basis',km:'កម្មវិធីគ្រប់គ្រងសត្វល្អិតត្រូវបានត្រួតពិនិត្យ ហើយចងក្រងជាឯកសារទៀងទាត់'},
+    ]},
+    {sub:'B3',title_en:'Clinics / Emergency Health Treatment',title_km:'គ្លីនិក / ការព្យាបាលអាសន្ន',items:[
+      {en:'On-site clinic must be available in the factory according to local legal standards',km:'គ្លីនិកក្នុងទីតាំងត្រូវតែមាននៅក្នុងរោងចក្រតាមស្តង់ដារច្បាប់មូលដ្ឋាន'},
+      {en:'At least one full-time nurse is available on-site during work hours',km:'គិលានុបដ្ឋាយិកាពេញម៉ោងយ៉ាងហោចណាស់ ១ នាក់ ត្រូវមាននៅក្នុងទីតាំងក្នុងម៉ោងធ្វើការ'},
+      {en:'At least one licensed doctor must be available on-site when the factory has 1,000 workers or more',km:'វេជ្ជបណ្ឌិតដែលមានអាជ្ញាប័ណ្ណ ១ រូបយ៉ាងហោចណាស់ ត្រូវមាននៅក្នុងទីតាំង ពេលរោងចក្រមានកម្មករ ១,០០០ នាក់ ឬច្រើនជាងនោះ'},
+      {en:'Clinic is air conditioned / maintains a comfortable temperature',km:'គ្លីនិកមានម៉ាស៊ីនត្រជាក់ / រក្សាអាកាសធាតុស្រួល'},
+      {en:"In the clinic, employee's health records are filed properly",km:'នៅក្នុងគ្លីនិក ឯកសារសុខភាពបុគ្គលិកត្រូវបានរក្សាទុកត្រឹមត្រូវ'},
+    ]},
+    {sub:'B4',title_en:'Employee Dormitories',title_km:'ហាលដំណេកបុគ្គលិក',items:[
+      {en:'Proper lighting is available throughout the dormitory',km:'ភ្លើងត្រឹមត្រូវមានគ្រប់ទីកន្លែងក្នុងហាលដំណេក'},
+      {en:'Dormitories have sufficient toilets and washing areas, minimum comply with local law',km:'ហាលដំណេកមានបន្ទប់ទឹក និងតំបន់លាងជក់គ្រប់គ្រាន់ ។ អប្បបរមាស្របតាមច្បាប់មូលដ្ឋាន'},
+      {en:'A written dormitory rule for employees is posted in local language and in English',km:'ច្បាប់ហាលដំណេកជាលាយលក្ខណ៍អក្សរសម្រាប់បុគ្គលិកត្រូវបានបិទជាភាសាមូលដ្ឋាន និងភាសាអង់គ្លេស'},
+      {en:'First aid box, fire extinguishers, and emergency exit doors are available in dormitories',km:'ប្រអប់ការព្យាបាលដំបូង ម៉ាស៊ីនពន្លត់អគ្គីភ័យ ហើយទ្វារចេញអាសន្នមាននៅហាលដំណេក'},
+      {en:'Emergency exits are unlocked, unblocked, and equipped with illuminated exit signs',km:'ផ្លូវចេញអាសន្នបើកចំហ គ្មានការស្ទះ ហើយត្រូវបានបំពាក់ស្លាកចេញភ្លឺ'},
+      {en:'Fire extinguishers are accessible, unblocked, stored appropriately, and checked monthly',km:'ម៉ាស៊ីនពន្លត់អគ្គីភ័យអាចចូលប្រើបាន គ្មានការស្ទះ ស្តុកត្រឹមត្រូវ ហើយពិនិត្យប្រចាំខែ'},
+      {en:'Evacuation drills are conducted in dormitory area minimum two times a year',km:'ការហ្វឹកហ្វឺនជម្លៀសត្រូវបានធ្វើក្នុងតំបន់ហាលដំណេកយ៉ាងហោចណាស់ ២ ដងក្នុងមួយឆ្នាំ'},
+      {en:'Every dormitory has emergency lighting installed on stairs and nearby emergency exits',km:'ហាលដំណេកនីមួយៗមានភ្លើងអាសន្នតំឡើងនៅជណ្ដើរ និងជិតផ្លូវចេញអាសន្ន'},
+      {en:'Electrical panels are well covered, accessible, unblocked, and have instruction & warning signs',km:'ប្លង់អគ្គិសនីត្រូវបានគ្របល្អ ចូលប្រើបាន គ្មានការស្ទះ ហើយមានស្លាកណែនាំ និងព្រមាន'},
+    ]},
+  ]},
+  {code:'C',title_en:'Environmental Management',title_km:'ការគ្រប់គ្រងបរិស្ថាន',subs:[
+    {sub:'C1',title_en:'Environmental Practices',title_km:'ការអនុវត្តន៍បរិស្ថាន',items:[
+      {en:'A written Environmental Policy (within last 12 months) is signed by top management and available for review',km:'គោលនយោបាយបរិស្ថានជាលាយលក្ខណ៍អក្សរ (ក្នុង ១២ ខែចុងក្រោយ) ចុះហត្ថលេខាដោយថ្នាក់ដឹកនាំ ហើយអាចពិនិត្យបាន'},
+      {en:'All environmental related documents are maintained',km:'ឯកសារទាំងអស់ពាក់ព័ន្ធបរិស្ថានត្រូវបានថែរក្សា'},
+      {en:'Drinking water has a good water treatment system operated by a certified competent operator',km:'ទឹកផឹកមានប្រព័ន្ធដំណើរការទឹកល្អ ដំណើរការដោយប្រតិបត្តិករដែលមានការបញ្ជាក់'},
+      {en:'Drinking water and industrial wastewater are checked in a certified lab at least once a month',km:'ទឹកផឹក និងទឹកស្ទុះឧស្សាហកម្មត្រូវបានពិនិត្យក្នុងមន្ទីរពិសោធន៍ដែលមានការបញ្ជាក់យ៉ាងហោចណាស់ ១ ដងក្នុងខែ'},
+    ]},
+    {sub:'C2',title_en:'Chemical Storage, Use and Handling',title_km:'ការស្តុក ប្រើប្រាស់ និងដោះស្រាយគីមី',items:[
+      {en:'All MSDS training documents are filed',km:'ឯកសារបណ្តុះបណ្តាល MSDS ទាំងអស់ត្រូវបានរក្សាទុក'},
+      {en:'Written Emergency Action Plan in case of chemical leak-out is provided',km:'ផែនការសកម្មភាពអាសន្នជាលាយលក្ខណ៍អក្សរក្នុងករណីគីមីលេចត្រូវបានផ្តល់'},
+      {en:'Material Safety Data Sheets (MSDS) are available in employee language, management language, and English',km:'ឯកសារ MSDS មាននៅក្នុងភាសាបុគ្គលិក ភាសាការគ្រប់គ្រង និងភាសាអង់គ្លេស'},
+      {en:'Secondary containment barrier is available in chemical storage areas',km:'ឧបសគ្គទប់ស្កាត់បន្ទាប់មានក្នុងតំបន់ស្តុកគីមី'},
+      {en:'Fire extinguisher, emergency eye wash or shower are provided in chemical storage area',km:'ម៉ាស៊ីនពន្លត់ ។ ។ ។ ឧបករណ៍លាងភ្នែក/ងូតទឹកអាសន្ន ត្រូវបានផ្តល់ក្នុងតំបន់ស្តុកគីមី'},
+      {en:'Chemical containers are labeled (including secondary containers)',km:'ធុងបណ្តុំគីមីមានស្លាក (រួមទាំងធុងបណ្តុំបន្ទាប់)'},
+      {en:'Chemical containers are in good condition',km:'ធុងបណ្តុំគីមីស្ថិតក្នុងស្ថានភាពល្អ'},
+      {en:'Chemical storage areas are neat, in order, and safe',km:'តំបន់ស្តុកគីមីស្អាត មានរបៀបរបប ហើយមានសុវត្ថិភាព'},
+      {en:'Chemical containers are kept closed when not in use',km:'ធុងបណ្តុំគីមីត្រូវបានបិទនៅពេលមិនប្រើ'},
+      {en:'Chemical storage areas are appropriately ventilated',km:'តំបន់ស្តុកគីមីមានខ្យល់ចេញចូលត្រឹមត្រូវ'},
+      {en:'Chemical storage areas are separated from production areas',km:'តំបន់ស្តុកគីមីត្រូវបានបំបែកចេញពីតំបន់ផលិតកម្ម'},
+      {en:'Chemical storage areas are covered by roofs',km:'តំបន់ស្តុកគីមីត្រូវបានគ្របដោយដំបូល'},
+      {en:'Proper warning signs are posted in chemical storage areas (no food, no smoking)',km:'ស្លាកព្រមានត្រឹមត្រូវត្រូវបានបិទក្នុងតំបន់ស្តុកគីមី (ហាមអាហារ ហាមជក់បារី)'},
+    ]},
+    {sub:'C3',title_en:'Non-Hazardous Waste Storage',title_km:'ការស្តុកសំណល់ដែលគ្មានគ្រោះថ្នាក់',items:[
+      {en:'Non-hazardous waste storage area is covered with roofs',km:'តំបន់ស្តុកសំណល់ដែលគ្មានគ្រោះថ្នាក់ត្រូវបានគ្របដោយដំបូល'},
+      {en:'Fire extinguisher is installed in non-hazardous waste storage areas',km:'ម៉ាស៊ីនពន្លត់អគ្គីភ័យត្រូវបានតំឡើងក្នុងតំបន់ស្តុកសំណល់ដែលគ្មានគ្រោះថ្នាក់'},
+      {en:'Non-hazardous waste storage area is neat and in order',km:'តំបន់ស្តុកសំណល់ដែលគ្មានគ្រោះថ្នាក់ស្អាត ហើយមានរបៀបរបប'},
+      {en:'Non-hazardous waste storage area is separated from production areas',km:'តំបន់ស្តុកសំណល់ដែលគ្មានគ្រោះថ្នាក់ត្រូវបានបំបែកចេញពីតំបន់ផលិតកម្ម'},
+    ]},
+  ]},
+];
+
+const RISK_INIT = [
+  {dept:'RAW MATERIAL STORE – FABRIC'},
+  {no:1,dept:'Fabric Store',act:'Fabric Storing',item:'Fabric',risk:'Mix up raw fabric',ctrl:'Mill-wise allocated storing. Each pallet labeled with mill & reference number.',l:1,c:4},
+  {no:2,dept:'Fabric Store',act:'Fabric Storing',item:'Raw Fabric',risk:'Tearing due to damaged rack',ctrl:'No sharp edges at pallet.',l:2,c:3},
+  {no:3,dept:'Fabric Store',act:'Fabric Issuing',item:'Fabric',risk:'Wrong type of fabric issued',ctrl:'Check Roll No., Lot No. and Type against Lay Plan before issuing.',l:1,c:4},
+  {dept:'RAW MATERIAL STORE – ACCESSORIES'},
+  {no:4,dept:'Accessory Store',act:'Receiving',item:'Accessories',risk:'Wrong number on carton box/packing',ctrl:'Randomly check carton labels before making GRN.',l:1,c:3},
+  {no:5,dept:'Accessory Store',act:'Preparation of Kit Pack',item:'Accessories',risk:'Wrong accessory issued',ctrl:'Quality persons cross-check with Trim Card before issuing.',l:1,c:4},
+  {dept:'CUTTING'},
+  {no:6,dept:'Cutting',act:'Preparation of Lay Plan',item:'Cut Component',risk:'Wrong style selection for lay plan',ctrl:'TPD Manager must approve each Lay Plan.',l:1,c:4},
+  {no:7,dept:'Spreading',act:'Spreading of Fabric',item:'Fabric',risk:'Fabric face/back side changed',ctrl:'QA Supervisor to inspect fabric when changing each roll.',l:2,c:4},
+  {no:8,dept:'Cutting',act:'Bundling & Issuing',item:'Cut Component',risk:'Size mix up',ctrl:'Label each rack with SEJ, CEJ, Style, and Qty.',l:2,c:4},
+  {dept:'SEWING'},
+  {no:9,dept:'Sewing',act:'Receiving Accessories',item:'Garments',risk:'Incorrect accessories received',ctrl:'Issue girl to check all accessories quantity and type when receiving.',l:1,c:4},
+  {no:10,dept:'Sewing',act:'Sewing',item:'Garments',risk:'Needle broken piece inside garment',ctrl:'Needle control procedure in place. Needle log maintained daily.',l:2,c:4},
+  {no:11,dept:'Sewing',act:'Trims & Labels',item:'Garments',risk:'Wrong label / care label attached',ctrl:'Label verification against spec sheet at each line start.',l:1,c:4},
+  {dept:'EMBROIDERY'},
+  {no:12,dept:'Embroidery',act:'Preparation for Production',item:'Cut Panel',risk:'Fabric face/back side changed',ctrl:'QA Supervisor training whenever new styles begin.',l:2,c:4},
+  {no:13,dept:'Embroidery',act:'Needle Parts',item:'Operators/Customer',risk:'Needle parts inside cut panels',ctrl:'Needle procedure training for all operators.',l:2,c:4},
+  {dept:'FINISHING / PACKING'},
+  {no:14,dept:'Finishing',act:'Final Inspection',item:'Garments',risk:'Measurement out of tolerance',ctrl:'QC to check measurements for every 10th piece. Spec sheet at workstation.',l:2,c:4},
+  {no:15,dept:'Packing',act:'Packing',item:'Garments',risk:'Wrong garment packed into carton',ctrl:'QC to verify size, color, and style before packing.',l:1,c:4},
+  {dept:'QUALITY CONTROL'},
+  {no:16,dept:'QC – Inline',act:'Inline Inspection',item:'Garments',risk:'Defects missed at inline stage',ctrl:'AQL sampling per ANSI/ASQ Z1.4; defects recorded in QC log.',l:2,c:4},
+  {no:17,dept:'QC – Final',act:'Final Audit',item:'Garments',risk:'Shipment rejected by buyer',ctrl:'Final random inspection by QA Manager before packing. CAP if defects found.',l:2,c:4},
+];
+
+// ============================================================
+// RENDER — WRAP POLICY TABLE
+// ============================================================
+function renderPolicyTable() {
+  const principles = ['Compliance with Laws and Workplace Regulations','Prohibition of Forced Labor','Prohibition of Child Labor','Prohibition of Harassment or Abuse','Compensation and Benefits','Hours of Work','Prohibition of Discrimination','Health and Safety','Freedom of Association and Collective Bargaining','Environment','Customs Compliance','Security'];
+  document.getElementById('policy-tbody').innerHTML = principles.map((p,i)=>`
+    <tr>
+      <td style="font-weight:700;text-align:center;color:var(--navy)">${i+1}</td>
+      <td>${p}</td>
+      <td style="text-align:center">
+        <label class="chk-opt"><input type="radio" name="pol_${i+1}" value="yes"> Yes</label>&nbsp;
+        <label class="chk-opt"><input type="radio" name="pol_${i+1}" value="no"> No</label>
+      </td>
+      <td><input type="text" class="q-inp" name="pol_rp_${i+1}" placeholder="Name, Title..."></td>
+    </tr>`).join('');
+}
+
+// ============================================================
+// RENDER — WRAP PRINCIPLES
+// ============================================================
+function renderWrapPrinciples() {
+  const L = LANG;
+  const yn = L==='km' ? {y:'បាទ/ចាស',n:'ទេ',na:'មិន​អនុ​វត្ត'} : {y:'YES',n:'NO',na:'N/A'};
+  document.getElementById('wrap-principles').innerHTML = WRAP_PRINCIPLES.map(p=>{
+    const title = L==='km' ? p.title_km : p.title_en;
+    const desc  = L==='km' ? p.desc_km  : p.desc_en;
+    const qHdr  = L==='km' ? 'សំណួរ​ការ​វាយ​តម្លៃ​ខ្លួន​ឯង' : 'Pre-Audit Self-Assessment Question';
+    const evHdr = L==='km' ? 'ភស្តុតាង / មតិ' : 'Objective Evidence / Comments';
+    return `
+    <div class="card" data-section="P${p.num}">
+      <div class="card-header" onclick="toggleCard(this)">
+        <div><span class="card-badge">P${p.num}</span><span style="margin-left:10px">PRINCIPLE ${p.num}: ${title}</span></div>
+        <span class="card-toggle">▼</span>
+      </div>
+      <div class="card-body">
+        <div class="card-desc">${desc}</div>
+        <table class="q-tbl" id="wrap-p${p.num}-tbl">
+          <thead><tr>
+            <th style="width:55px">Q#</th><th>${qHdr}</th>
+            <th style="width:110px" class="ctr">${yn.y} / ${yn.n} / ${yn.na}</th>
+            <th>${evHdr}</th><th style="width:30px"></th>
+          </tr></thead>
+          <tbody>${p.qs.map(q=>wrapQRow(p.num, q)).join('')}</tbody>
+        </table>
+        <button class="btn-add-row" onclick="addWrapQ(${p.num})">+ Add Question to Principle ${p.num}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function wrapQRow(pnum, q, isCustom=false) {
+  const rid = `wp${pnum}_${(q.id||'c'+Date.now()).replace(/[^a-z0-9]/gi,'_')}`;
+  const isText = q.type === 'text';
+  const txt = LANG==='km' ? (q.km||q.en||q.t||'') : (q.en||q.t||'');
+  const yn = LANG==='km' ? {y:'បាទ/ចាស',n:'ទេ',na:'មិន​អនុ​វត្ត',open:'បើក',ph:'ភស្តុតាង / មតិ...'} : {y:'YES',n:'NO',na:'N/A',open:'Open',ph:'Evidence / Comments...'};
+  return `<tr class="${isCustom?'custom-row':''}">
+    <td class="q-num">${q.id||'★'}</td>
+    <td class="q-text">${txt}</td>
+    <td style="text-align:center">${isText?`<span style="font-size:10px;color:var(--muted)">${yn.open}</span>`:`
+      <div class="radio-grp">
+        <div class="radio-opt"><input type="radio" name="${rid}" value="yes"><span class="lbl-y">${yn.y}</span></div>
+        <div class="radio-opt"><input type="radio" name="${rid}" value="no"><span class="lbl-n">${yn.n}</span></div>
+        <div class="radio-opt"><input type="radio" name="${rid}" value="na"><span class="lbl-na">${yn.na}</span></div>
+      </div>`}
+    </td>
+    <td><textarea class="q-txt" name="${rid}_c" placeholder="${yn.ph}"></textarea></td>
+    <td><button class="btn-del" onclick="this.closest('tr').remove()" title="Remove row">✕</button></td>
+  </tr>`;
+}
+
+function addWrapQ(pnum) {
+  const tbody = document.querySelector(`#wrap-p${pnum}-tbl tbody`);
+  const tr = document.createElement('tr');
+  tr.className = 'custom-row';
+  tr.innerHTML = `
+    <td class="q-num">★</td>
+    <td><input type="text" class="q-inp" placeholder="Enter custom question..." style="width:100%"></td>
+    <td style="text-align:center">
+      <div class="radio-grp">
+        <div class="radio-opt"><input type="radio" name="wp${pnum}_c${Date.now()}" value="yes"><span class="lbl-y">YES</span></div>
+        <div class="radio-opt"><input type="radio" name="wp${pnum}_c${Date.now()}_n" value="no"><span class="lbl-n">NO</span></div>
+        <div class="radio-opt"><input type="radio" name="wp${pnum}_c${Date.now()}_na" value="na"><span class="lbl-na">N/A</span></div>
+      </div>
+    </td>
+    <td><textarea class="q-txt" placeholder="Evidence / Comments..."></textarea></td>
+    <td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>`;
+  tbody.appendChild(tr);
+  tr.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// ============================================================
+// RENDER — CTPAT
+// ============================================================
+function renderCtpat() {
+  let qGlobal = 1;
+  const L = LANG;
+  const yn = L==='km' ? {y:'បាទ/ចាស',n:'ទេ',na:'មិន​អនុ​វត្ត'} : {y:'YES',n:'NO',na:'N/A'};
+  const qHdr  = L==='km' ? 'សំណួរ' : 'Question';
+  const cmHdr = L==='km' ? 'មតិ' : 'Comments';
+  document.getElementById('ctpat-sections').innerHTML = CTPAT_SECTIONS.map(s=>{
+    const title = L==='km' ? s.title_km : s.title_en;
+    return `
+    <div class="card" data-section="${s.code}">
+      <div class="card-header" onclick="toggleCard(this)">
+        <div><span class="card-badge">${s.code}</span><span style="margin-left:10px">${title}</span></div>
+        <span class="card-toggle">▼</span>
+      </div>
+      <div class="card-body">
+        <table class="q-tbl" id="ct-${s.code}-tbl">
+          <thead><tr>
+            <th style="width:40px">No.</th><th>${qHdr}</th>
+            <th style="width:110px" class="ctr">${yn.y} / ${yn.n} / ${yn.na}</th>
+            <th>${cmHdr}</th><th style="width:30px"></th>
+          </tr></thead>
+          <tbody>
+            ${s.qs.map(q=>{
+              const n = qGlobal++;
+              return ctpatRow(s.code, n, q);
+            }).join('')}
+          </tbody>
+        </table>
+        <button class="btn-add-row" onclick="addCtpatQ('${s.code}')">+ Add Question to ${s.code}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ctpatRow(code, num, q, isCustom=false) {
+  const nm = `ct_${code}_${num}`;
+  const txt = (typeof q === 'object') ? (LANG==='km' ? (q.km||q.en) : q.en) : q;
+  const yn = LANG==='km' ? {y:'បាទ/ចាស',n:'ទេ',na:'មិន​អនុ​វត្ត'} : {y:'YES',n:'NO',na:'N/A'};
+  const ph = LANG==='km' ? 'មតិ...' : 'Comments...';
+  return `<tr class="${isCustom?'custom-row':''}">
+    <td class="q-num">${num}</td>
+    <td class="q-text">${txt}</td>
+    <td style="text-align:center">
+      <div class="radio-grp">
+        <div class="radio-opt"><input type="radio" name="${nm}" value="yes"><span class="lbl-y">${yn.y}</span></div>
+        <div class="radio-opt"><input type="radio" name="${nm}" value="no"><span class="lbl-n">${yn.n}</span></div>
+        <div class="radio-opt"><input type="radio" name="${nm}" value="na"><span class="lbl-na">${yn.na}</span></div>
+      </div>
+    </td>
+    <td><textarea class="q-txt" name="${nm}_c" placeholder="${ph}"></textarea></td>
+    <td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>
+  </tr>`;
+}
+
+function addCtpatQ(code) {
+  const tbody = document.querySelector(`#ct-${code}-tbl tbody`);
+  const rowCount = tbody.querySelectorAll('tr').length + 1;
+  const tr = document.createElement('tr');
+  tr.className = 'custom-row';
+  tr.innerHTML = ctpatRow(code, '★', '<input type="text" class="q-inp" placeholder="Enter custom question..." style="width:100%">', true);
+  tbody.appendChild(tr);
+  tr.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// ============================================================
+// RENDER — HSE
+// ============================================================
+let hseGlobal = 0;
+function renderHse() {
+  hseGlobal = 0;
+  const L = LANG;
+  const yn = L==='km' ? {y:'បាទ/ចាស',n:'ទេ',na:'មិន​អនុ​វត្ត'} : {y:'Yes',n:'No',na:'N/A'};
+  document.getElementById('hse-sections').innerHTML = HSE_SECTIONS.map(s=>{
+    const sTitle = L==='km' ? s.title_km : s.title_en;
+    return `
+    <div class="card" data-section="${s.code}">
+      <div class="card-header" onclick="toggleCard(this)">
+        <div><span class="card-badge">[${s.code}]</span><span style="margin-left:10px">${sTitle}</span></div>
+        <span class="card-toggle">▼</span>
+      </div>
+      <div class="card-body">
+        ${s.subs.map(sub=>{
+          const subTitle = L==='km' ? sub.title_km : sub.title_en;
+          return `
+          <div class="sub-hdr">${sub.sub} — ${subTitle}
+            <button class="btn-add-row" style="width:auto;padding:2px 10px;margin-left:10px;font-size:11px" onclick="addHseItem('${sub.sub}')">+ Add</button>
+          </div>
+          <table class="q-tbl" id="hse-${sub.sub}-tbl">
+            <thead><tr><th style="width:40px">No.</th><th>${L==='km'?'ធាតុ​សវន​កម្ម':'Audit Item'}</th>
+              <th style="width:46px" class="ctr">${yn.y}</th>
+              <th style="width:46px" class="ctr">${yn.n}</th>
+              <th style="width:46px" class="ctr">${yn.na}</th>
+              <th>${L==='km'?'មតិ':'Comment'}</th><th style="width:30px"></th>
+            </tr></thead>
+            <tbody>
+              ${sub.items.map(item=>{
+                hseGlobal++;
+                return hseRow(hseGlobal, sub.sub, item);
+              }).join('')}
+            </tbody>
+          </table>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  updateHseScore();
+  document.getElementById('hse-total').textContent = hseGlobal;
+}
+
+function hseRow(n, subCode, item, isCustom=false) {
+  const txt = (typeof item === 'object') ? (LANG==='km' ? (item.km||item.en) : item.en) : item;
+  const ph = LANG==='km' ? 'មតិ...' : 'Comment...';
+  return `<tr class="${isCustom?'custom-row':''}" data-hse-n="${n}">
+    <td class="q-num">${n}</td>
+    <td class="q-text">${txt}</td>
+    <td style="text-align:center"><input type="radio" name="hse_${n}" value="yes" onchange="updateHseScore()" style="accent-color:var(--green);width:14px;height:14px;cursor:pointer"></td>
+    <td style="text-align:center"><input type="radio" name="hse_${n}" value="no" onchange="updateHseScore()" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer"></td>
+    <td style="text-align:center"><input type="radio" name="hse_${n}" value="na" onchange="updateHseScore()" style="accent-color:var(--muted);width:14px;height:14px;cursor:pointer"></td>
+    <td><textarea class="q-txt" name="hse_${n}_c" placeholder="${ph}"></textarea></td>
+    <td><button class="btn-del" onclick="removeHseRow(this)">✕</button></td>
+  </tr>`;
+}
+
+function addHseItem(subCode) {
+  hseGlobal++;
+  const tbody = document.querySelector(`#hse-${subCode}-tbl tbody`);
+  const tr = document.createElement('tr');
+  tr.className = 'custom-row';
+  tr.dataset.hseN = hseGlobal;
+  tr.innerHTML = `
+    <td class="q-num">${hseGlobal}</td>
+    <td><input type="text" class="q-inp" placeholder="Enter audit item..." style="width:100%"></td>
+    <td style="text-align:center"><input type="radio" name="hse_${hseGlobal}" value="yes" onchange="updateHseScore()" style="accent-color:var(--green);width:14px;height:14px;cursor:pointer"></td>
+    <td style="text-align:center"><input type="radio" name="hse_${hseGlobal}" value="no" onchange="updateHseScore()" style="accent-color:var(--red);width:14px;height:14px;cursor:pointer"></td>
+    <td style="text-align:center"><input type="radio" name="hse_${hseGlobal}" value="na" onchange="updateHseScore()" style="accent-color:var(--muted);width:14px;height:14px;cursor:pointer"></td>
+    <td><textarea class="q-txt" placeholder="Comment..."></textarea></td>
+    <td><button class="btn-del" onclick="removeHseRow(this)">✕</button></td>`;
+  tbody.appendChild(tr);
+  document.getElementById('hse-total').textContent = hseGlobal;
+}
+
+function removeHseRow(btn) {
+  btn.closest('tr').remove();
+  updateHseScore();
+}
+
+function updateHseScore() {
+  const all = document.querySelectorAll('[name^="hse_"]:not([name$="_c"])');
+  const names = new Set([...all].map(el=>el.name));
+  let yes=0, no=0, na=0;
+  names.forEach(nm=>{
+    const sel = document.querySelector(`[name="${nm}"]:checked`);
+    if(sel){ if(sel.value==='yes') yes++; else if(sel.value==='no') no++; else na++; }
+  });
+  document.getElementById('hse-yes').textContent = yes;
+  document.getElementById('hse-no').textContent = no;
+  document.getElementById('hse-na').textContent = na;
+  const answered = yes + no;
+  const pctEl = document.getElementById('hse-pct');
+  if(answered > 0){
+    const pct = Math.round((yes/answered)*100);
+    pctEl.textContent = pct + '%';
+    pctEl.className = 'score-pct ' + (pct>=80?'good':pct>=60?'med':'bad');
+  } else { pctEl.textContent = '—'; pctEl.className = 'score-pct'; }
+}
+
+// ============================================================
+// RENDER — RISK TABLE
+// ============================================================
+let riskCounter = 0;
+function renderRisk() {
+  document.getElementById('risk-tbody').innerHTML = RISK_INIT.map(r=>{
+    if(!r.no) return `<tr class="dept-hdr"><td colspan="14" style="padding:7px 10px;font-weight:700;color:var(--navy)">▶ ${r.dept}</td></tr>`;
+    riskCounter = Math.max(riskCounter, r.no);
+    return riskRow(r);
+  }).join('');
+}
+
+function riskRow(r, isCustom=false) {
+  const score = (r.l||1)*(r.c||1);
+  const {cls,lbl} = riskLevel(score);
+  const rid = `rr_${r.no||riskCounter}`;
+  return `<tr class="${isCustom?'custom-row':''}">
+    <td class="q-num" style="text-align:center">${r.no||riskCounter}</td>
+    <td><input type="text" class="q-inp" value="${r.dept||''}" style="min-width:90px"></td>
+    <td><input type="text" class="q-inp" value="${r.act||''}" style="min-width:80px"></td>
+    <td><input type="text" class="q-inp" value="${r.item||''}" style="min-width:70px"></td>
+    <td><textarea class="q-txt" rows="2" style="min-width:120px">${r.risk||''}</textarea></td>
+    <td><textarea class="q-txt" rows="2" style="min-width:130px">${r.ctrl||''}</textarea></td>
+    <td style="text-align:center">
+      <select class="r-sel" onchange="recalcRisk(this)">
+        ${[1,2,3,4].map(v=>`<option ${v==(r.l||1)?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </td>
+    <td style="text-align:center">
+      <select class="r-sel" onchange="recalcRisk(this)">
+        ${[1,2,3,4].map(v=>`<option ${v==(r.c||1)?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </td>
+    <td style="text-align:center;font-weight:700" class="r-score">${score}</td>
+    <td style="text-align:center" class="r-level"><span class="risk-badge ${cls}">${lbl}</span></td>
+    <td><textarea class="q-txt" rows="2" style="min-width:90px" placeholder="Action..."></textarea></td>
+    <td><input type="text" class="q-inp" style="min-width:80px" placeholder="Responsible..."></td>
+    <td><textarea class="q-txt" rows="2" style="min-width:80px" placeholder="Notes..."></textarea></td>
+    <td><button class="btn-del" onclick="this.closest('tr').remove()">✕</button></td>
+  </tr>`;
+}
+
+function riskLevel(score) {
+  if(score <= 3) return {cls:'rb-t', lbl:'Trivial'};
+  if(score <= 6) return {cls:'rb-m', lbl:'Moderate'};
+  if(score <= 9) return {cls:'rb-M', lbl:'Major'};
+  return {cls:'rb-i', lbl:'Intolerable'};
+}
+
+function recalcRisk(el) {
+  const row = el.closest('tr');
+  const sels = row.querySelectorAll('.r-sel');
+  const score = parseInt(sels[0].value) * parseInt(sels[1].value);
+  const {cls,lbl} = riskLevel(score);
+  row.querySelector('.r-score').textContent = score;
+  row.querySelector('.r-level').innerHTML = `<span class="risk-badge ${cls}">${lbl}</span>`;
+}
+
+function addRiskRow() {
+  riskCounter++;
+  const tbody = document.getElementById('risk-tbody');
+  const tr = document.createElement('tr');
+  tr.className = 'custom-row';
+  tr.innerHTML = riskRow({no:riskCounter, l:1, c:1}, true);
+  tbody.appendChild(tr);
+  tr.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function addDeptSection() {
+  const name = prompt('Enter department name:');
+  if(!name) return;
+  const tbody = document.getElementById('risk-tbody');
+  const tr = document.createElement('tr');
+  tr.className = 'dept-hdr';
+  tr.innerHTML = `<td colspan="14" style="padding:7px 10px;font-weight:700;color:var(--navy);background:#dbeafe">▶ ${name} <button class="btn-del btn-sm" onclick="this.closest('tr').remove()" style="margin-left:8px">✕</button></td>`;
+  tbody.appendChild(tr);
+}
+
+// ============================================================
+// SESSION MANAGEMENT
+// ============================================================
+function updateUserDisplay() {
+  const name = document.getElementById('user-name').value.trim();
+  ['wrap','ctpat','hse','risk'].forEach(s=>{
+    const el = document.getElementById(`${s}-sess-info`);
+    if(el && SESSION) el.textContent = `Session: ${SESSION.sessionId} | User: ${name || '(unnamed)'}`;
+  });
+}
+
+async function createSession() {
+  const name = document.getElementById('user-name').value.trim();
+  const type = document.getElementById('sess-type').value;
+  const ref  = document.getElementById('sess-ref').value.trim();
+  const date = document.getElementById('sess-date').value;
+
+  if(!name){ alert('Please enter your name first.'); document.getElementById('user-name').focus(); return; }
+  if(!date){ alert('Please select an assessment date.'); document.getElementById('sess-date').focus(); return; }
+  if(GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE'){ showDemoSession(type, ref, date, name); return; }
+
+  try {
+    setStatus('Creating session...', 'pending');
+    const res = await postGAS({ action:'create_session', type, reference:ref, assessmentDate:date, createdBy:name });
+    if(res.ok){ setActiveSession({sessionId:res.sessionId, reference:ref||res.sessionId, type, assessmentDate:date}); }
+    else { alert('Error: ' + (res.error||'Unknown')); }
+  } catch(e) { alert('Network error: ' + e); }
+}
+
+function showDemoSession(type, ref, date, name) {
+  // Demo mode when GAS_URL not configured
+  const sid = `${type}-${new Date().getFullYear()}-DEMO`;
+  setActiveSession({sessionId:sid, reference:ref||sid, type, assessmentDate:date});
+  showNotice('⚠ Demo Mode — GAS URL not configured. Data will NOT be saved to Google Sheets. Update GAS_URL in the HTML to enable cloud storage.', 'warn');
+}
+
+async function joinSession() {
+  const sid = document.getElementById('join-sess-id').value.trim();
+  const name = document.getElementById('user-name').value.trim();
+  if(!sid){ alert('Please enter a Session ID.'); return; }
+  if(!name){ alert('Please enter your name first.'); return; }
+  if(GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE'){ alert('GAS URL not configured. Please update GAS_URL in the HTML code.'); return; }
+
+  try {
+    setStatus('Looking up session...', 'pending');
+    const res = await fetchGAS(`action=get_session&sessionId=${encodeURIComponent(sid)}`);
+    if(res.ok && res.session){
+      setActiveSession(res.session);
+      showNotice(`✅ Joined session: ${res.session.SessionID} | Type: ${res.session.Type} | Created by: ${res.session.CreatedBy}`, 'ok');
+    } else { alert('Session not found: ' + sid); }
+  } catch(e) { alert('Network error: ' + e); }
+}
+
+function setActiveSession(sess) {
+  SESSION = sess;
+  const sid = sess.sessionId || sess.SessionID;
+  const ref = sess.reference || sess.Reference || sid;
+  document.getElementById('sess-badge').textContent = `📋 ${sid}`;
+  document.getElementById('sess-badge').className = 'session-badge active';
+  document.getElementById('sess-status-badge').textContent = `Active: ${ref}`;
+  document.getElementById('sess-status-badge').className = 'sess-status active';
+  const userName = document.getElementById('user-name').value.trim() || 'User';
+  ['wrap','ctpat','hse','risk'].forEach(s=>{
+    const el = document.getElementById(`${s}-sess-info`);
+    if(el) el.innerHTML = `<strong style="color:var(--navy)">${sid}</strong> | User: ${userName} | Submit each section independently.`;
+  });
+}
+
+// ============================================================
+// SUBMIT SECTION
+// ============================================================
+async function submitSection(section) {
+  const name = document.getElementById('user-name').value.trim();
+  if(!name){ alert('Please enter your name first.'); return; }
+  if(!SESSION){ alert('Please create or join a session first.'); return; }
+
+  const reviewerEl = {
+    WRAP: document.getElementById('wrap-reviewer'),
+    CTPAT: document.getElementById('ctpat-reviewer'),
+    HSE: document.getElementById('hse-reviewer'),
+    RISK: document.getElementById('risk-reviewer'),
+  }[section];
+  const reviewer = reviewerEl ? reviewerEl.value.trim() : '';
+
+  const formData = serializeSection(section);
+  formData._submittedAt = new Date().toISOString();
+  formData._submittedBy = name;
+
+  if(GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE'){
+    console.log('DEMO: Section data:', formData);
+    setSubmitStatus(section, 'saved', '✅ Demo Saved (Console)');
+    showNotice('Demo mode: data logged to browser console. Configure GAS_URL to save to Google Sheets.', 'warn');
+    return;
+  }
+
+  setSubmitStatus(section, 'pending', '⏳ Saving...');
+  try {
+    const res = await postGAS({
+      action: 'submit_section',
+      sessionId: SESSION.sessionId || SESSION.SessionID,
+      section,
+      submittedBy: name,
+      reviewedBy: reviewer,
+      formData
+    });
+    if(res.ok){
+      setSubmitStatus(section, 'saved', res.updated ? '🔄 Updated' : '✅ Saved');
+      showNotice(`✅ ${section} section saved successfully!`, 'ok');
+    } else {
+      setSubmitStatus(section, 'error', '❌ Error');
+      alert('Save error: ' + (res.error||'Unknown'));
+    }
+  } catch(e) {
+    setSubmitStatus(section, 'error', '❌ Network Error');
+    alert('Network error: ' + e);
+  }
+}
+
+async function loadSectionData(section) {
+  if(!SESSION){ alert('Please create or join a session first.'); return; }
+  if(GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE'){ alert('GAS URL not configured.'); return; }
+
+  const sid = SESSION.sessionId || SESSION.SessionID;
+  try {
+    const res = await fetchGAS(`action=get_submissions&sessionId=${encodeURIComponent(sid)}`);
+    if(!res.ok){ alert('Error: ' + (res.error||'Unknown')); return; }
+    const sub = res.submissions.find(s=>s.Section===section);
+    if(!sub){ alert(`No saved data found for ${section} in session ${sid}.`); return; }
+    deserializeSection(section, sub.data || sub.DataJSON ? JSON.parse(sub.DataJSON||'{}') : {});
+    showNotice(`✅ Loaded ${section} data from session ${sid} (saved ${new Date(sub.Timestamp).toLocaleString()})`, 'ok');
+  } catch(e) { alert('Load error: ' + e); }
+}
+
+// ============================================================
+// FORM SERIALIZE / DESERIALIZE
+// ============================================================
+function serializeSection(section) {
+  const tabId = {WRAP:'tab-wrap', CTPAT:'tab-ctpat', HSE:'tab-hse', RISK:'tab-risk'}[section];
+  const container = document.getElementById(tabId);
+  const data = {};
+
+  // Text inputs and textareas with name attribute
+  container.querySelectorAll('[name]').forEach(el=>{
+    if(el.type === 'radio'){ if(el.checked) data[el.name] = el.value; }
+    else if(el.type === 'checkbox'){ data[el.name] = el.checked; }
+    else { data[el.name] = el.value; }
+  });
+
+  // Risk table rows (special handling)
+  if(section === 'RISK'){
+    const rows = [];
+    document.querySelectorAll('#risk-tbody tr').forEach(tr=>{
+      if(tr.classList.contains('dept-hdr')){
+        rows.push({type:'dept', text: tr.querySelector('td').textContent.replace('▶','').replace('✕','').trim()});
+      } else {
+        const inputs = tr.querySelectorAll('input,select,textarea');
+        const row = {type:'data'};
+        ['no','dept','act','item','risk','ctrl','l','c','','' ,'action','responsible','comment'].forEach((k,i)=>{
+          if(inputs[i]) row[k||'f'+i] = inputs[i].value;
+        });
+        rows.push(row);
+      }
+    });
+    data._riskRows = rows;
+  }
+
+  return data;
+}
+
+function deserializeSection(section, data) {
+  const tabId = {WRAP:'tab-wrap', CTPAT:'tab-ctpat', HSE:'tab-hse', RISK:'tab-risk'}[section];
+  const container = document.getElementById(tabId);
+
+  Object.keys(data).forEach(key=>{
+    if(key.startsWith('_')) return;
+    const els = container.querySelectorAll(`[name="${key}"]`);
+    if(!els.length) return;
+    if(els[0].type === 'radio'){
+      els.forEach(el=>{ el.checked = (el.value === data[key]); });
+    } else if(els[0].type === 'checkbox'){
+      els[0].checked = data[key];
+    } else {
+      els[0].value = data[key]||'';
+    }
+  });
+
+  if(section === 'HSE') updateHseScore();
+}
+
+function setStatus(msg, type) {
+  ['wrap','ctpat','hse','risk'].forEach(s=>setSubmitStatus(s.toUpperCase(), type, msg));
+}
+
+function setSubmitStatus(section, type, msg) {
+  const id = {WRAP:'wrap-status',CTPAT:'ctpat-status',HSE:'hse-status',RISK:'risk-status'}[section];
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = msg;
+  el.className = 'submit-status ' + {saved:'status-saved',pending:'status-pending',error:'status-error'}[type];
+}
+
+// ============================================================
+// HISTORY / COMPARE MODAL
+// ============================================================
+async function openHistoryModal(mode='history') {
+  document.getElementById('history-modal').classList.add('open');
+  document.getElementById('modal-title').textContent = mode==='compare' ? '⚖ Compare Sessions' : '📂 Assessment History';
+  document.getElementById('modal-body').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)"><div class="spin" style="margin:auto;display:block;border-color:var(--navy);border-top-color:transparent;width:24px;height:24px"></div><br>Loading history...</div>';
+
+  if(GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE'){
+    document.getElementById('modal-body').innerHTML = `<div class="alert-warn">⚠ GAS URL not configured. History requires Google Sheets integration.<br>Update <code>GAS_URL</code> in the HTML file after deploying the GAS script.</div>`;
+    document.getElementById('modal-foot').innerHTML = `<button class="btn btn-outline" style="background:var(--navy2);color:#fff" onclick="closeModal()">Close</button>`;
+    return;
+  }
+
+  try {
+    const res = await fetchGAS('action=list_sessions');
+    HISTORY = res.sessions || [];
+    if(mode === 'compare') renderCompareModal();
+    else renderHistoryModal();
+  } catch(e) {
+    document.getElementById('modal-body').innerHTML = `<div class="alert-err">❌ Error loading history: ${e}</div>`;
+  }
+}
+
+function renderHistoryModal() {
+  const body = document.getElementById('modal-body');
+  if(!HISTORY.length){ body.innerHTML = '<div style="color:var(--muted);text-align:center;padding:30px">No sessions found.</div>'; return; }
+
+  body.innerHTML = `
+    <div class="notice" style="margin-bottom:12px"><strong>Click a session to load it into the current form. Use Compare to diff two sessions.</strong></div>
+    <table class="hist-table">
+      <thead><tr><th>Session ID</th><th>Reference</th><th>Type</th><th>Date</th><th>Created By</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${HISTORY.map(s=>`
+        <tr>
+          <td style="font-weight:700;font-family:monospace">${s.SessionID}</td>
+          <td>${s.Reference||'-'}</td>
+          <td><span class="hist-tag tag-${(s.Type||'').toLowerCase()}">${s.Type||'?'}</span></td>
+          <td>${(s.AssessmentDate||'').slice(0,10)||'-'}</td>
+          <td>${s.CreatedBy||'-'}</td>
+          <td><span class="hist-tag ${s.Status==='Active'?'tag-open':'tag-closed'}">${s.Status}</span></td>
+          <td>
+            <button class="btn btn-teal btn-sm" onclick="loadHistorySession('${s.SessionID}')">Load</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  document.getElementById('modal-foot').innerHTML = `<button class="btn btn-outline" style="background:var(--navy2);color:#fff" onclick="closeModal()">Close</button>`;
+}
+
+function renderCompareModal() {
+  const body = document.getElementById('modal-body');
+  const opts = HISTORY.map(s=>`<option value="${s.SessionID}">${s.SessionID} — ${s.Reference||''} (${(s.AssessmentDate||'').slice(0,10)})</option>`).join('');
+
+  body.innerHTML = `
+    <div class="notice" style="margin-bottom:12px"><strong>Select two sessions and a section to compare answers side-by-side.</strong></div>
+    <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap">
+      <div class="fld"><label>Session A (Base)</label><select id="cmp-a" style="min-width:280px">${opts}</select></div>
+      <div class="fld"><label>Session B (Compare)</label><select id="cmp-b" style="min-width:280px">${opts}</select></div>
+      <div class="fld"><label>Section</label><select id="cmp-section">
+        <option>WRAP</option><option>CTPAT</option><option>HSE</option><option>RISK</option>
+      </select></div>
+      <button class="btn btn-gold" onclick="runCompare()">⚖ Compare</button>
+    </div>
+    <div id="cmp-result"></div>`;
+
+  document.getElementById('modal-foot').innerHTML = `<button class="btn btn-outline" style="background:var(--navy2);color:#fff" onclick="closeModal()">Close</button>`;
+}
+
+async function runCompare() {
+  const sidA = document.getElementById('cmp-a').value;
+  const sidB = document.getElementById('cmp-b').value;
+  const section = document.getElementById('cmp-section').value;
+  const el = document.getElementById('cmp-result');
+
+  if(sidA === sidB){ el.innerHTML = '<div class="alert-warn">Please select two different sessions.</div>'; return; }
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Loading...</div>';
+
+  try {
+    const [resA, resB] = await Promise.all([
+      fetchGAS(`action=get_submissions&sessionId=${encodeURIComponent(sidA)}`),
+      fetchGAS(`action=get_submissions&sessionId=${encodeURIComponent(sidB)}`)
+    ]);
+
+    const subA = (resA.submissions||[]).find(s=>s.Section===section);
+    const subB = (resB.submissions||[]).find(s=>s.Section===section);
+    const dataA = subA ? (subA.data||JSON.parse(subA.DataJSON||'{}')) : {};
+    const dataB = subB ? (subB.data||JSON.parse(subB.DataJSON||'{}')) : {};
+
+    if(!subA && !subB){ el.innerHTML = `<div class="alert-warn">No ${section} data found in either session.</div>`; return; }
+
+    const allKeys = new Set([...Object.keys(dataA), ...Object.keys(dataB)]).filter(k=>!k.startsWith('_') && !k.includes('_c'));
+    let sameCount=0, diffCount=0;
+
+    const rows = [...allKeys].map(k=>{
+      const a = dataA[k]||'—', b = dataB[k]||'—';
+      const same = a===b;
+      if(same) sameCount++; else diffCount++;
+      const fmtAns = v=>{
+        if(v==='yes') return '<span class="cmp-ans cmp-y">✓ YES</span>';
+        if(v==='no') return '<span class="cmp-ans cmp-n">✗ NO</span>';
+        if(v==='na') return '<span class="cmp-ans cmp-na">— N/A</span>';
+        if(v==='—') return '<span style="color:var(--muted)">Not answered</span>';
+        return `<span style="font-size:11px">${v.length>60?v.slice(0,60)+'…':v}</span>`;
+      };
+      return `<tr class="${same?'cmp-same':'cmp-diff'}">
+        <td style="font-family:monospace;font-size:11px;color:var(--muted)">${k}</td>
+        <td>${fmtAns(a)}</td><td>${fmtAns(b)}</td>
+        <td style="text-align:center">${same?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--amber)">⚠</span>'}</td>
+      </tr>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div class="cmp-filter" style="margin-bottom:8px">
+        <span style="font-size:12px"><strong>Section: ${section}</strong></span>
+        <span style="background:#dcfce7;color:var(--green);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">✓ Same: ${sameCount}</span>
+        <span style="background:#fef9c3;color:var(--amber);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">⚠ Different: ${diffCount}</span>
+        <span style="font-size:11px;color:var(--muted)">(A: ${sidA} vs B: ${sidB})</span>
+      </div>
+      <table class="cmp-tbl">
+        <thead><tr><th>Field</th><th>A: ${sidA}</th><th>B: ${sidB}</th><th style="width:50px">Match</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch(e) { el.innerHTML = `<div class="alert-err">Error: ${e}</div>`; }
+}
+
+async function loadHistorySession(sessionId) {
+  if(!confirm(`Load session "${sessionId}"? This will set it as the current active session.`)) return;
+  const sess = HISTORY.find(s=>s.SessionID===sessionId);
+  if(sess){ setActiveSession(sess); closeModal(); }
+}
+
+function closeModal() { document.getElementById('history-modal').classList.remove('open'); }
+document.getElementById('history-modal').addEventListener('click', e=>{
+  if(e.target===document.getElementById('history-modal')) closeModal();
+});
+
+// ============================================================
+// GAS HTTP HELPERS
+// ============================================================
+async function fetchGAS(params) {
+  const res = await fetch(`${GAS_URL}?${params}`);
+  return res.json();
+}
+
+async function postGAS(data) {
+  const res = await fetch(GAS_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+// ============================================================
+// NOTIFICATION
+// ============================================================
+function showNotice(msg, type='ok') {
+  const existing = document.getElementById('floating-notice');
+  if(existing) existing.remove();
+  const div = document.createElement('div');
+  div.id = 'floating-notice';
+  div.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;max-width:380px;box-shadow:0 4px 12px rgba(0,0,0,.15)';
+  div.style.background = type==='ok' ? '#f0fdf4' : '#fffbeb';
+  div.style.border = `1px solid ${type==='ok'?'#86efac':'#fde68a'}`;
+  div.style.color = type==='ok' ? '#15803d' : '#92400e';
+  div.innerHTML = msg;
+  document.body.appendChild(div);
+  setTimeout(()=>div.remove(), 5000);
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function toggleCard(hdr) {
+  const body = hdr.nextElementSibling;
+  hdr.classList.toggle('closed');
+  body.classList.toggle('hidden');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+// ============================================================
+// LANGUAGE SWITCH
+// ============================================================
+function applyLang(lang) {
+  LANG = lang;
+  document.body.classList.toggle('lang-km', lang === 'km');
+  document.getElementById('lang-btn-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-btn-km').classList.toggle('active', lang === 'km');
+
+  // Re-render bilingual sections
+  renderWrapPrinciples();
+  renderHse();
+  renderCtpat();
+
+  // UI label updates
+  const U = {
+    en: {
+      'sess-badge-default':'No Session',
+      'sess-status-badge-default':'No active session',
+      'wrap-title-txt':'WRAP Pre-Audit Self-Assessment',
+      'ctpat-title-txt':'C-TPAT Self-Assessment',
+      'hse-title-txt':'HSE Audit Checklist',
+      'risk-title-txt':'Process Risk Assessment',
+      'lbl-questions':'Questions','lbl-compliance-rate':'Compliance Rate',
+      'tb-history':'📂 History','tb-print':'🖨 Print','tb-compare':'⚖ Compare',
+    },
+    km: {
+      'sess-badge-default':'គ្មានវគ្គ',
+      'sess-status-badge-default':'គ្មានវគ្គសកម្ម',
+      'wrap-title-txt':'ការវាយតម្លៃខ្លួនឯងមុនសវនកម្ម WRAP',
+      'ctpat-title-txt':'ការវាយតម្លៃខ្លួនឯង C-TPAT',
+      'hse-title-txt':'បញ្ជីត្រួតពិនិត្យ HSE',
+      'risk-title-txt':'ការវាយតម្លៃហានិភ័យដំណើរការ',
+      'lbl-questions':'សំណួរ','lbl-compliance-rate':'អត្រាអនុលោម',
+      'tb-history':'📂 ប្រវត្តិ','tb-print':'🖨 បោះពុម្ព','tb-compare':'⚖ ប្រៀបធៀប',
+    }
+  };
+  const d = U[lang] || U.en;
+  ['wrap-title-txt','ctpat-title-txt','hse-title-txt','risk-title-txt',
+   'lbl-questions','lbl-compliance-rate','tb-history','tb-print','tb-compare'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el && d[id]) el.textContent = d[id];
+  });
+
+  // Update save/load button labels
+  const saveLabels = {en:'💾 Save', km:'💾 រក្សាទុក'};
+  const loadLabels = {en:'📥 Load Saved', km:'📥 ផ្ទុក'};
+  ['wrap','ctpat','hse','risk'].forEach(s => {
+    const sb = document.getElementById(`btn-save-${s}`);
+    const lb = document.getElementById(`btn-load-${s}`);
+    if(sb) sb.textContent = saveLabels[lang] + (s==='wrap'?' WRAP':s==='ctpat'?' C-TPAT':s==='hse'?' HSE':' Risk');
+    if(lb) lb.textContent = loadLabels[lang];
+  });
+
+  updateHseScore();
+}
+
+document.getElementById('sess-date').value = new Date().toISOString().slice(0,10);
+renderPolicyTable();
+renderWrapPrinciples();
+renderCtpat();
+renderHse();
+renderRisk();
+
+// Show GAS not configured notice
+if(GAS_URL === 'YOUR_GAS_WEB_APP_URL_HERE'){
+  setTimeout(()=>{
+    showNotice('ℹ Demo Mode: GAS URL not configured. All features work locally but data will not be saved to Google Sheets.', 'warn');
+  }, 800);
+}
+
+</script>
+</body>
+</html>

@@ -299,7 +299,7 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
 ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
 @media(max-width:768px){.wrap{padding:11px 10px}.fg-2,.fg-3{grid-template-columns:1fr}.charts-row{grid-template-columns:1fr}.cmp-stats{grid-template-columns:1fr 1fr}}
 </style>
-</head>
+<style id="ac-audit-back-style">.ac-audit-back-btn{position:fixed;right:10px;bottom:10px;z-index:2147483000;background:#17243c;color:#fff!important;text-decoration:none;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:9px 12px;font:700 12px/1 Arial,sans-serif;box-shadow:0 3px 14px rgba(0,0,0,.28)}@media print{.ac-audit-back-btn{display:none!important}}</style></head>
 <body>
 
 <!-- HIDDEN DATALISTS (populated from settings) -->
@@ -2862,5 +2862,5 @@ renderPills();
 const _nyInp=document.getElementById('new-year-inp');
 if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
 </script>
-</body>
+<a class="ac-audit-back-btn" href="ac_audit_platform_v1.html">← AC Audit</a></body>
 </html>
