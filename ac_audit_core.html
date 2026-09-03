@@ -428,13 +428,21 @@ function logAct(text){
 
 function recSignature(k,r){
   if(!r)return'';
+  const nonEmpty=a=>a.map(x=>String(x||'').trim()).filter(Boolean).join('|');
+  let s='';
+  if(k==='caps')s=nonEmpty([r.description,r.dueDate,r.owner]);
+  else if(['documents','dcc_control','incoming_control'].includes(k))s=nonEmpty([r.docNo,r.title,r.version]);
+  else if(k==='msg')s=nonEmpty([r.date,r.from,r.subject]);
+  else if(['incidents','damage_report'].includes(k))s=nonEmpty([r.date,r.location,r.description]);
+  else if(['audits','wse_assessment'].includes(k))s=nonEmpty([r.auditType,r.auditName||r.title,r.date]);
+  else if(['policies','factory_rules','cambodia_law'].includes(k))s=nonEmpty([r.category,r.title,r.refNo,r.version]);
+  else if(k==='grs_certs')s=nonEmpty([r.certNo,r.standard,r.holder]);
+  else if(k==='grs_tc')s=nonEmpty([r.tcNo,r.po,r.buyer]);
+  else if(k==='grs_suppliers')s=nonEmpty([r.name,r.certNo,r.material]);
+  else if(k==='grs_trace')s=nonEmpty([r.lotNo,r.material,r.po,r.date]);
+  if(s)return k+'|'+s;
   if(r.id)return String(r.id);
-  if(k==='caps')return [r.description,r.dueDate,r.owner].join('|');
-  if(k==='documents')return [r.docNo,r.title,r.version].join('|');
-  if(k==='msg')return [r.date,r.from,r.subject].join('|');
-  if(k==='incidents')return [r.date,r.location,r.description].join('|');
-  if(k==='audits')return [r.auditType,r.auditName,r.date].join('|');
-  return JSON.stringify(r).slice(0,180);
+  return k+'|'+JSON.stringify(r).slice(0,180);
 }
 
 function delKey(k,r){return k+'|'+recSignature(k,r)}
@@ -1288,7 +1296,7 @@ function importExcel(k){
           });
           const idKey=keys.find(h=>String(h).trim().toUpperCase()==='ID');
           rec.id=(idKey&&String(row[idKey]).trim())||uid(M.prefix);
-          const ex=DB[k].findIndex(r=>r.id===rec.id);
+          const ex=DB[k].findIndex(r=>r.id===rec.id||recSignature(k,r)===recSignature(k,rec));
           if(ex>=0){DB[k][ex]=clearSentFlags(Object.assign(DB[k][ex],rec,{_updated:Date.now()}));}else DB[k].push(clearSentFlags(rec));
           n++;
         });
@@ -1755,6 +1763,25 @@ const NOTIF_LABELS={
  newAudit:{zh:'新增稽核通知',en:'New audit created',km:'សវនកម្មថ្មី'},
  newIncident:{zh:'新增事故通知',en:'New incident created',km:'ឧប្បត្តិហេតុថ្មី'}
 };
+
+function featureAuditReport(){
+  const active=['training','wse_assessment','audits','grs_certs','grs_tc','grs_suppliers','grs_trace','dcc_control','cambodia_law','importHub','analytics'];
+  const checks=[
+    ['cloudUpload',typeof cloudUpload==='function'],['cloudDownload',typeof cloudDownload==='function'],['cloudSync',typeof cloudSync==='function'],
+    ['CRUD',typeof openForm==='function'&&typeof saveForm==='function'&&typeof delRec==='function'],
+    ['importExport',typeof importExcel==='function'&&typeof exportExcel==='function'&&typeof exportCSV==='function'&&typeof exportPDF==='function'],
+    ['dedupe',typeof dedupeDB==='function'&&typeof recSignature==='function'&&typeof mergeAuditDB==='function'],
+    ['driveEvidence',typeof uploadEvidenceFile==='function'&&typeof migrateLegacyAttachmentsToDrive==='function'],
+    ['periodSummary',typeof sendModuleSummary==='function'&&typeof sendModuleApproval==='function'],
+    ['reminder',typeof checkPendingReminder==='function']
+  ];
+  const miss=checks.filter(x=>!x[1]).map(x=>x[0]);
+  const msg='✅ AC Audit Function Audit\n━━━━━━━━━━━━━━━━━━━━\nModules: '+active.join(', ')+'\nChecks: '+checks.map(x=>x[0]+': '+(x[1]?'OK':'NG')).join(' / ')+'\nResult: '+(miss.length?'Need check '+miss.join(', '):'PASS');
+  alert(msg);
+  return {active,checks,pass:!miss.length,missing:miss};
+}
+window.featureAuditReport=featureAuditReport;
+
 function renderSettings(){
   $('#main').innerHTML=
    '<div class="pgtitle"><h2>⚙ '+esc(t('settings'))+'</h2></div>'+
@@ -1773,6 +1800,7 @@ function renderSettings(){
      DB.settings.auditTypes.map((x,i)=>'<span class="typechip">'+esc(x)+'<button onclick="rmType('+i+')">✕</button></span>').join('')+'</div>'+
      '<div style="display:flex;gap:8px;margin-top:10px"><input id="newType" placeholder="WRAP / Chemical / EHS…"><button class="btn" onclick="addType()">＋ '+esc(t('addType'))+'</button></div>'+
      '<p class="hint" style="margin-top:8px">'+(LANG==='zh'?'未來新驗廠類型直接在此新增，WRAP 稽核即可選用，平台無需改版。':'Add future audit types here; no redesign needed.')+'</p></div>'+
+   '<div class="panel setsec"><h4>🧪 功能自查</h4><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" onclick="featureAuditReport()">執行功能自查</button><button class="btn" onclick="dedupeDB();saveDB();toast(\'去重完成\')">資料去重</button></div><p class="hint" style="margin-top:8px">檢查雲端、CRUD、匯出入、Drive 證據、日/週/月/年摘要與重複資料防護。</p></div>'+
    '<div class="panel setsec"><h4>🗂 '+esc(t('dataSet'))+'</h4>'+
      '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
      '<button class="btn" onclick="backupJSON()">💾 '+esc(t('expJson'))+'</button>'+

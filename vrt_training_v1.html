@@ -667,7 +667,7 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
         <div class="fg full"><label>📷 證據 / Evidence（照片、拍照、PDF → Google Drive）</label>
           <div style="display:flex;gap:7px;flex-wrap:wrap;margin:5px 0 7px">
             <button type="button" class="btn btn-sm" onclick="document.getElementById('r-evi-camera').click()">📷 拍照</button>
-            <button type="button" class="btn btn-sm" onclick="document.getElementById('r-evi-file').click()">📎 照片/PDF/Excel/Word/PPT</button>
+            <button type="button" class="btn btn-sm" onclick="document.getElementById('r-evi-file').click()">📎 照片/PDF/Word/Excel/PPT/Excel/Word/PPT</button>
             <span style="font-size:10px;color:var(--txt2);align-self:center">附件只存 Google Drive 連結，不存大型 base64。</span>
           </div>
           <input id="r-evi-camera" type="file" accept="image/*" capture="environment" hidden onchange="trainingEvidenceFiles(this.files)">

@@ -824,19 +824,19 @@ body {
 /* Print styles */
 
 /* ===== AC Audit mobile viewport fix: keep law menu and content visible inside phone / iframe ===== */
-@media (max-width: 760px){
+@media (max-width: 1200px){
   body{display:block;height:auto;min-height:100vh;overflow:auto;background:var(--cream);}
-  #sidebar{position:relative;width:100%;height:auto;min-height:0;max-height:none;z-index:1;}
+  #sidebar{position:relative!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;z-index:1!important;display:flex!important;}
   #sidebar-header{padding:16px 18px 12px;}
   #sidebar-header h1{font-size:16px;}
   #law-list{max-height:none!important;overflow:visible!important;}
   #sidebar-footer{position:sticky;bottom:0;background:var(--navy);padding:10px 18px;}
-  #main{display:block;width:100%;min-height:unset;overflow:visible;}
+  #main{display:block!important;width:100%!important;min-width:0!important;margin:0!important;min-height:unset!important;overflow:visible!important;}
   #topbar{height:auto;min-height:48px;padding:8px 12px;gap:8px;flex-wrap:wrap;}
   #breadcrumb{width:100%;flex-basis:100%;font-size:12px;}
   #view-tabs{order:2;width:100%;overflow-x:auto;}
-  #content-area{height:auto;overflow:visible;padding:14px 12px 28px;}
-  .law-card,.chapter-card,.article-card{max-width:100%;}
+  #content-area{height:auto!important;overflow:visible!important;padding:14px 12px 28px!important;width:100%!important;max-width:100%!important;}
+  .law-card,.chapter-card,.article-card,.law-overview-card{max-width:100%!important;width:100%!important;}
   .law-detail,.chapter-detail{overflow-wrap:anywhere;}
   .modal-content{width:calc(100vw - 20px);max-height:92vh;overflow:auto;}
 }
