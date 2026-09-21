@@ -242,7 +242,7 @@ body.direct-module main{padding:8px;background:#f7f4ed;}
 <div id="toast"></div>
 <input type="file" id="xlsxFile" accept=".xlsx,.xls,.csv" style="display:none">
 <input type="file" id="jsonFile" accept=".json" style="display:none">
-<input type="file" id="photoFile" accept="image/*,.pdf,application/pdf" multiple style="display:none">
+<input type="file" id="photoFile" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,application/pdf,application/msword,application/vnd.ms-excel,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation" multiple style="display:none">
 <input type="file" id="cameraFile" accept="image/*" capture="environment" style="display:none">
 <input type="file" id="msgFile" accept=".msg,.eml,.txt" style="display:none">
 <input type="file" id="unifiedImportFile" accept=".xlsx,.xls,.csv,.json,.txt,.eml,.msg" style="display:none">
@@ -276,6 +276,7 @@ const T={
  settings:{zh:'設定',en:'Settings',km:'ការកំណត់'},
  importHub:{zh:'統一匯入中心',en:'Unified Import Center',km:'មជ្ឈមណ្ឌលនាំចូល'},
  training:{zh:'培訓管理',en:'Training',km:'ការបណ្តុះបណ្តាល'},
+ assessment_center:{zh:'Assessment 評估',en:'Assessment Center',km:'Assessment'},
  wse_assessment:{zh:'WSE 稽核評估',en:'WSE Audit Assessment',km:'ការវាយតម្លៃសវនកម្ម WSE'},
  dcc_control:{zh:'DCC 文件管制',en:'DCC Document Control',km:'គ្រប់គ្រងឯកសារ DCC'},
  incoming_control:{zh:'外來文件管制',en:'Incoming Document Control',km:'គ្រប់គ្រងឯកសារខាងក្រៅ'},
@@ -406,13 +407,13 @@ function loadDB(){
   try{const d=JSON.parse(localStorage.getItem(DB_KEY));if(d&&d.meta)return migrate(d)}catch(e){}
   return {meta:{version:1,updatedAt:Date.now(),lastSync:0,seq:{},deleted:{},summaryLog:{},approvalLog:{},reminderLog:{}},
     settings:{auditTypes:DEFAULT_TYPES.slice()},
-    audits:[],caps:[],grs_certs:[],grs_tc:[],grs_suppliers:[],grs_trace:[],
+    assessments:[],audits:[],caps:[],grs_certs:[],grs_tc:[],grs_suppliers:[],grs_trace:[],
     documents:[],incidents:[],policies:[],msg:[],
     wse_assessment:[],dcc_control:[],incoming_control:[],factory_rules:[],cambodia_law:[],damage_report:[],
     activities:[]};
 }
 function migrate(d){
-  ['audits','caps','grs_certs','grs_tc','grs_suppliers','grs_trace','documents','incidents','policies','msg','wse_assessment','dcc_control','incoming_control','factory_rules','cambodia_law','damage_report','activities'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
+  ['assessments','audits','caps','grs_certs','grs_tc','grs_suppliers','grs_trace','documents','incidents','policies','msg','wse_assessment','dcc_control','incoming_control','factory_rules','cambodia_law','damage_report','activities'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
   d.settings=d.settings||{};if(!Array.isArray(d.settings.auditTypes)||!d.settings.auditTypes.length)d.settings.auditTypes=DEFAULT_TYPES.slice();
   d.meta.seq=d.meta.seq||{};d.meta.deleted=d.meta.deleted||{};d.meta.summaryLog=d.meta.summaryLog||{};d.meta.approvalLog=d.meta.approvalLog||{};d.meta.reminderLog=d.meta.reminderLog||{};return d;
 }
@@ -434,6 +435,7 @@ function recSignature(k,r){
   else if(['documents','dcc_control','incoming_control'].includes(k))s=nonEmpty([r.docNo,r.title,r.version]);
   else if(k==='msg')s=nonEmpty([r.date,r.from,r.subject]);
   else if(['incidents','damage_report'].includes(k))s=nonEmpty([r.date,r.location,r.description]);
+  else if(k==='assessments')s=nonEmpty([r.assessmentType||r.auditType,r.auditName||r.title,r.date]);
   else if(['audits','wse_assessment'].includes(k))s=nonEmpty([r.auditType,r.auditName||r.title,r.date]);
   else if(['policies','factory_rules','cambodia_law'].includes(k))s=nonEmpty([r.category,r.title,r.refNo,r.version]);
   else if(k==='grs_certs')s=nonEmpty([r.certNo,r.standard,r.holder]);
@@ -537,6 +539,16 @@ function notifyRecordUpdate(k,rec,isNew){
    schema，Sidebar / CRUD / 匯入匯出 / 雲端 / 搜尋 全部自動生效。
 ===================================================================== */
 const OPT={
+ assessmentType:[
+  {v:'WSE',c:'b-info',L:{zh:'WSE',en:'WSE',km:'WSE'}},
+  {v:'WRAP',c:'b-ok',L:{zh:'WRAP',en:'WRAP',km:'WRAP'}},
+  {v:'GRS',c:'b-ok',L:{zh:'GRS',en:'GRS',km:'GRS'}},
+  {v:'C-TPAT',c:'b-info',L:{zh:'C-TPAT',en:'C-TPAT',km:'C-TPAT'}},
+  {v:'Social Compliance',c:'b-warn',L:{zh:'Social Compliance',en:'Social Compliance',km:'Social'}},
+  {v:'Technical',c:'b-info',L:{zh:'Technical',en:'Technical',km:'Technical'}},
+  {v:'Environment',c:'b-ok',L:{zh:'Environment',en:'Environment',km:'Environment'}},
+  {v:'HSE',c:'b-warn',L:{zh:'HSE',en:'HSE',km:'HSE'}},
+  {v:'Other',c:'b-mute',L:{zh:'其他',en:'Other',km:'Other'}}],
  auditStatus:[
   {v:'planned',c:'b-info',L:{zh:'已排程',en:'Planned',km:'បានគ្រោង'}},
   {v:'inprogress',c:'b-warn',L:{zh:'進行中',en:'In Progress',km:'កំពុងដំណើរការ'}},
@@ -644,6 +656,22 @@ const F={
 };
 
 const MODULES={
+ assessments:{icon:'🧾',prefix:'ASM',group:'grpAudit',
+  fields:[
+   F.sel('assessmentType','assessmentType','Assessment 類型','Assessment Type','Assessment',1),
+   F.txt('auditName','評估名稱','Assessment Name','Assessment Name',1),
+   F.txt('auditor','評估單位 / 稽核員','Audit Body / Auditor','Auditor'),
+   F.date('date','評估日期','Assessment Date','Date',1),
+   F.date('endDate','結束日期','End Date','End Date'),
+   F.sel('status','auditStatus','狀態','Status','Status',1),
+   F.sel('result','auditResult','結果','Result','Result'),
+   F.num('score','分數','Score','Score'),
+   F.dept(),
+   F.txt('scope','範圍','Scope','Scope'),
+   F.ta('notes','摘要 / 異常 / 改善','Summary / Findings / CAP','Notes'),
+   F.photos()],
+  cols:['id','assessmentType','auditName','date','status','result','score'],
+  filter:'assessmentType'},
  audits:{icon:'📋',prefix:'AUD',group:'grpAudit',
   fields:[
    {k:'auditType',t:'dynselect',L:{zh:'稽核類型',en:'Audit Type',km:'ប្រភេទសវនកម្ម'},req:1},
@@ -831,9 +859,10 @@ const MODULE_KEYS=Object.keys(MODULES);
 ===================================================================== */
 let CURRENT='dashboard', GRS_CUR='grs_certs';
 const GRS_SUBS=['grs_certs','grs_tc','grs_suppliers','grs_trace'];
-const TAB_ORDER=['dashboard','analytics','importHub','training','wse_assessment','audits','grs','dcc_control','cambodia_law','settings'];
-const PAGE_ICONS={dashboard:'◧',analytics:'📈',importHub:'📥',training:'🎓',wse_assessment:'📋',dcc_control:'🗄',incoming_control:'📨',factory_rules:'📕',cambodia_law:'⚖️',damage_report:'📝',settings:'⚙',grs:'🏅'};
+const TAB_ORDER=['dashboard','analytics','importHub','training','assessment_center','wse_assessment','audits','grs','dcc_control','cambodia_law','settings'];
+const PAGE_ICONS={dashboard:'◧',analytics:'📈',importHub:'📥',training:'🎓',assessment_center:'🧾',wse_assessment:'📋',dcc_control:'🗄',incoming_control:'📨',factory_rules:'📕',cambodia_law:'⚖️',damage_report:'📝',settings:'⚙',grs:'🏅'};
 const INTEGRATIONS={
+ assessment_center:[{u:'assessment_audit_v1.html',i:'🧾',zh:'Assessment 評估中心',en:'Assessment Center',descZH:'WRAP/WSE/GRS/C-TPAT/Social/Technical/Environment 集中管理。',descEN:'Central assessment records for WRAP/WSE/GRS/C-TPAT/Social/Technical/Environment.'}],
  wse_assessment:[
   {u:'WSE_Audit_Assessment_v1.html',i:'📋',zh:'WSE 原版稽核評估',en:'Original WSE Assessment',descZH:'保留之前版本，原有內容與歷史評估不刪除。',descEN:'Original WSE assessment retained without deleting prior content.'},
   {u:'WSE_BIGW_Tracker_v7_1.html',i:'🧭',zh:'BIG W / WSE Technical Tracker v7.1',en:'BIG W / WSE Technical Tracker v7.1',descZH:'新增技術稽核 Readiness Tracker、答案/表格/流程中心。',descEN:'New technical readiness tracker with answer/form/flow center.'}
@@ -857,6 +886,7 @@ const INTEGRATIONS={
 
 const DIRECT_MODULES={
   training:{u:'vrt_training_v1.html',i:'🎓',zh:'培訓管理',en:'Training',km:'ការបណ្តុះបណ្តាល'},
+  assessment_center:{u:'assessment_audit_v1.html',i:'🧾',zh:'Assessment 評估',en:'Assessment',km:'Assessment'},
   wse_assessment:{u:'wse_audit_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment',km:'WSE Audit'},
   dcc_control:{u:'dcc_audit_v1.html',i:'🗄',zh:'DCC 文件管制',en:'DCC Document Control',km:'DCC'},
   factory_rules:{u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules',km:'ច្បាប់រោងចក្រ'},
@@ -1630,6 +1660,7 @@ function renderDashboard(){
   $('#main').innerHTML=
    '<div class="pgtitle"><h2>◧ '+esc(t('dashboard'))+'</h2><span class="sub">'+esc(fmtDate(new Date()))+' · VRT Audit Center</span></div>'+
    '<div class="grid g-kpi">'+
+    kpi('Assessments',(DB.assessments||[]).length,'🧾','var(--info)','assessment_center')+
     kpi('WSE Records',(DB.wse_assessment||[]).length,'📋','var(--khaki)','wse_assessment')+
     kpi('WRAP Audits',(DB.audits||[]).length,'♻️','var(--info)','audits')+
     kpi('GRS Records',grs,'🏅','var(--ok)','grs')+
@@ -1638,7 +1669,7 @@ function renderDashboard(){
     kpi('Training',trainingSnapshot().trainings.length,'🎓','var(--ok)','training')+
    '</div>'+
    '<div class="panel" style="margin-top:14px"><h3>🧭 '+(LANG==='zh'?'獨立作業分頁':'Independent Operation Pages')+'<span class="rule"></span></h3><div class="quickgrid">'+
-   ['training','wse_assessment','audits','grs','dcc_control','cambodia_law','importHub','analytics'].map(x=>'<button class="qcard" onclick="go(\''+x+'\')"><b>'+((PAGE_ICONS[x]||MODULES[x]?.icon)||'•')+'</b><span>'+esc(x==='grs'?'GRS':t(x))+'</span></button>').join('')+
+   ['training','assessment_center','wse_assessment','audits','grs','dcc_control','cambodia_law','importHub','analytics'].map(x=>'<button class="qcard" onclick="go(\''+x+'\')"><b>'+((PAGE_ICONS[x]||MODULES[x]?.icon)||'•')+'</b><span>'+esc(x==='grs'?'GRS':t(x))+'</span></button>').join('')+
    '</div></div>'+
    '<div class="panel" style="margin-top:14px"><h3>⚙ '+esc(t('sysStatus'))+'<span class="rule"></span></h3>'+
       '<div class="kv-row"><span>☁ Cloud</span><b id="dashCloud">'+(CFG.gasUrl?'…':esc(t('cloudBad')))+'</b></div>'+
@@ -1765,7 +1796,7 @@ const NOTIF_LABELS={
 };
 
 function featureAuditReport(){
-  const active=['training','wse_assessment','audits','grs_certs','grs_tc','grs_suppliers','grs_trace','dcc_control','cambodia_law','importHub','analytics'];
+  const active=['training','assessment_center','wse_assessment','audits','grs_certs','grs_tc','grs_suppliers','grs_trace','dcc_control','cambodia_law','importHub','analytics'];
   const checks=[
     ['cloudUpload',typeof cloudUpload==='function'],['cloudDownload',typeof cloudDownload==='function'],['cloudSync',typeof cloudSync==='function'],
     ['CRUD',typeof openForm==='function'&&typeof saveForm==='function'&&typeof delRec==='function'],
