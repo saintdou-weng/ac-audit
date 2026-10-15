@@ -1180,5 +1180,148 @@ window.addEventListener('scroll', () => {
 
 document.addEventListener('DOMContentLoaded', () => setLang(lang));
 </script>
+<!-- ═══ 廠規線上編輯 Rules Editor v1：新增／刪除／修改／儲存／雲端同步 ═══ -->
+<style>
+.re-on .doc-section,.re-on .preface,.re-on .cover{outline:1px dashed #c9b98f;outline-offset:6px}
+.re-on [data-zh]{cursor:text;border-radius:3px}
+.re-on #doc [data-zh]:hover{background:#fff6d6;box-shadow:0 0 0 2px #f0d98a}
+.re-ctl{display:none;gap:4px;flex-wrap:wrap;margin:6px 0}
+.re-on .re-ctl{display:flex}
+.re-ctl button{border:1px solid #d8cfb8;background:#fffdf6;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;color:#5a5040}
+.re-ctl button:hover{border-color:#b49b70;background:#fff3d0}
+.re-ctl button.del{color:#c74a55;border-color:#efc9cd}
+.re-ctl button.del:hover{background:#fdecee}
+.re-clx{display:none;margin-left:6px;border:1px solid #efc9cd;background:#fff;color:#c74a55;border-radius:5px;font-size:10px;padding:0 5px;cursor:pointer}
+.re-cla{display:none;margin-left:3px;border:1px solid #d8cfb8;background:#fff;color:#5a5040;border-radius:5px;font-size:10px;padding:0 5px;cursor:pointer}
+.re-on .re-clx,.re-on .re-cla{display:inline-block}
+.re-on .article{flex-wrap:wrap}.article>.re-ctl{flex-basis:100%;margin:6px 0 0}
+.re-clx,.re-cla{align-self:flex-start;flex-shrink:0;line-height:1.5;margin-top:5px;height:auto}
+#re-bar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;background:#17243c;color:#fff;border-radius:12px;padding:8px 10px;display:none;gap:6px;align-items:center;box-shadow:0 6px 24px rgba(0,0,0,.25);flex-wrap:wrap;max-width:calc(100% - 24px);justify-content:center}
+.re-on #re-bar{display:flex}
+#re-bar b{font-size:12px;margin-right:4px}
+#re-bar button{border:0;border-radius:8px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;background:#2b3a57;color:#fff}
+#re-bar button.pri{background:#2f8a68}
+#re-bar .st{font-size:11px;color:#c8d1e0;margin-left:4px}
+#re-mask{position:fixed;inset:0;background:rgba(15,20,30,.45);z-index:10000;display:none;align-items:center;justify-content:center;padding:14px}
+#re-mask.on{display:flex}
+#re-modal{background:#fff;border-radius:14px;width:min(620px,100%);max-height:92vh;overflow:auto;padding:16px;box-shadow:0 10px 40px rgba(0,0,0,.3);font-family:inherit}
+#re-modal h3{margin:0 0 10px;font-size:15px}
+#re-modal label{display:block;font-size:11px;color:#7b8190;margin:8px 0 3px;font-weight:700}
+#re-modal textarea{width:100%;min-height:64px;border:1px solid #ddd7ca;border-radius:8px;padding:8px;font:inherit;font-size:13px;resize:vertical;box-sizing:border-box}
+#re-modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+#re-modal .row button{border:1px solid #ddd7ca;background:#fff;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
+#re-modal .row button.pri{background:#2f8a68;border-color:#2f8a68;color:#fff}
+#re-toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#17243c;color:#fff;padding:8px 14px;border-radius:9px;font-size:12px;z-index:10001;opacity:0;transition:opacity .25s;pointer-events:none}
+#re-toast.on{opacity:1}
+@media print{.re-ctl,.re-clx,.re-cla,#re-bar,#re-mask,.re-edit-btn{display:none!important}.re-on .doc-section{outline:none}}
+</style>
+<div id="re-bar"><b>✎ 編輯模式</b><button class="pri" onclick="RE.save()">💾 儲存</button><button onclick="RE.cloud()">☁ 雲端同步</button><button onclick="RE.addChapter()">＋ 新增章節</button><button onclick="RE.undo()">↶ 上一版</button><button onclick="RE.reset()">⟲ 原始版本</button><button onclick="RE.toggle(false)">✕ 結束</button><span class="st" id="re-st"></span></div>
+<div id="re-mask"><div id="re-modal"></div></div>
+<div id="re-toast"></div>
+<script src="assets/ac_tool_sync.js?v=2"></script>
+<script>
+const RE=(function(){
+  const KEY='vrt_factory_rules_v2',HIST=KEY+'_hist',GAS_DEFAULT='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
+  const doc=()=>document.getElementById('doc'),nav=()=>document.getElementById('toc');
+  const ORIG={doc:null,toc:null,imgs:[]};let ON=false,DIRTY=false,TARGET=null;
+  const ZH='零一二三四五六七八九';
+  function zhNum(n){if(n<10)return ZH[n];if(n<20)return '十'+(n%10?ZH[n%10]:'');if(n<100)return ZH[Math.floor(n/10)]+'十'+(n%10?ZH[n%10]:'');return String(n)}
+  function kmNum(n){return String(n).replace(/\d/g,d=>'០១២៣៤៥៦៧៨៩'[d])}
+  function toast(s){const t=document.getElementById('re-toast');t.textContent=s;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2400)}
+  function st(s){const e=document.getElementById('re-st');if(e)e.textContent=s}
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+  function gas(){try{return (JSON.parse(localStorage.getItem('ac_audit_config')||'{}').gasUrl||GAS_DEFAULT).trim()}catch(e){return GAS_DEFAULT}}
+  function L(){return typeof lang!=='undefined'?lang:'zh'}
+  function setTxt(el){const t=el.getAttribute('data-'+L());if(t!==null)el.textContent=t}
+  function T(zh,en,km){return `data-zh="${esc(zh)}" data-en="${esc(en)}" data-km="${esc(km)}"`}
+  /* ── 序列化（去掉編輯按鈕與內嵌大圖） ── */
+  function clean(root){root.querySelectorAll('.re-ctl,.re-clx,.re-cla').forEach(e=>e.remove());root.querySelectorAll('img').forEach(img=>{const s=img.getAttribute('src')||'';if(s.startsWith('data:')){const i=ORIG.imgs.indexOf(s);if(i>=0){img.setAttribute('data-imgi',i);img.setAttribute('src','')}}});return root.innerHTML}
+  function snapshot(){const d=doc().cloneNode(true),n=nav().cloneNode(true);return{html:clean(d),toc:clean(n),updatedAt:Date.now()}}
+  function fillImgs(){doc().querySelectorAll('img[data-imgi]').forEach(img=>{const s=ORIG.imgs[+img.getAttribute('data-imgi')];if(s)img.setAttribute('src',s)})}
+  function apply(data){if(!data||!data.html)return false;doc().innerHTML=data.html;if(data.toc)nav().innerHTML=data.toc;fillImgs();document.querySelectorAll('[data-zh]').forEach(setTxt);if(ON)decorate();return true}
+  function stored(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}}
+  /* ── 編號：章、條、款 ── */
+  function chapters(){return [...doc().querySelectorAll('.doc-section')].filter(s=>/^ch/.test(s.id)&&s.querySelector('.chapter-title'))}
+  function renumber(){
+    chapters().forEach((sec,i)=>{const n=i+1,lb=sec.querySelector('.chapter-label');if(lb)lb.textContent='CHAPTER '+n;const t=sec.querySelector('.chapter-title');if(t){
+      const z=(t.getAttribute('data-zh')||'').replace(/^第[^章]*章[\s　]*/,''),e=(t.getAttribute('data-en')||'').replace(/^Chapter\s*\d+[\s　]*/i,''),k=(t.getAttribute('data-km')||'').replace(/^ជំពូកទី\s*[០-៩0-9]+[\s　]*/,'');
+      t.setAttribute('data-zh','第'+zhNum(n)+'章　'+z);t.setAttribute('data-en','Chapter '+n+'　'+e);t.setAttribute('data-km','ជំពូកទី '+kmNum(n)+'　'+k);setTxt(t)}});
+    let a=0;doc().querySelectorAll('.article .art-num').forEach(el=>{a++;el.setAttribute('data-zh','第'+zhNum(a)+'條');el.setAttribute('data-en','Article '+a);el.setAttribute('data-km','មាត្រា '+kmNum(a));setTxt(el)});
+    doc().querySelectorAll('.art-body').forEach(b=>{let c=0;b.querySelectorAll(':scope > .clause > .cl-num').forEach(el=>{c++;el.textContent='（'+zhNum(c)+'）'})});
+    rebuildToc();
+  }
+  function shortName(t,l){return (t.getAttribute('data-'+l)||'').replace(/^第[^章]*章[\s　]*/,'').replace(/^Chapter\s*\d+[\s　]*/i,'').replace(/^ជំពូកទី\s*[០-៩0-9]+[\s　]*/,'')}
+  function rebuildToc(){
+    const secs=chapters(),ids=secs.map(s=>s.id);
+    /* 側邊目錄 */
+    const n=nav();const old={};n.querySelectorAll('.toc-item').forEach(it=>{const m=(it.getAttribute('onclick')||'').match(/go\('([^']+)'\)/);if(m)old[m[1]]=it});
+    n.querySelectorAll('.toc-item').forEach(it=>{const m=(it.getAttribute('onclick')||'').match(/go\('([^']+)'\)/);if(m&&/^ch/.test(m[1]))it.remove()});
+    let anchor=null;n.querySelectorAll('.toc-label').forEach(l=>{if(/章節|CHAPTER/i.test(l.getAttribute('data-zh')+l.textContent))anchor=l});
+    let after=anchor||n.lastElementChild;
+    secs.forEach((sec,i)=>{const t=sec.querySelector('.chapter-title');let it=old[sec.id];
+      if(!it){it=document.createElement('div');it.className='toc-item';it.setAttribute('onclick',"go('"+sec.id+"')");it.innerHTML='<span class="toc-num"></span><span '+T(shortName(t,'zh'),shortName(t,'en'),shortName(t,'km'))+'></span>';setTxt(it.querySelector('[data-zh]'))}
+      it.querySelector('.toc-num').textContent='第'+zhNum(i+1)+'章';after.after(it);after=it;
+      Object.keys(old).filter(k=>k.startsWith(sec.id+'-')).forEach(k=>{after.after(old[k]);after=old[k]})});
+    /* 文件內目錄頁 */
+    const pg=doc().querySelector('.toc-page');if(!pg)return;
+    const oe={};pg.querySelectorAll('.toc-entry').forEach(e=>{const m=(e.getAttribute('onclick')||'').match(/go\('([^']+)'\)/);if(m)oe[m[1]]=e});
+    pg.querySelectorAll('.toc-entry').forEach(e=>{const m=(e.getAttribute('onclick')||'').match(/go\('([^']+)'\)/);if(m&&/^ch/.test(m[1]))e.remove()});
+    secs.forEach(sec=>{const t=sec.querySelector('.chapter-title');let e=oe[sec.id];
+      if(!e){e=document.createElement('div');e.className='toc-entry';e.setAttribute('onclick',"go('"+sec.id+"')");e.innerHTML='<span class="te-num"></span><span class="te-dots"></span><span class="te-pg">—</span>'}
+      const tn=e.querySelector('.te-num');['zh','en','km'].forEach(l=>tn.setAttribute('data-'+l,t.getAttribute('data-'+l)||''));setTxt(tn);pg.appendChild(e)});
+  }
+  /* ── 編輯按鈕 ── */
+  function ctl(html){const d=document.createElement('div');d.className='re-ctl';d.innerHTML=html;return d}
+  function decorate(){
+    undecorate();
+    chapters().forEach(sec=>{const h=sec.querySelector('.chapter-head');(h||sec).appendChild(ctl('<button onclick="RE.addArticle(this,\'end\')">＋ 本章新增一條</button><button onclick="RE.addChapter(this)">＋ 在後面新增一章</button><button onclick="RE.move(this,\'.doc-section\',-1)">↑ 章上移</button><button onclick="RE.move(this,\'.doc-section\',1)">↓ 章下移</button><button class="del" onclick="RE.delChapter(this)">🗑 刪除本章</button>'))});
+    doc().querySelectorAll('.article').forEach(a=>{a.appendChild(ctl('<button onclick="RE.addClause(this)">＋ 新增一款</button><button onclick="RE.addArticle(this,\'after\')">＋ 在下面新增一條</button><button onclick="RE.move(this,\'.article\',-1)">↑</button><button onclick="RE.move(this,\'.article\',1)">↓</button><button class="del" onclick="RE.delArticle(this)">🗑 刪除本條</button>'))});
+    doc().querySelectorAll('.clause').forEach(c=>{const x=document.createElement('button');x.className='re-cla';x.textContent='＋';x.title='在下面新增一款';x.onclick=e=>{e.stopPropagation();RE.addClause(c,true)};const y=document.createElement('button');y.className='re-clx';y.textContent='🗑';y.title='刪除此款';y.onclick=e=>{e.stopPropagation();RE.delClause(c)};c.appendChild(x);c.appendChild(y)});
+  }
+  function undecorate(){document.querySelectorAll('.re-ctl,.re-clx,.re-cla').forEach(e=>e.remove())}
+  function changed(){DIRTY=true;renumber();decorate();st('未儲存');}
+  function newClause(){const d=document.createElement('div');d.className='clause';d.innerHTML='<span class="cl-num">（一）</span><span class="cl-body" '+T('新條款內容（點此編輯）','New clause (click to edit)','ប្រការថ្មី')+'></span>';setTxt(d.querySelector('.cl-body'));return d}
+  function newArticle(){const a=document.createElement('div');a.className='article';a.innerHTML='<span class="art-num" '+T('第一條','Article 1','មាត្រា ១')+'></span><div class="art-body"><p '+T('【新條文】請點此輸入條文標題與說明','[New Article] Click to enter title and description','[មាត្រាថ្មី]')+'></p></div>';a.querySelectorAll('[data-zh]').forEach(setTxt);a.querySelector('.art-body').appendChild(newClause());return a}
+  /* ── 文字編輯視窗（中／英／柬 三語） ── */
+  function openText(el){TARGET=el;const m=document.getElementById('re-modal');const g=l=>esc(el.getAttribute('data-'+l)||'');
+    m.innerHTML='<h3>✎ 修改文字</h3><label>中文</label><textarea id="re-zh">'+g('zh')+'</textarea><label>English</label><textarea id="re-en">'+g('en')+'</textarea><label>ខ្មែរ</label><textarea id="re-km">'+g('km')+'</textarea><div class="row"><button onclick="RE.close()">取消</button><button class="pri" onclick="RE.applyText()">套用</button></div>';
+    document.getElementById('re-mask').classList.add('on');setTimeout(()=>{const t=document.getElementById('re-'+L());if(t)t.focus()},50)}
+  document.addEventListener('click',e=>{if(!ON)return;if(e.target.closest('.re-ctl,.re-clx,.re-cla,#re-bar,#re-mask,header,#toc'))return;const el=e.target.closest('#doc [data-zh]');if(!el||el.classList.contains('art-num'))return;e.preventDefault();e.stopPropagation();openText(el)},true);
+  return{
+    init(){const d=doc(),n=nav();if(!d||!n)return;ORIG.imgs=[...d.querySelectorAll('img')].map(i=>i.getAttribute('src')||'');ORIG.doc=snapshot();
+      const s=stored();if(s&&s.html){apply(s);}
+      const h=document.querySelector('.hd-btns');if(h&&!h.querySelector('.re-edit-btn')){const b=document.createElement('button');b.className='hd-action no-print re-edit-btn';b.innerHTML='✎ <span data-zh="編輯" data-en="Edit" data-km="កែ">編輯</span>';b.onclick=()=>RE.toggle(!ON);h.appendChild(b);setTxt(b.querySelector('[data-zh]'))}
+      window.addEventListener('beforeunload',e=>{if(DIRTY){e.preventDefault();e.returnValue=''}})},
+    toggle(on){if(!on&&DIRTY&&!confirm('還有未儲存的修改，確定結束編輯？（未儲存的修改會保留在畫面，重新整理後消失）'))return;ON=on;document.body.classList.toggle('re-on',on);if(on){decorate();st(DIRTY?'未儲存':'點任何文字即可修改');toast('✎ 編輯模式：點文字修改，用按鈕新增／刪除')}else undecorate()},
+    close(){document.getElementById('re-mask').classList.remove('on');TARGET=null},
+    applyText(){if(!TARGET)return;['zh','en','km'].forEach(l=>TARGET.setAttribute('data-'+l,document.getElementById('re-'+l).value.trim()));setTxt(TARGET);if(TARGET.classList.contains('chapter-title'))rebuildToc();RE.close();DIRTY=true;st('未儲存')},
+    addClause(btn,afterThis){const c=btn.classList&&btn.classList.contains('clause')?btn:null;const nc=newClause();if(c&&afterThis)c.after(nc);else{const a=btn.closest('.article');const b=a.querySelector('.art-body');b.appendChild(nc)}changed()},
+    delClause(c){if(!confirm('刪除此款？'))return;c.remove();changed()},
+    addArticle(btn,where){const a=newArticle();if(where==='after'){btn.closest('.article').after(a)}else{const sec=btn.closest('.doc-section');const arts=sec.querySelectorAll('.article');if(arts.length)arts[arts.length-1].after(a);else{const h=sec.querySelector('.chapter-head');(h?h.after(a):sec.appendChild(a))}}changed();a.scrollIntoView({behavior:'smooth',block:'center'})},
+    delArticle(btn){if(!confirm('刪除整條（含所有款）？條號會自動重排。'))return;btn.closest('.article').remove();changed()},
+    addChapter(btn){const sec=document.createElement('div');sec.className='doc-section';sec.id='chx'+Date.now().toString(36);
+      sec.innerHTML='<div class="chapter-head"><div class="chapter-label">CHAPTER</div><div class="chapter-title" '+T('第一章　新章節（點此修改名稱）','Chapter 1　New Chapter','ជំពូកទី ១　ជំពូកថ្មី')+'></div><div class="chapter-sub" '+T('依據／說明（點此修改）','Reference / note','ឯកសារយោង')+'></div></div>';
+      sec.querySelectorAll('[data-zh]').forEach(setTxt);sec.appendChild(newArticle());
+      const ref=btn&&btn.closest?btn.closest('.doc-section'):null;const all=chapters();(ref||all[all.length-1]).after(sec);if(!ON)RE.toggle(true);changed();sec.scrollIntoView({behavior:'smooth',block:'start'})},
+    delChapter(btn){const sec=btn.closest('.doc-section');const t=sec.querySelector('.chapter-title');if(!confirm('刪除整章「'+(t?t.textContent:'')+'」及其所有條文？'))return;sec.remove();changed()},
+    move(btn,sel,dir){const el=btn.closest(sel);if(!el)return;let sib=dir<0?el.previousElementSibling:el.nextElementSibling;while(sib&&!sib.matches(sel))sib=dir<0?sib.previousElementSibling:sib.nextElementSibling;if(!sib)return toast('已經到底了');if(dir<0)sib.before(el);else sib.after(el);changed()},
+    save(){try{const prev=localStorage.getItem(KEY);if(prev){let h=[];try{h=JSON.parse(localStorage.getItem(HIST)||'[]')}catch(e){}h.unshift(prev);h=h.slice(0,5);try{localStorage.setItem(HIST,JSON.stringify(h))}catch(e){localStorage.removeItem(HIST)}}
+      localStorage.setItem(KEY,JSON.stringify(snapshot()));DIRTY=false;st('已儲存本機 '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));toast('💾 已儲存（按 ☁ 雲端同步 讓其他裝置也看到）');return true}catch(e){toast('⚠ 儲存失敗：'+e.message);return false}},
+    async cloud(){if(DIRTY&&!RE.save())return;if(!window.ACTS)return toast('⚠ 同步元件未載入');st('雲端同步中…');
+      try{const post=async b=>{const r=await fetch(gas(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)});return r.json()};
+        if(!localStorage.getItem(KEY))localStorage.setItem(KEY,JSON.stringify(snapshot()));
+        const dl=await post({action:'download'});if(!dl.ok)throw Error(dl.error||'download failed');const cloud=dl.data||{meta:{}};
+        const r=ACTS.sync([KEY],cloud,'both','rules');
+        if(r.cloudChanged){cloud.meta=cloud.meta||{};cloud.meta.updatedAt=Date.now();const u=await post({action:'upload',data:cloud,updatedAt:cloud.meta.updatedAt,reason:'FACTORY_RULES'});if(!u.ok)throw Error(u.error||'upload failed')}
+        if(r.localChanged.length)apply(stored());
+        st('雲端已同步 '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));toast(r.cloudChanged?'☁ 已上傳到雲端':'☁ 已是最新'+(r.localChanged.length?'（已收入雲端版本）':''))}
+      catch(e){st('雲端同步失敗');toast('⚠ '+e.message)}},
+    undo(){let h=[];try{h=JSON.parse(localStorage.getItem(HIST)||'[]')}catch(e){}if(!h.length)return toast('沒有可復原的上一版');if(!confirm('復原到上一次儲存前的版本？'))return;const v=h.shift();localStorage.setItem(KEY,v);localStorage.setItem(HIST,JSON.stringify(h));apply(JSON.parse(v));DIRTY=false;st('已復原上一版（記得雲端同步）');toast('↶ 已復原上一版')},
+    reset(){if(!confirm('還原成系統原始版本？目前的修改會移到「上一版」可再復原。'))return;RE.save();apply(ORIG.doc);localStorage.setItem(KEY,JSON.stringify(snapshot()));DIRTY=false;st('已還原原始版本（記得雲端同步）');toast('⟲ 已還原原始版本')}
+  };
+})();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>RE.init());else RE.init();
+</script>
+
 </body>
 </html>

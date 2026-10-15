@@ -30,7 +30,7 @@ async function cloudUp(){try{let d=db();if(d.meta&&d.meta.lastSync&&Number(d.met
 async function cloudDown(){try{cloudState('wait','收取中…');const j=await post({action:'download'});if(!j.ok)throw Error(j.error||'download failed');let m=merge(db(),j.data||{});m.meta=m.meta||{};m.meta.lastSync=Date.now();localStorage.setItem(DB_KEY,JSON.stringify(m));stats();cloudState('ok','下載合併完成');toast('☁↓ 已合併；不重複資料')}catch(e){cloudState('bad','下載失敗');toast('⚠ '+e.message)}}
 async function cloudSync(){try{const m=await post({action:'meta'}),d=db();if(Number(d.meta&&d.meta.updatedAt||0)>Number(m.updatedAt||0))return cloudUp();return cloudDown()}catch(e){toast('⚠ '+e.message)}}async function sendMenu(){try{const j=await post({action:'auditPanel'});if(!j.ok)throw Error(j.error||'Telegram failed');toast('✈ Audit 群組平台已發送')}catch(e){toast('⚠ '+e.message)}}setLang(LANG);stats();ping();
 </script>
-<script src="assets/ac_tool_sync.js?v=1"></script>
+<script src="assets/ac_tool_sync.js?v=2"></script>
 <script>
 /* ═══ 雲端同步中心 Sync Center v1 — 首頁全部更新 / 選擇更新 ═══
    安全規則：一律先收取雲端 → 與本機合併（依記錄簽章去重、刪除標記不復活、較新 _updated 優先）→ 只把勾選模組寫回雲端與本機。

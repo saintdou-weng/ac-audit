@@ -1,1 +1,125 @@
-<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>Assessment Overview · VRT</title><style>body{margin:0;font-family:Arial,"Noto Sans TC",sans-serif;background:#f6f3eb;color:#202631}.wrap{padding:18px;max-width:1100px;margin:auto}.hero{background:#fff;border:1px solid #ddd7ca;border-radius:14px;padding:18px;margin-bottom:12px}.hero h1{margin:0 0 8px;font-size:24px}.hero p{margin:4px 0;color:#667085;line-height:1.55}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.card{background:#fff;border:1px solid #ddd7ca;border-radius:13px;padding:14px}.card h3{margin:0 0 8px;font-size:16px}.tag{display:inline-block;border:1px solid #ddd7ca;border-radius:999px;padding:3px 8px;margin:2px;font-size:12px;background:#faf9f6}.note{background:#fffaeb;border:1px solid #fedf89;border-radius:12px;padding:12px;margin-top:12px;color:#7a4b00}a{color:#175cd3}.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:1px solid #ddd7ca;background:#2f8a68;color:#fff;border-radius:9px;padding:8px 10px;margin:4px 4px 0 0;font-weight:800;font-size:13px}.btn.light{background:#fff;color:#202631}.bar{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}</style></head><body><div class="wrap"><section class="hero"><h1>🧾 Assessment Center</h1><p>集中管理 WRAP、WSE、GRS、C-TPAT、Social Compliance、Technical、Environment 等評估與客戶驗廠記錄。此頁為總覽；請按上方「線上操作」新增、匯入、上傳附件、發摘要與送核可。</p><p>Assessment Center manages WRAP, WSE, GRS, C-TPAT, social compliance, technical and environmental assessments in one place.</p><div class="bar"><button class="btn" onclick="parent.quickNew&&parent.quickNew('WSE')">＋ WSE</button><button class="btn" onclick="parent.quickNew&&parent.quickNew('WRAP')">＋ WRAP</button><button class="btn" onclick="parent.quickNew&&parent.quickNew('GRS')">＋ GRS</button><button class="btn light" onclick="parent.toggleOps&&parent.toggleOps()">線上操作</button></div></section><div class="grid"><div class="card"><h3>📋 WSE / BIG W</h3><p>已匯入 2026-09-07 WSE Audit：Amber / 4 Major / 1 Minor。</p><span class="tag">Technical</span><span class="tag">Product Safety</span><span class="tag">CAP</span><div><button class="btn" onclick="parent.quickNew&&parent.quickNew('WSE')">＋ 新增 WSE</button></div></div><div class="card"><h3>♻️ WRAP / Social Compliance</h3><p>Google Drive 找到 WRAP Audit Report 2020，可作歷史 assessment 參考。</p><span class="tag">WRAP</span><span class="tag">Social</span><div><button class="btn" onclick="parent.quickNew&&parent.quickNew('WRAP')">＋ 新增 WRAP</button></div></div><div class="card"><h3>🏅 GRS / Traceability</h3><p>可登記 GRS、TC、供應商與追溯性評估，與 GRS 中心資料互補。</p><span class="tag">GRS</span><span class="tag">TC</span><span class="tag">Supplier</span><div><button class="btn" onclick="parent.quickNew&&parent.quickNew('GRS')">＋ 新增 GRS</button></div></div><div class="card"><h3>🛡 C-TPAT / Security</h3><p>可用於反恐、供應鏈安全、保安相關 assessment。</p><span class="tag">C-TPAT</span><span class="tag">Security</span><div><button class="btn" onclick="parent.quickNew&&parent.quickNew('C-TPAT')">＋ 新增 C-TPAT</button></div></div><div class="card"><h3>🌱 Environment / HSE</h3><p>可用於環境、HSE、化學品、廢棄物、能源等 assessment。</p><span class="tag">Environment</span><span class="tag">HSE</span><div><button class="btn" onclick="parent.quickNew&&parent.quickNew('Environment')">＋ 新增 Environment</button></div></div></div><div class="note">提示：新類型可直接在記錄內填寫或匯入 CSV/JSON。照片、PDF、Word、Excel、PowerPoint 均走 Google Drive 附件，不占瀏覽器空間。</div></div></body></html>
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assessment 總覽 · VRT</title>
+<style>
+:root{--bg:#f6f3eb;--card:#fff;--ink:#202631;--muted:#7b8190;--line:#ddd7ca;--green:#2f8a68;--gold:#b49b70;--red:#c74a55;--amber:#c98a00;--blue:#17243c;--sky:#2b5d9c;--shadow:0 2px 9px rgba(31,36,46,.08)}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,"Noto Sans TC","Noto Sans Khmer",sans-serif}
+body{padding:14px}
+.top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.top h2{margin:0;font-size:16px;margin-right:auto}
+.seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:7px 11px;font-weight:800;font-size:12px;cursor:pointer;color:#5e6570}
+.seg button.on{background:var(--blue);color:#fff}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:12px}
+.k{background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 12px;box-shadow:var(--shadow)}
+.k b{display:block;font-size:22px;font-weight:900}
+.k span{font-size:11px;color:var(--muted)}
+.k.g b{color:var(--green)}.k.a b{color:var(--amber)}.k.r b{color:var(--red)}
+.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-bottom:10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow)}
+.card h3{margin:0 0 10px;font-size:13px;display:flex;align-items:center;gap:6px}
+.card h3 small{margin-left:auto;font-weight:400;color:var(--muted);font-size:11px}
+.trow{display:grid;grid-template-columns:120px 1fr 64px;gap:8px;align-items:center;font-size:12px;padding:5px 0;cursor:pointer;border-radius:6px}
+.trow:hover{background:#faf8f3}
+.trow.on{background:#f3eee2}
+.bar{height:12px;border-radius:6px;background:#f0ede6;overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.i-done{background:var(--green)}.i-open{background:var(--red)}.i-pend{background:var(--amber)}
+.num{text-align:right;color:var(--muted);font-size:11px}
+.legend{display:flex;gap:12px;font-size:10px;color:var(--muted);margin-top:6px}
+.legend span::before{content:'';display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;background:var(--c)}
+.months{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;align-items:end;height:120px;padding-top:6px}
+.mcol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px}
+.mcol .v{font-size:10px;color:var(--muted)}
+.mcol .b{width:70%;max-width:22px;background:var(--gold);border-radius:4px 4px 0 0;min-height:2px}
+.mcol .l{font-size:10px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:10px;color:var(--muted);font-weight:700;padding:6px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 6px;border-bottom:1px solid #f0ede7;vertical-align:top}
+tr.click{cursor:pointer}tr.click:hover td{background:#faf8f3}
+.pill{display:inline-block;font-size:10px;font-weight:800;border-radius:999px;padding:2px 8px;border:1px solid var(--line);white-space:nowrap}
+.p-done{color:var(--green);background:#eef8f2;border-color:#cfe8da}.p-open{color:var(--red);background:#fdf0f1;border-color:#f0cdd1}.p-pend{color:var(--amber);background:#fff7e6;border-color:#f0dcae}
+.age{font-size:10px;color:var(--red);font-weight:800}
+.empty{text-align:center;color:var(--muted);font-size:12px;padding:22px}
+.tools{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tool{display:flex;gap:10px;align-items:center}
+.tool .ic{width:38px;height:38px;border-radius:10px;background:#f4f1ea;display:flex;align-items:center;justify-content:center;font-size:20px}
+.tool b{font-size:13px}.tool p{margin:3px 0 0;font-size:11px;color:var(--muted)}
+.prog{height:8px;background:#f0ede6;border-radius:4px;overflow:hidden;margin-top:6px}.prog i{display:block;height:100%;background:var(--green)}
+.search{border:1px solid var(--line);border-radius:9px;padding:7px 10px;font-size:12px;min-width:160px;background:#fff}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.tools{grid-template-columns:1fr}.trow{grid-template-columns:96px 1fr 54px}.hide-m{display:none}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h2>🧾 Assessment 總覽</h2>
+  <input class="search" id="q" placeholder="搜尋項目／負責人…" oninput="draw()">
+  <div class="seg" id="yearSeg"></div>
+</div>
+<div class="kpis" id="kpis"></div>
+<div class="grid2">
+  <div class="card"><h3>📊 各類型完成狀況 <small>點類型可篩選下方清單</small></h3><div id="types"></div>
+    <div class="legend"><span style="--c:var(--green)">完成</span><span style="--c:var(--amber)">待處理</span><span style="--c:var(--red)">未結案</span></div></div>
+  <div class="card"><h3>📅 每月評估件數 <small id="mYear"></small></h3><div class="months" id="months"></div></div>
+</div>
+<div class="card" style="margin-bottom:10px"><h3>⚠ 未結案事項 <small>依開立天數排序，點一下可編輯</small></h3><div id="open"></div></div>
+<div class="card" style="margin-bottom:10px"><h3>🗂 評估記錄 <small id="listInfo"></small></h3><div id="list"></div></div>
+<div class="card"><h3>🔗 相關稽核工具進度</h3><div class="tools" id="tools"></div></div>
+<script>
+const DB_KEY='ac_audit_db',MOD='assessments';
+const TYPES=['WSE','WRAP','GRS','C-TPAT','Social Compliance','Technical','Environment','HSE','Other'];
+let YEAR=String(new Date().getFullYear()),TYPE='',LIMIT=30;
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function db(){try{return JSON.parse(localStorage.getItem(DB_KEY)||'{}')}catch(e){return{}}}
+function J(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
+function sgrp(s){s=String(s||'').toLowerCase();if(['done','completed','closed','valid','active','pass'].includes(s))return'done';if(['pending','planned','inprogress','in progress'].includes(s))return'pend';return'open'}
+const SL={done:'完成',pend:'待處理',open:'未結案'};
+function typeOf(r){const t=r.assessmentType||r.auditType||'Other';return TYPES.includes(t)?t:'Other'}
+function rows(){const d=db(),del=(d.meta&&d.meta.deleted)||{};return (Array.isArray(d[MOD])?d[MOD]:[]).filter(r=>r&&!del['assessments|'+sigOf(r)])}
+function sigOf(r){const s=[r.assessmentType||r.auditType,r.auditName||r.title,r.date].map(x=>String(x||'').trim()).filter(Boolean).join('|');return s?'assessments|'+s:(r.id||'')}
+function yr(r){return String(r.date||'').slice(0,4)}
+function days(r){const d=new Date(String(r.date||'').slice(0,10)+'T00:00:00');return isNaN(d)?null:Math.floor((Date.now()-d)/864e5)}
+function edit(id){try{if(parent&&parent!==window&&parent.openRec){parent.openRec(id);return}}catch(e){}alert('請在 Assessment 評估頁面中開啟此總覽以編輯。')}
+function setYear(y){YEAR=y;draw()}
+function setType(t){TYPE=TYPE===t?'':t;draw()}
+function draw(){
+  const all=rows();const years=[...new Set(all.map(yr).filter(Boolean))].sort().reverse();const cy=String(new Date().getFullYear());if(!years.includes(cy))years.unshift(cy);
+  document.getElementById('yearSeg').innerHTML=['all'].concat(years).map(y=>`<button class="${YEAR===y?'on':''}" onclick="setYear('${y}')">${y==='all'?'全部':y}</button>`).join('');
+  const base=YEAR==='all'?all:all.filter(r=>yr(r)===YEAR);
+  const done=base.filter(r=>sgrp(r.status)==='done').length,pend=base.filter(r=>sgrp(r.status)==='pend').length,open=base.filter(r=>sgrp(r.status)==='open').length;
+  const rate=base.length?Math.round(done/base.length*100):0;
+  document.getElementById('kpis').innerHTML=[[base.length,'評估總件數',''],[done,'已完成','g'],[pend,'待處理','a'],[open,'未結案','r'],[rate+'%','完成率',rate>=80?'g':rate>=50?'a':'r']].map(x=>`<div class="k ${x[2]}"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
+  const max=Math.max(1,...TYPES.map(t=>base.filter(r=>typeOf(r)===t).length));
+  document.getElementById('types').innerHTML=TYPES.map(t=>{const rs=base.filter(r=>typeOf(r)===t),n=rs.length;if(!n&&t==='Other')return'';const c={done:0,pend:0,open:0};rs.forEach(r=>c[sgrp(r.status)]++);const w=k=>(c[k]/max*100).toFixed(1)+'%';
+    return `<div class="trow ${TYPE===t?'on':''}" onclick="setType('${t}')"><div>${esc(t)}</div><div class="bar"><i class="i-done" style="width:${w('done')}"></i><i class="i-pend" style="width:${w('pend')}"></i><i class="i-open" style="width:${w('open')}"></i></div><div class="num">${c.done}/${n}</div></div>`}).join('');
+  const my=YEAR==='all'?cy:YEAR;document.getElementById('mYear').textContent=my+' 年';
+  const mc=Array.from({length:12},(_,i)=>all.filter(r=>String(r.date||'').slice(0,7)===my+'-'+String(i+1).padStart(2,'0')).length),mm=Math.max(1,...mc);
+  document.getElementById('months').innerHTML=mc.map((v,i)=>`<div class="mcol"><span class="v">${v||''}</span><div class="b" style="height:${(v/mm*90).toFixed(0)}%"></div><span class="l">${i+1}月</span></div>`).join('');
+  const q=(document.getElementById('q').value||'').trim().toLowerCase();
+  const match=r=>(!TYPE||typeOf(r)===TYPE)&&(!q||[r.title,r.auditName,r.owner,r.checker,r.notes,r.assessmentType].join(' ').toLowerCase().includes(q));
+  const op=all.filter(r=>sgrp(r.status)!=='done'&&match(r)).sort((a,b)=>(days(b)||0)-(days(a)||0));
+  document.getElementById('open').innerHTML=op.length?`<table><thead><tr><th>日期</th><th>類型</th><th>項目</th><th class="hide-m">負責人</th><th>狀態</th><th>天數</th></tr></thead><tbody>${op.slice(0,15).map(r=>{const g=sgrp(r.status),d=days(r);return`<tr class="click" onclick="edit('${esc(r.id)}')"><td>${esc(r.date||'')}</td><td>${esc(typeOf(r))}</td><td>${esc(r.title||r.auditName||'')}</td><td class="hide-m">${esc(r.owner||'')}</td><td><span class="pill p-${g}">${SL[g]}</span></td><td>${d!=null?`<span class="age" style="color:${d>30?'var(--red)':d>14?'var(--amber)':'var(--muted)'}">${d} 天</span>`:''}</td></tr>`}).join('')}</tbody></table>${op.length>15?`<div class="empty">另有 ${op.length-15} 筆未顯示</div>`:''}`:'<div class="empty">✓ 沒有未結案事項</div>';
+  const list=base.filter(match).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  document.getElementById('listInfo').textContent=(TYPE?TYPE+' · ':'')+list.length+' 筆';
+  document.getElementById('list').innerHTML=list.length?`<table><thead><tr><th>日期</th><th>類型</th><th>項目</th><th class="hide-m">Check</th><th class="hide-m">附件</th><th>狀態</th></tr></thead><tbody>${list.slice(0,LIMIT).map(r=>{const g=sgrp(r.status);return`<tr class="click" onclick="edit('${esc(r.id)}')"><td>${esc(r.date||'')}</td><td>${esc(typeOf(r))}</td><td>${esc(r.title||r.auditName||'')}</td><td class="hide-m">${esc(r.checker||'')}</td><td class="hide-m">${(r.photos||[]).length||''}</td><td><span class="pill p-${g}">${SL[g]}</span></td></tr>`}).join('')}</tbody></table>${list.length>LIMIT?`<div class="empty"><button class="seg" style="padding:6px 12px;cursor:pointer" onclick="LIMIT+=30;draw()">顯示更多（還有 ${list.length-LIMIT} 筆）</button></div>`:''}`:'<div class="empty">尚無記錄，請用上方「＋新增」建立 Assessment</div>';
+  drawTools();
+}
+function drawTools(){
+  const out=[];
+  const w=J('VRT_WSE_AUDIT_STATE');if(w&&typeof w==='object'){const v=Object.values(w),c=v.filter(x=>x&&String(x.status||'').toLowerCase()!=='open').length;out.push(['📝','WSE 舊版 NC 評估',`${v.length} 項已填寫 · 已處理 ${c} · 未結 ${v.length-c}`,v.length?c/v.length:0])}
+  const b=J('vrt_bigw_wse_tracker_v1');if(b&&b.responses){const v=Object.values(b.responses),c=v.filter(x=>x&&x.status&&x.status!=='unassessed').length;out.push(['✅','BIG W / WSE Tracker',`已評估 ${c} / ${v.length} 題`,v.length?c/v.length:0])}
+  const d=db();const wa=(d.wse_assessment||[]),au=(d.audits||[]);
+  out.push(['📋','WSE 稽核記錄',`${wa.length} 筆 · 未結 ${wa.filter(r=>sgrp(r.status)!=='done').length}`,wa.length?wa.filter(r=>sgrp(r.status)==='done').length/wa.length:0]);
+  out.push(['♻️','WRAP 稽核記錄',`${au.length} 筆 · 未結 ${au.filter(r=>sgrp(r.status)!=='done').length}`,au.length?au.filter(r=>sgrp(r.status)==='done').length/au.length:0]);
+  document.getElementById('tools').innerHTML=out.map(x=>`<div class="tool"><div class="ic">${x[0]}</div><div style="flex:1"><b>${x[1]}</b><p>${x[2]}</p><div class="prog"><i style="width:${Math.round(x[3]*100)}%"></i></div></div></div>`).join('');
+}
+window.addEventListener('storage',e=>{if(!e.key||e.key===DB_KEY||e.key==='VRT_WSE_AUDIT_STATE'||e.key==='vrt_bigw_wse_tracker_v1')draw()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)draw()});
+setInterval(()=>{const s=localStorage.getItem(DB_KEY)||'';if(s.length!==window._l){window._l=s.length;draw()}},2000);
+draw();
+</script>
+</body>
+</html>
