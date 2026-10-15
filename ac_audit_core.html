@@ -418,6 +418,7 @@ function migrate(d){
   d.meta.seq=d.meta.seq||{};d.meta.deleted=d.meta.deleted||{};d.meta.summaryLog=d.meta.summaryLog||{};d.meta.approvalLog=d.meta.approvalLog||{};d.meta.reminderLog=d.meta.reminderLog||{};return d;
 }
 function saveDB(touch){
+  if(DB&&DB.tools)delete DB.tools;
   if(touch!==false){DB.meta.updatedAt=Date.now();dedupeDB();markCloudPending();requestAutoUpload('SAVE');}
   localStorage.setItem(DB_KEY,JSON.stringify(DB));
   renderNavCounts();
@@ -1587,7 +1588,10 @@ async function cloudUpload(force,reason){
     if(!force && DB.meta.lastSync && Number(DB.meta.updatedAt||0)<=Number(DB.meta.lastSync||0)){toast(LANG==='zh'?'☁ 無新資料，不重複上傳':'☁ No new data; upload skipped');setCloudDot('ok');return}
     toast('☁⬆ …');setCloudDot('wait');
     await migrateLegacyAttachmentsToDrive();
-    const upRes=await gasCall({action:'upload',data:DB,updatedAt:DB.meta.updatedAt,reason:reason||'MANUAL',deleted:DB.meta.deleted||{}});
+    /* 先收取雲端合併再上傳：不覆蓋其他裝置的新資料，並保留雲端的工具資料 (tools) */
+    const dl=await gasCall({action:'download'});const cloud=dl&&dl.data||null;if(cloud)DB=mergeAuditDB(DB,cloud);delete DB.tools;
+    const payload=Object.assign({},cloud||{},DB);if(cloud&&cloud.tools)payload.tools=cloud.tools;else delete payload.tools;
+    const upRes=await gasCall({action:'upload',data:payload,updatedAt:DB.meta.updatedAt,reason:reason||'MANUAL',deleted:DB.meta.deleted||{}});
     if(upRes.data)DB=mergeAuditDB(DB,upRes.data);
     DB.meta.lastSync=Date.now();saveDB(false);setCloudDot('ok');
     logAct('☁⬆ Upload');saveDB(false);toast(t('upDone'));

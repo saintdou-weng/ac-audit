@@ -5,7 +5,7 @@
 <main><div class="hero"><div class="hero-ico">📂</div><div><h1 data-zh="AC Audit 稽核平台" data-en="AC Audit Platform" data-km="វេទិកាសវនកម្ម AC Audit">AC Audit 稽核平台</h1><p data-zh="各模組獨立直接開啟；雲端、資料、照片/PDF 證據與 Telegram 共用 Unified GAS。" data-en="Each module opens directly. Cloud, data, photo/PDF evidence and Telegram share one Unified GAS." data-km="ម៉ូឌុលនីមួយៗបើកដោយផ្ទាល់ និងប្រើ Cloud/Telegram រួម។">各模組獨立直接開啟；雲端、資料、照片/PDF 證據與 Telegram 共用 Unified GAS。</p></div></div>
 <div class="stats"><div class="st"><div class="sv" id="sAssess">0</div><div class="sl" data-zh="Assessment" data-en="Assessments" data-km="Assessment">Assessment</div></div><div class="st"><div class="sv" id="sWse">0</div><div class="sl" data-zh="WSE 記錄" data-en="WSE Records" data-km="WSE">WSE 記錄</div></div><div class="st"><div class="sv" id="sWrap">0</div><div class="sl" data-zh="WRAP 稽核" data-en="WRAP Audits" data-km="WRAP">WRAP 稽核</div></div><div class="st"><div class="sv" id="sDoc">0</div><div class="sl" data-zh="DCC 文件" data-en="DCC Docs" data-km="DCC">DCC 文件</div></div><div class="st"><div class="sv" id="sSync">—</div><div class="sl" data-zh="上次同步" data-en="Last Sync" data-km="Sync">上次同步</div></div></div>
 <div class="cloudbar"><div class="status"><span class="dot" id="dot2"></span><b id="cloudMsg">檢查雲端…</b><span id="cloudTs"></span></div><button class="act" onclick="cloudUp()">☁↑ <span data-zh="上傳" data-en="Upload" data-km="Upload">上傳</span></button><button class="act" onclick="cloudDown()">☁↓ <span data-zh="收取" data-en="Download" data-km="Download">收取</span></button><button class="act" onclick="cloudSync()">⟳ <span data-zh="同步" data-en="Sync" data-km="Sync">同步</span></button><button class="act primary" onclick="sendMenu()">✈ Telegram</button></div>
-<div class="sc" id="syncCenter"><div class="schead"><b>☁ 雲端同步中心</b><button class="sclink" onclick="scAll(true)">全選</button><button class="sclink" onclick="scAll(false)">全不選</button><button class="sclink" onclick="scCompare()">↻ 比對雲端</button></div><div id="scList"></div><div class="scbtns"><button class="act primary scbtn" onclick="scRunAll()">⟳ 全部更新</button><button class="act scbtn" id="scSelBtn" onclick="scRunSel()">☑ 選擇更新</button></div><div class="scnote">全部更新／選擇更新都是「先收取雲端 → 與本機合併去重 → 再上傳」，不會覆蓋其他電腦或手機的資料；已刪除的記錄不會被復活。未勾選的模組保持不動。☁↓ 只收取不上傳。</div></div>
+<div class="sc" id="syncCenter"><div class="schead"><b>☁ 雲端同步中心</b><button class="sclink" onclick="scAll(true)">全選</button><button class="sclink" onclick="scAll(false)">全不選</button><button class="sclink" onclick="scCompare()">↻ 比對雲端</button></div><div id="scList"></div><div class="scbtns"><button class="act primary scbtn" onclick="scRunAll()">⟳ 全部更新</button><button class="act scbtn" id="scSelBtn" onclick="scRunSel()">☑ 選擇更新</button></div><div class="scnote">全部更新／選擇更新（含培訓與各嵌入工具）都是「先收取雲端 → 與本機合併去重 → 再上傳」，不會覆蓋其他電腦或手機的資料；已刪除的記錄不會被復活。未勾選的模組保持不動。☁↓ 只收取不上傳。</div></div>
 <div class="section-title" data-zh="作業模組" data-en="Modules" data-km="ម៉ូឌុល">作業模組</div><div class="grid">
 <a class="mod full" href="vrt_training_v1.html"><div class="mi">🎓</div><div class="mt"><div class="mz" data-zh="培訓管理" data-en="Training Management" data-km="ការបណ្តុះបណ្តាល">培訓管理</div><div class="me" data-zh="年度計劃、月份記錄、培訓庫、雲端、Telegram。" data-en="Annual plan, monthly records, library, cloud and Telegram." data-km="Training">年度計劃、月份記錄、培訓庫、雲端、Telegram。</div></div><span class="arr">↗</span></a>
 <a class="mod" href="assessment_audit_v1.html"><div class="mi">🧾</div><div class="mt"><div class="mz" data-zh="Assessment 評估" data-en="Assessment Center" data-km="Assessment">Assessment 評估</div><div class="me" data-zh="WRAP/WSE/GRS/C-TPAT/Social/Technical/Environment 集中管理。" data-en="WRAP/WSE/GRS/C-TPAT/Social/Technical/Environment assessment records." data-km="Assessment">WRAP/WSE/GRS/C-TPAT/Social/Technical/Environment 集中管理。</div></div><span class="arr">↗</span></a>
@@ -30,6 +30,7 @@ async function cloudUp(){try{let d=db();if(d.meta&&d.meta.lastSync&&Number(d.met
 async function cloudDown(){try{cloudState('wait','收取中…');const j=await post({action:'download'});if(!j.ok)throw Error(j.error||'download failed');let m=merge(db(),j.data||{});m.meta=m.meta||{};m.meta.lastSync=Date.now();localStorage.setItem(DB_KEY,JSON.stringify(m));stats();cloudState('ok','下載合併完成');toast('☁↓ 已合併；不重複資料')}catch(e){cloudState('bad','下載失敗');toast('⚠ '+e.message)}}
 async function cloudSync(){try{const m=await post({action:'meta'}),d=db();if(Number(d.meta&&d.meta.updatedAt||0)>Number(m.updatedAt||0))return cloudUp();return cloudDown()}catch(e){toast('⚠ '+e.message)}}async function sendMenu(){try{const j=await post({action:'auditPanel'});if(!j.ok)throw Error(j.error||'Telegram failed');toast('✈ Audit 群組平台已發送')}catch(e){toast('⚠ '+e.message)}}setLang(LANG);stats();ping();
 </script>
+<script src="assets/ac_tool_sync.js?v=1"></script>
 <script>
 /* ═══ 雲端同步中心 Sync Center v1 — 首頁全部更新 / 選擇更新 ═══
    安全規則：一律先收取雲端 → 與本機合併（依記錄簽章去重、刪除標記不復活、較新 _updated 優先）→ 只把勾選模組寫回雲端與本機。
@@ -43,7 +44,7 @@ const SC_GROUPS=[
  {id:'law',icon:'⚖️',zh:'法律 / 廠規',en:'Law / Rules',km:'ច្បាប់',keys:['cambodia_law','factory_rules']},
  {id:'other',icon:'📎',zh:'其他記錄 (事件/MSG)',en:'Other (Incidents/MSG)',km:'ផ្សេងៗ',keys:['incidents','damage_report','msg']},
  {id:'training',icon:'🎓',zh:'培訓管理',en:'Training',km:'ការបណ្តុះបណ្តាល',training:true}
-];
+].concat((window.ACTS?ACTS.TOOLS:[]).map(t=>({id:t.id,icon:t.icon,zh:t.zh,en:t.en,km:t.en,tool:t.key})));
 const SC_SEL_KEY='ac_audit_sync_sel';
 let SC_CLOUD=null,SC_TRCLOUD=null,SC_BUSY=false;
 function scL(g){return g[LANG]||g.zh}
@@ -72,6 +73,7 @@ function trMergeRec(a,b){const o={};[a||{},b||{}].forEach(src=>Object.keys(src).
 async function trGet(){const r=await fetch(gas()+'?action=getAll');const d=await r.json();if(d.error)throw Error(d.error);return d}
 /* ── 狀態比對 ── */
 function scStatus(g){const d=db();
+ if(g.tool){const s=ACTS.status(ACTS.find(g.tool),SC_CLOUD);return s}
  if(g.training){const L=trLocal();const lc=trCount(L.records);if(!SC_TRCLOUD)return{local:L.has?lc:'—',cloud:'—',st:'unk'};const cc=trCount(SC_TRCLOUD.records);
   if(!L.has)return{local:'—',cloud:cc,st:cc?'down':'ok',n:cc};
   const m=trMergeRec(L.records,SC_TRCLOUD.records),mc=trCount(m);const up=mc-cc,dn=mc-lc;
@@ -85,8 +87,8 @@ function scSel(){try{return JSON.parse(localStorage.getItem(SC_SEL_KEY)||'null')
 function scToggle(id,on){let s=scSel().filter(x=>x!==id);if(on)s.push(id);localStorage.setItem(SC_SEL_KEY,JSON.stringify(s));scRender()}
 function scAll(on){localStorage.setItem(SC_SEL_KEY,JSON.stringify(on?SC_GROUPS.map(g=>g.id):[]));scRender()}
 function scRender(){const box=document.getElementById('scList');if(!box)return;const sel=scSel();
- const T={ok:['✓ 已一致','ok'],up:['↑ 本機有新資料','up'],down:['↓ 雲端有新資料','down'],both:['⇅ 雙方都有新資料','both'],unk:['… 未比對','unk']};
- box.innerHTML=SC_GROUPS.map(g=>{const s=scStatus(g);let tx=T[s.st][0];if(s.st==='up'&&s.up)tx='↑ 本機新 '+s.up+' 筆';if(s.st==='down'&&s.dn)tx='↓ 雲端新 '+s.dn+' 筆';if(s.st==='both')tx='⇅ 本機新 '+(s.up||0)+' · 雲端新 '+(s.dn||0);if(g.training&&s.pending&&s.st!=='ok')tx+=' (待上傳)';
+ const T={ok:['✓ 已一致','ok'],up:['↑ 本機有新資料','up'],down:['↓ 雲端有新資料','down'],both:['⇅ 雙方都有新資料','both'],unk:['… 未比對','unk'],none:['— 尚無資料','unk']};
+ box.innerHTML=SC_GROUPS.map(g=>{const s=scStatus(g);let tx=T[s.st][0];if(s.st==='up'&&s.up)tx='↑ 本機新 '+s.up+' 筆';if(s.st==='down'&&s.dn)tx='↓ 雲端新 '+s.dn+' 筆';if(s.st==='both')tx=(s.up!==undefined?'⇅ 本機新 '+(s.up||0)+' · 雲端新 '+(s.dn||0):'⇅ 兩邊都有更新');if(g.training&&s.pending&&s.st!=='ok')tx+=' (待上傳)';
   return `<label class="scrow"><input type="checkbox" ${sel.includes(g.id)?'checked':''} onchange="scToggle('${g.id}',this.checked)"><span class="scico">${g.icon}</span><span class="scname">${scL(g)}</span><span class="sccnt">本機 <b>${s.local}</b> · 雲端 <b>${s.cloud}</b></span><span class="scst ${T[s.st][1]}">${tx}</span></label>`}).join('');
  const n=sel.length;const b=document.getElementById('scSelBtn');if(b){b.disabled=!n;b.textContent='☑ 選擇更新 ('+n+')'}}
 async function scCompare(quiet){try{if(!quiet)cloudState('wait','比對雲端…');const j=await post({action:'download'});if(!j.ok)throw Error(j.error||'download failed');SC_CLOUD=j.data||{};
@@ -94,24 +96,27 @@ async function scCompare(quiet){try{if(!quiet)cloudState('wait','比對雲端…
   scRender();if(!quiet){cloudState('ok','比對完成');toast('☁ 已比對雲端差異')}}catch(e){if(!quiet){cloudState('bad','比對失敗');toast('⚠ '+e.message)}}}
 /* ── 主流程：mode = both(雙向) / down(只收取) ── */
 async function scRun(ids,mode){if(SC_BUSY)return;if(!ids.length){toast('請先勾選要更新的模組');return}
- SC_BUSY=true;const groups=SC_GROUPS.filter(g=>ids.includes(g.id)),audit=groups.filter(g=>!g.training),doTr=groups.some(g=>g.training);const msg=[];
+ SC_BUSY=true;const groups=SC_GROUPS.filter(g=>ids.includes(g.id)),audit=groups.filter(g=>!g.training&&!g.tool),tools=groups.filter(g=>g.tool).map(g=>g.tool),doTr=groups.some(g=>g.training);const msg=[];
  try{cloudState('wait',mode==='down'?'收取中…':'同步中…');scBusy(true);
-  if(audit.length){const j=await post({action:'download'});if(!j.ok)throw Error(j.error||'download failed');
+  if(audit.length||tools.length){const j=await post({action:'download'});if(!j.ok)throw Error(j.error||'download failed');
    const cloudEmpty=!j.data;const cloud=j.data||{};const local=db();local.meta=local.meta||{};cloud.meta=cloud.meta||{};
-   const del=Object.assign({},cloud.meta.deleted||{},local.meta.deleted||{});const keys=audit.flatMap(g=>g.keys);let changedUp=cloudEmpty,addLocal=0,addCloud=0;
+   delete local.tools;const del=Object.assign({},cloud.meta.deleted||{},local.meta.deleted||{});const keys=audit.flatMap(g=>g.keys);let changedUp=cloudEmpty,addLocal=0,addCloud=0;
    keys.forEach(k=>{const m=scMergeKey(k,local[k],cloud[k],del);const ls=scSet(local[k],k,del),cs=scSet(cloud[k],k,del),ms=scSet(m,k,del);
     ms.forEach(s=>{if(!ls.has(s))addLocal++;if(!cs.has(s))addCloud++});
     if(JSON.stringify(cloud[k]||[])!==JSON.stringify(m))changedUp=true;local[k]=m;cloud[k]=m});
    const at=[].concat((cloud.settings&&cloud.settings.auditTypes)||[],(local.settings&&local.settings.auditTypes)||[]);
    local.settings=Object.assign({},cloud.settings||{},local.settings||{});if(at.length)local.settings.auditTypes=[...new Set(at)];
    local.meta.deleted=del;const now=Date.now();
-   const allKeys=SC_GROUPS.filter(g=>!g.training).every(g=>ids.includes(g.id));
-   if(mode!=='down'&&(changedUp||addCloud)){const base=cloudEmpty?JSON.parse(JSON.stringify(local)):cloud;base.settings=local.settings;base.meta=Object.assign({},cloud.meta,{deleted:del,updatedAt:now});
-    const u=await post({action:'upload',data:base,updatedAt:now,reason:'PORTAL_SYNC_'+(allKeys?'ALL':ids.join('+'))});if(!u.ok)throw Error(u.error||'upload failed');SC_CLOUD=base}else SC_CLOUD=cloud;
+   const allKeys=SC_GROUPS.filter(g=>!g.training&&!g.tool).every(g=>ids.includes(g.id));
+   const base=cloudEmpty?JSON.parse(JSON.stringify(local)):cloud;if(cloud.tools)base.tools=cloud.tools;
+   const tr=tools.length?ACTS.sync(tools,base,mode,'portal'):{cloudChanged:false,localChanged:[],log:[]};
+   if(mode!=='down'&&(changedUp||addCloud||tr.cloudChanged)){base.settings=local.settings;base.meta=Object.assign({},cloud.meta,{deleted:del,updatedAt:now});
+    const u=await post({action:'upload',data:base,updatedAt:now,reason:'PORTAL_SYNC_'+(allKeys?'ALL':ids.join('+'))});if(!u.ok)throw Error(u.error||'upload failed')}
+   SC_CLOUD=base;if(tr.log.length)msg.push('工具：'+tr.log.join('、'));
    local.meta.groupSync=Object.assign({},local.meta.groupSync||{});audit.forEach(g=>local.meta.groupSync[g.id]=now);
    if(allKeys){local.meta.lastSync=now;if(Number(local.meta.updatedAt||0)>now)local.meta.updatedAt=now}
    localStorage.setItem(DB_KEY,JSON.stringify(local));
-   msg.push('稽核 '+audit.length+' 模組：收入 '+addLocal+' 筆'+(mode==='down'?'':'、上傳 '+addCloud+' 筆'))}
+   if(audit.length)msg.push('稽核 '+audit.length+' 模組：收入 '+addLocal+' 筆'+(mode==='down'?'':'、上傳 '+addCloud+' 筆'))}
   if(doTr){const r=await trGet();const L=trLocal();
    if(!L.has){localStorage.setItem('vrt3_tr',JSON.stringify(r.trainings||[]));localStorage.setItem('vrt3_rc',JSON.stringify(r.records||{}));localStorage.setItem('vrt3_lb',JSON.stringify(r.library||[]));msg.push('培訓：收入 '+trCount(r.records)+' 筆')}
    else{const rec=trMergeRec(L.records,r.records),pend=!!L.cfg.needsSync;

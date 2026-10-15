@@ -137,6 +137,7 @@ tr.err td{background:#fff5f5}
 </div>
 </div>
 
+<script src="assets/ac_tool_sync.js?v=1"></script>
 <script>
 // ── Category definitions: { label, code, color, keywords[] } ─────
 // Keywords matched against subject + body (case-insensitive)
@@ -519,62 +520,25 @@ async function gasPing(){
   }
 }
 
+async function msgCloud(mode){
+  /* 存到 Unified GAS 雲端檔的 tools 欄位（與 AC Audit 首頁同步中心共用），先收取合併再上傳 */
+  const post=async b=>{const r=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)});return r.json()};
+  const dl=await post({action:'download'});if(!dl.ok)throw new Error(dl.error||'download failed');
+  const doc=dl.data||{meta:{}};const r=ACTS.sync(['msgProcessor_data'],doc,mode,'msg');
+  if(mode!=='down'&&r.cloudChanged){doc.meta=doc.meta||{};doc.meta.updatedAt=Date.now();const u=await post({action:'upload',data:doc,updatedAt:doc.meta.updatedAt,reason:'MSG_TOOL'});if(!u.ok)throw new Error(u.error||'upload failed')}
+  results=[];seq=1;loadData();render();return r;
+}
 async function gasLoad(){
-  setSyncStatus('loading','正在從雲端載入…');
-  try{
-    const res = await fetch(GAS_URL + '?action=load');
-    const d = await res.json();
-    if(d.error) throw new Error(d.error);
-    if(!d.results || !d.results.length){
-      setSyncStatus('ok','☁️ 雲端目前無資料');
-      return;
-    }
-    if(results.length > 0){
-      const choice = confirm(`雲端有 ${d.results.length} 筆記錄，本機有 ${results.length} 筆。\n確定 = 用雲端取代本機\n取消 = 合併（保留兩邊）`);
-      if(choice){
-        results = d.results; seq = d.seq || 1;
-      } else {
-        const existing = new Set(results.map(r=>r.fn));
-        const toAdd = d.results.filter(r=>!existing.has(r.fn));
-        results.push(...toAdd);
-        seq = Math.max(seq, d.seq||1);
-      }
-    } else {
-      results = d.results; seq = d.seq || 1;
-    }
-    saveData(); render();
-    setSyncStatus('ok',`✅ 已從雲端載入 ${results.length} 筆記錄`);
-  }catch(e){
-    setSyncStatus('err','❌ 載入失敗：'+e.message);
-  }
+  setSyncStatus('loading','正在從雲端收取並合併…');
+  try{saveData();await msgCloud('down');setSyncStatus('ok',`✅ 已收取合併，共 ${results.length} 筆 · ${new Date().toLocaleTimeString('zh-TW')}`);}
+  catch(e){setSyncStatus('err','❌ 載入失敗：'+e.message);}
 }
 
 async function gasSave(){
   if(!results.length){ alert('尚無資料可同步'); return; }
   setSyncStatus('loading',`正在同步 ${results.length} 筆到雲端…`);
-  try{
-    const res = await fetch(GAS_URL, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body: JSON.stringify({action:'save', results, seq})
-    });
-    const d = await res.json();
-    if(d.error) throw new Error(d.error);
-    setSyncStatus('ok',`✅ 已同步 ${d.count} 筆到 Google Sheets · ${new Date().toLocaleTimeString('zh-TW')}`);
-  }catch(e){
-    // GAS sometimes blocks POST due to CORS — fallback via GET with data in URL is too large
-    // Use no-cors mode as workaround
-    try{
-      await fetch(GAS_URL, {
-        method:'POST', mode:'no-cors',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({action:'save', results, seq})
-      });
-      setSyncStatus('ok',`✅ 已送出同步請求 · ${new Date().toLocaleTimeString('zh-TW')}`);
-    }catch(e2){
-      setSyncStatus('err','❌ 同步失敗：'+e2.message);
-    }
-  }
+  try{saveData();const r=await msgCloud('both');setSyncStatus('ok',(r.cloudChanged?`✅ 已同步 ${results.length} 筆到雲端`:'✅ 雲端已是最新，無需重複上傳')+` · ${new Date().toLocaleTimeString('zh-TW')}`);}
+  catch(e){setSyncStatus('err','❌ 同步失敗：'+e.message);}
 }
 
 // Auto-ping on load
