@@ -31,4 +31,6 @@ function buildMsg(approval){const r=periodRows(),checker=localStorage.getItem('a
 async function sendSummary(){const checker=prompt('請輸入 Check 人員姓名',localStorage.getItem('ac_audit_checker')||'');if(!checker)return toast('必須填寫 Check 人');localStorage.setItem('ac_audit_checker',checker.trim());try{const j=await post({action:'tg',text:buildMsg(false)});if(!j.ok&&j.status!=='ok')throw Error(j.msg||j.error||'Telegram failed');const d=db();periodRows().forEach(r=>{r._summarySentAt=Date.now();r.checker=r.checker||checker.trim()});d.meta=d.meta||{};d.meta.updatedAt=Date.now();setdb(d);toast('摘要已發，開始自動上傳');await up(true)}catch(e){toast('⚠ '+e.message)}}
 async function sendApproval(){if(!confirm('送核可給 Paul Weng / 神大？'))return;try{const j=await post({action:'approval',module:'柬埔寨法律',period:PERIOD,count:periodRows().length,comment:'Approved',hash:'#'+MODULE_KEY});if(!j.ok&&j.status!=='ok')throw Error(j.msg||j.error||'Approval failed');const d=db();periodRows().forEach(r=>r._approvalSentAt=Date.now());d.meta=d.meta||{};d.meta.updatedAt=Date.now();setdb(d);toast('核可已發，開始自動上傳');await up(true)}catch(e){toast('⚠ '+e.message)}}
 const h=location.hash.slice(1);show(TABS.some(x=>x.id===h)?h:DEFAULT);renderOpsStats();ping();
-</script></body></html>
+</script><!-- VRT swipe-tabs：左右滑動（手指／滑鼠拖曳）切換分頁，只聽手勢、不改資料 -->
+<script src="https://saintdou-weng.github.io/ac-admin/shared/swipe-tabs.js" defer></script>
+</body></html>

@@ -552,5 +552,7 @@ dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');}
 dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');go(e.dataTransfer.files);});
 </script>
-<a class="ac-audit-back-btn" href="ac_audit_platform_v1.html">← AC Audit</a></body>
+<a class="ac-audit-back-btn" href="ac_audit_platform_v1.html">← AC Audit</a><!-- VRT swipe-tabs：左右滑動（手指／滑鼠拖曳）切換分頁，只聽手勢、不改資料 -->
+<script src="https://saintdou-weng.github.io/ac-admin/shared/swipe-tabs.js" defer></script>
+</body>
 </html>
