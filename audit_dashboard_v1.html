@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AC Audit 報告中心 · VRT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF1F4;--surface:#fff;--surface-2:#F5F7F9;--sunk:#E7EBF0;
+  --ink:#15202B;--ink-2:#465566;--muted:#768494;--line:#D9DFE6;--line-2:#E8ECF1;
+  --accent:#0F6E63;--accent-2:#0B5249;--accent-soft:#DCEFEB;
+  --good:#0ca30c;--good-ink:#0a6b0a;--good-soft:#E3F5E3;
+  --warn:#fab219;--warn-ink:#8a5a00;--warn-soft:#FFF3D6;
+  --serious:#ec835a;--crit:#d03b3b;--crit-ink:#a52a2a;--crit-soft:#FBE4E4;
+  --info:#2a78d6;--info-soft:#E3EEFB;--plan:#b7d3f6;--gray:#B8C1CC;--gray-soft:#EEF1F4;
+  --f:"IBM Plex Sans","Noto Sans TC","Noto Sans Khmer",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --fd:"IBM Plex Sans Condensed","Noto Sans TC",sans-serif;
+  --r:12px;--shadow:0 1px 2px rgba(20,32,43,.05),0 6px 20px rgba(20,32,43,.06);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:112px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:14px;line-height:1.5;-webkit-text-size-adjust:100%}
+button{font-family:inherit;cursor:pointer}
+.num{font-variant-numeric:tabular-nums}
+/* top bar */
+.top{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;padding:10px 16px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.home{text-decoration:none;color:var(--ink-2);border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-weight:600;font-size:13px;background:#fff}
+.brand{font-family:var(--fd);font-weight:700;font-size:19px;letter-spacing:.01em}
+.brand small{display:block;font-family:var(--f);font-weight:400;font-size:11px;color:var(--muted);letter-spacing:0}
+.sp{flex:1}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:7px 13px;font-weight:600;font-size:13px;color:var(--ink-2)}
+.seg button.on{background:var(--accent);color:#fff}
+.nav{display:inline-flex;align-items:center;gap:4px}
+.ib{border:1px solid var(--line);background:#fff;border-radius:9px;min-width:34px;height:34px;padding:0 9px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.ib:hover{border-color:var(--accent);color:var(--accent)}
+.ib.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.ib.pri:hover{background:var(--accent-2);color:#fff}
+.ib:disabled{opacity:.5;cursor:default}
+.plabel{font-weight:700;font-size:14px;min-width:150px;text-align:center}
+.fresh{font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--gray)}
+.dot.ok{background:var(--good)}.dot.wait{background:var(--warn);animation:pulse 1s infinite}.dot.bad{background:var(--crit)}
+@keyframes pulse{50%{opacity:.35}}
+.tabs{max-width:1180px;margin:0 auto;padding:6px 10px 0;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs a{flex:0 0 auto;text-decoration:none;color:var(--ink-2);font-weight:600;font-size:13px;padding:8px 12px;border-bottom:3px solid transparent;white-space:nowrap}
+.tabs a.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs a .c{font-weight:700;font-size:11px;background:var(--sunk);border-radius:99px;padding:1px 7px;margin-left:5px;color:var(--ink-2)}
+.tabs a .c.r{background:var(--crit-soft);color:var(--crit-ink)}
+/* layout */
+main{max-width:1180px;margin:0 auto;padding:16px 16px 90px}
+section{margin-bottom:22px}
+.h{display:flex;align-items:baseline;gap:10px;margin:0 2px 10px;flex-wrap:wrap}
+.h h2{font-family:var(--fd);font-size:18px;margin:0;font-weight:700}
+.h .sub{font-size:12px;color:var(--muted)}
+.h .sp{flex:1}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1.25fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+/* hero */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;border-left:6px solid var(--gray)}
+.hero.red{border-left-color:var(--crit);background:linear-gradient(90deg,var(--crit-soft),#fff 38%)}
+.hero.yellow{border-left-color:var(--warn);background:linear-gradient(90deg,var(--warn-soft),#fff 38%)}
+.hero.green{border-left-color:var(--good);background:linear-gradient(90deg,var(--good-soft),#fff 38%)}
+.hero.blue{border-left-color:var(--info);background:linear-gradient(90deg,var(--info-soft),#fff 38%)}
+.lamp{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:26px;background:#fff;border:1px solid var(--line)}
+.hero h1{margin:0;font-size:21px;line-height:1.35;font-weight:700}
+.hero .second{margin-top:4px;font-size:14px;color:var(--ink-2);font-weight:500}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.tag{font-size:12px;background:#fff;border:1px solid var(--line);border-radius:99px;padding:3px 10px;color:var(--ink-2)}
+.note{margin-bottom:8px;font-size:13px;font-weight:600;color:var(--ink)}
+.note button{border:0;background:none;color:var(--muted);font-size:12px;margin-left:6px}
+/* kpi */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:12px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 13px;text-decoration:none;color:inherit;display:block;position:relative;overflow:hidden;transition:transform .12s,box-shadow .12s}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.kpi::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gray)}
+.kpi.red::before{background:var(--crit)}.kpi.yellow::before{background:var(--warn)}.kpi.green::before{background:var(--good)}.kpi.blue::before{background:var(--info)}
+.kpi .l{font-size:11.5px;color:var(--muted);font-weight:600;display:flex;gap:5px;align-items:center}
+.kpi .v{font-family:var(--fd);font-size:30px;font-weight:700;line-height:1.1;margin-top:4px}
+.kpi .v small{font-size:14px;font-weight:600;color:var(--muted);margin-left:2px}
+.kpi .d{font-size:11.5px;color:var(--ink-2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* actions */
+.acts{display:grid;gap:9px}
+.act{display:grid;grid-template-columns:28px 1fr;gap:10px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.act .n{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.act b{display:block;font-size:14px}
+.act span{display:block;font-size:13px;color:var(--ink-2);margin-top:2px}
+.act span i{font-style:normal;font-weight:700;color:var(--accent)}
+/* pills */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:700;border-radius:99px;padding:2px 9px;white-space:nowrap;border:1px solid transparent}
+.pill.green{background:var(--good-soft);color:var(--good-ink)}.pill.yellow{background:var(--warn-soft);color:var(--warn-ink)}
+.pill.red{background:var(--crit-soft);color:var(--crit-ink)}.pill.blue{background:var(--info-soft);color:#1c5cab}.pill.gray{background:var(--gray-soft);color:var(--ink-2);border-color:var(--line)}
+/* rows */
+.rows{display:grid}
+.row{display:grid;gap:10px;align-items:center;padding:11px 6px;border-top:1px solid var(--line-2);cursor:pointer;border-radius:8px}
+.row:first-child{border-top:0}
+.row:hover{background:var(--surface-2)}
+.row .t{font-weight:600;min-width:0}
+.row .t small{display:block;font-weight:400;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cert-row{grid-template-columns:minmax(150px,1.4fr) 2fr 108px 110px}
+.cap-row{grid-template-columns:88px minmax(0,2.2fr) 1.3fr 92px 104px}
+.bar{height:10px;border-radius:5px;background:var(--sunk);position:relative;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:5px}
+.bar .tick{position:absolute;top:-2px;bottom:-2px;width:2px;background:#fff}
+.r{text-align:right}.muted{color:var(--muted)}.small{font-size:12px}
+.chev{color:var(--muted);font-size:16px;text-align:right}
+/* audit cards */
+.acards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.acard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;border-top:4px solid var(--gray)}
+.acard.green{border-top-color:var(--good)}.acard.yellow{border-top-color:var(--warn)}.acard.red{border-top-color:var(--crit)}
+.acard:hover{box-shadow:var(--shadow)}
+.acard .s{font-family:var(--fd);font-weight:700;font-size:17px}
+.acard .res{font-weight:700;font-size:13px;margin:4px 0 2px}
+.acard .m{font-size:12px;color:var(--muted)}
+svg text{font-family:var(--f)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:11px;height:11px;border-radius:3px;display:inline-block}
+/* matrix */
+.mx-wrap{overflow-x:auto}
+table.mx{border-collapse:separate;border-spacing:2px;width:100%;min-width:720px;font-size:12px}
+.mx th{font-weight:600;color:var(--muted);font-size:11px;padding:2px}
+.mx th.cur{color:var(--accent);font-weight:700}
+.mx td.n{text-align:left;padding:3px 8px 3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:210px;font-weight:500;cursor:pointer}
+.mx td.n:hover{color:var(--accent)}
+.mx td.c{width:6.2%;height:24px;border-radius:5px;text-align:center;font-weight:700;font-size:11px;background:var(--surface-2)}
+.mx td.s1{background:var(--plan);color:#184f95}.mx td.s2{background:var(--good);color:#fff}.mx td.s3{background:var(--warn);color:#0b0b0b}.mx td.s4{background:var(--gray);color:#fff}
+.mx td.late{box-shadow:inset 0 0 0 2px var(--crit)}
+.mx td.cat{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-top:8px;text-align:left}
+table.tb{width:100%;border-collapse:collapse;font-size:13px}
+.tb th{text-align:left;font-size:11px;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.tb td{padding:8px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.tb tr.click{cursor:pointer}.tb tr.click:hover td{background:var(--surface-2)}
+.tb td.r,.tb th.r{text-align:right}
+.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}
+/* feed */
+.feed{display:grid}
+.fi{display:grid;grid-template-columns:86px 26px 1fr;gap:8px;padding:8px 4px;border-top:1px solid var(--line-2);font-size:13px}
+.fi:first-child{border-top:0}
+.fi .when{color:var(--muted);font-size:12px}
+/* history */
+.hist{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.hc{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;border-left:5px solid var(--gray)}
+.hc.red{border-left-color:var(--crit)}.hc.yellow{border-left-color:var(--warn)}.hc.green{border-left-color:var(--good)}.hc.blue{border-left-color:var(--info)}
+.hc:hover{box-shadow:var(--shadow)}
+.hc b{display:block}.hc span{display:block;font-size:12px;color:var(--ink-2);margin-top:3px}
+.hc em{font-style:normal;font-size:11px;color:var(--muted);display:block;margin-top:6px}
+/* drawer */
+.mask{position:fixed;inset:0;background:rgba(15,25,35,.42);z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.mask.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:var(--bg);z-index:61;transform:translateX(102%);transition:transform .24s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(15,25,35,.2)}
+.drawer.on{transform:none}
+.dh{background:#fff;border-bottom:1px solid var(--line);padding:14px 16px;display:flex;gap:10px;align-items:flex-start}
+.dh h3{margin:0;font-size:17px;font-family:var(--fd);line-height:1.3}
+.dh .x{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:9px;width:34px;height:34px;font-size:18px;flex:0 0 auto}
+.db{overflow-y:auto;padding:14px 16px 40px;display:grid;gap:12px;align-content:start}
+.db .card{box-shadow:none;padding:13px}
+.db h4{margin:0 0 8px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+dl.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin:0}
+dl.kv dt{font-size:11px;color:var(--muted)}dl.kv dd{margin:1px 0 0;font-weight:600;word-break:break-word}
+dl.kv .full{grid-column:1/-1}
+.tl{position:relative;padding-left:18px;display:grid;gap:10px}
+.tl::before{content:'';position:absolute;left:5px;top:4px;bottom:4px;width:2px;background:var(--line)}
+.tl div{position:relative;font-size:13px}
+.tl div::before{content:'';position:absolute;left:-17px;top:5px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--accent)}
+.tl b{display:block}.tl span{color:var(--ink-2)}.tl time{font-size:11px;color:var(--muted)}
+.warnbox{background:var(--warn-soft);border:1px solid #f1d58f;border-radius:10px;padding:10px 12px;font-size:13px;color:var(--warn-ink)}
+.form{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.form label{font-size:11px;color:var(--muted);display:grid;gap:3px;font-weight:600}
+.form input,.form select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;background:#fff;min-width:150px}
+pre.tg{white-space:pre-wrap;word-break:break-word;font-family:var(--f);font-size:13px;line-height:1.55;margin:0}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:80;opacity:0;transition:all .25s;pointer-events:none;max-width:92%}
+#toast.on{opacity:1;transform:translateX(-50%)}
+#tip{position:fixed;z-index:90;background:var(--ink);color:#fff;font-size:12px;padding:6px 9px;border-radius:7px;pointer-events:none;opacity:0;transition:opacity .1s;max-width:260px;line-height:1.45}
+.foot{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}.g2,.g3{grid-template-columns:1fr}.cert-row{grid-template-columns:1fr 96px 20px}.cert-row .bar,.cert-row .date{display:none}.cap-row{grid-template-columns:1fr 96px}.cap-row .cl,.cap-row .own,.cap-row .due{display:none}.plabel{min-width:0}}
+@media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}.hero{grid-template-columns:1fr}.lamp{display:none}.hero h1{font-size:18px}.brand small{display:none}.fi{grid-template-columns:54px 22px 1fr}main{padding:12px 10px 90px}.top-in{padding:8px 10px 0}}
+@media print{.top,.ib,.mask,.drawer,#toast,.noprint{display:none!important}body{background:#fff}main{max-width:none;padding:0}.card{box-shadow:none;break-inside:avoid}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="top-in">
+    <a class="home" href="ac_audit_platform_v1.html">← AC Audit</a>
+    <div class="brand">報告中心 <small>週報 · 月報 · 證書 · 稽核 · 缺失 · 培訓</small></div>
+    <div class="sp"></div>
+    <span class="fresh"><span class="dot" id="dot"></span><span id="fresh">讀取中…</span></span>
+    <div class="seg" id="kindSeg"><button data-k="week">週報</button><button data-k="month">月報</button></div>
+    <div class="nav"><button class="ib" onclick="shift(-1)" title="上一期">◀</button><span class="plabel num" id="plabel">—</span><button class="ib" onclick="shift(1)" id="nextBtn" title="下一期">▶</button><button class="ib" onclick="goNow()">本期</button></div>
+    <button class="ib" onclick="refresh(true)" title="重新讀取">↻</button>
+    <button class="ib" onclick="window.print()">🖨 列印</button>
+    <button class="ib pri" onclick="sendReport()" id="sendBtn">✈ 發到群組</button>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+</div>
+<main id="main"><div class="card empty">讀取雲端資料中…</div></main>
+<div class="mask" id="mask" onclick="closeD()"></div>
+<aside class="drawer" id="drawer"><div class="dh"><div id="dtitle"></div><button class="x" onclick="closeD()">×</button></div><div class="db" id="dbody"></div></aside>
+<div id="toast"></div><div id="tip"></div>
+<script src="assets/ac_audit_engine.js?v=1"></script>
+<script>
+const GAS_DEFAULT='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
+const CACHE='ac_audit_dash_cache_v1';
+let DB={},TR={trainings:[],records:{}},HIST=[],F=null,KIND=localStorage.getItem('ac_audit_dash_kind')||'week',ANCHOR=null,LOADED=0,CAPF='open';
+const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const pad=n=>String(n).padStart(2,'0');
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function addDays(s,n){const d=ACR.parse(s);d.setDate(d.getDate()+n);return ACR.ymd(d)}
+function gas(){try{return (JSON.parse(localStorage.getItem('ac_audit_config')||'{}').gasUrl||GAS_DEFAULT).trim()}catch(e){return GAS_DEFAULT}}
+async function post(b){const r=await fetch(gas(),{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)});return r.json()}
+function toast(s,ms){const t=$('#toast');t.textContent=s;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),ms||2600)}
+function who(){return localStorage.getItem('ac_audit_checker')||''}
+const ICON={red:'🔴',yellow:'🟡',green:'🟢',blue:'🔵',gray:'⚪'};
+const LT={red:'要處理',yellow:'注意',green:'正常',blue:'說明',gray:'待確認'};
+function pill(light,txt){return `<span class="pill ${light}">${esc(txt)}</span>`}
+function fmtDays(d){return d==null?'':d<0?'過 '+(-d)+' 天':d===0?'今天':'剩 '+d+' 天'}
+
+/* ── 讀資料 ── */
+function setFresh(st,txt){$('#dot').className='dot '+st;$('#fresh').textContent=txt}
+function loadCache(){try{const c=JSON.parse(localStorage.getItem(CACHE)||'null');if(c&&c.db){DB=c.db;TR=c.tr||TR;HIST=c.hist||[];LOADED=c.ts||0;return true}}catch(e){}return false}
+async function refresh(manual){
+  setFresh('wait','同步雲端…');
+  try{
+    const [a,b,h]=await Promise.all([post({action:'download'}),fetch(gas()+'?action=getAll').then(r=>r.json()),post({action:'reportHistory'}).catch(()=>({}))]);
+    if(a&&a.ok){DB=a.data||{}}
+    if(b&&b.trainings){TR={trainings:b.trainings||[],records:b.records||{},library:b.library||[]}}
+    if(h&&h.ok)HIST=h.list||[];
+    LOADED=Date.now();
+    try{localStorage.setItem(CACHE,JSON.stringify({db:DB,tr:TR,hist:HIST,ts:LOADED}))}catch(e){}
+    setFresh('ok','已更新 '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+    render(); if(manual)toast('✓ 已是雲端最新資料');
+  }catch(e){setFresh('bad','離線，顯示上次資料');if(manual)toast('⚠ 連不上雲端：'+e.message)}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LOADED>5*60000)refresh()});
+
+/* ── 期間 ── */
+function setKind(k){KIND=k;localStorage.setItem('ac_audit_dash_kind',k);ANCHOR=null;render()}
+function curAnchor(){return ANCHOR||todayStr()}
+function shift(n){const P=ACR.periodOf(KIND,curAnchor());ANCHOR=KIND==='week'?addDays(P.from,7*n):(()=>{const d=ACR.parse(P.from);d.setMonth(d.getMonth()+n);d.setDate(15);return ACR.ymd(d)})();render()}
+function goNow(){ANCHOR=null;render()}
+document.getElementById('kindSeg').addEventListener('click',e=>{const k=e.target.dataset.k;if(k)setKind(k)});
+
+/* ── 圖 ── */
+function tipOn(e,html){const t=$('#tip');t.innerHTML=html;t.style.opacity=1;const x=Math.min(window.innerWidth-270,e.clientX+12),y=e.clientY+14;t.style.left=Math.max(6,x)+'px';t.style.top=y+'px'}
+function tipOff(){$('#tip').style.opacity=0}
+document.addEventListener('mousemove',e=>{const el=e.target.closest('[data-tip]');if(el)tipOn(e,el.getAttribute('data-tip'));else tipOff()});
+document.addEventListener('touchstart',e=>{const el=e.target.closest('[data-tip]');if(el){const t=e.touches[0];tipOn({clientX:t.clientX,clientY:t.clientY},el.getAttribute('data-tip'));setTimeout(tipOff,2200)}},{passive:true});
+
+function trainChart(T){
+  const W=720,H=230,L=34,B=30,TOP=18,bw=(W-L-8)/12,max=Math.max(4,...T.byMonth.map(m=>m.plan-m.cancel));
+  const y=v=>TOP+(H-TOP-B)*(1-v/max);let g='';
+  for(let v=0;v<=max;v+=Math.max(1,Math.ceil(max/4)))g+=`<line x1="${L}" x2="${W-4}" y1="${y(v)}" y2="${y(v)}" stroke="#E8ECF1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10" fill="#768494">${v}</text>`;
+  T.byMonth.forEach((m,i)=>{const x=L+i*bw,p=m.plan-m.cancel,w=bw*0.36,cur=m.m===T.thisMonth,fut=m.m>T.thisMonth;
+    const tip=`${m.m} 月<br>計劃 ${p} 門｜完成 ${m.done}｜延後 ${m.post}｜未上 ${m.wait}<br>${m.sessions} 場・${m.attendees} 人次`;
+    g+=`<g data-tip="${tip}"><rect x="${x}" y="${TOP}" width="${bw}" height="${H-TOP-B}" fill="${cur?'#F2F8F7':'transparent'}"/>`;
+    g+=`<rect x="${x+bw*0.12}" y="${y(p)}" width="${w}" height="${Math.max(0,y(0)-y(p))}" rx="4" fill="#b7d3f6"/>`;
+    g+=`<rect x="${x+bw*0.12+w+2}" y="${y(m.done)}" width="${w}" height="${Math.max(0,y(0)-y(m.done))}" rx="4" fill="${fut?'#D9DFE6':'#0ca30c'}"/>`;
+    if(p&&!fut)g+=`<text x="${x+bw/2}" y="${Math.min(y(p),y(m.done))-5}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${m.pct>=90?'#0a6b0a':m.pct>=60?'#8a5a00':'#a52a2a'}">${m.pct==null?'':m.pct+'%'}</text>`;
+    g+=`<text x="${x+bw/2}" y="${H-10}" text-anchor="middle" font-size="11" font-weight="${cur?700:400}" fill="${cur?'#0F6E63':'#465566'}">${m.m}月</text></g>`});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="每月培訓計劃與完成門數">${g}<line x1="${L}" x2="${W-4}" y1="${y(0)}" y2="${y(0)}" stroke="#C3CBD5"/></svg>
+  <div class="legend"><span><i class="sw" style="background:#b7d3f6"></i>計劃門數</span><span><i class="sw" style="background:#0ca30c"></i>完成門數</span><span class="muted">柱子上的 % ＝ 當月完成率</span></div>`;
+}
+function attendChart(T){
+  const W=720,H=150,L=34,B=26,TOP=14,bw=(W-L-8)/12,max=Math.max(10,...T.byMonth.map(m=>m.attendees)),y=v=>TOP+(H-TOP-B)*(1-v/max);let g='';
+  T.byMonth.forEach((m,i)=>{const x=L+i*bw;g+=`<g data-tip="${m.m} 月：${m.sessions} 場・${m.attendees} 人次・${Math.round(m.hours*10)/10} 小時"><rect x="${x+bw*0.2}" y="${y(m.attendees)}" width="${bw*0.6}" height="${Math.max(0,y(0)-y(m.attendees))}" rx="4" fill="#2a78d6"/>${m.attendees?`<text x="${x+bw/2}" y="${y(m.attendees)-4}" text-anchor="middle" font-size="10.5" fill="#465566" font-weight="600">${m.attendees}</text>`:''}<text x="${x+bw/2}" y="${H-8}" text-anchor="middle" font-size="11" fill="#465566">${m.m}月</text></g>`});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="每月培訓人次">${g}<line x1="${L}" x2="${W-4}" y1="${y(0)}" y2="${y(0)}" stroke="#C3CBD5"/></svg>`;
+}
+function auditTimeline(list){
+  const done=list.filter(a=>a.date).sort((a,b)=>a.date<b.date?-1:1);if(!done.length)return '<div class="empty">還沒有稽核記錄</div>';
+  const stds=[...new Set(done.map(a=>a.standard||'Other'))],W=720,L=118,rowH=34,H=stds.length*rowH+34;
+  const t0=ACR.parse(done[0].date.slice(0,4)+'-01-01').getTime(),end=new Date();end.setMonth(end.getMonth()+2);const t1=end.getTime(),x=d=>L+(W-L-14)*((ACR.parse(d).getTime()-t0)/(t1-t0));
+  let g='';for(let yy=+done[0].date.slice(0,4);yy<=end.getFullYear();yy++){const xx=x(yy+'-01-01');g+=`<line x1="${xx}" x2="${xx}" y1="6" y2="${H-22}" stroke="#E8ECF1"/><text x="${xx+4}" y="${H-6}" font-size="11" fill="#768494">${yy}</text>`}
+  const tx=x(todayStr());g+=`<line x1="${tx}" x2="${tx}" y1="6" y2="${H-22}" stroke="#0F6E63" stroke-dasharray="3 3"/><text x="${tx}" y="${H-6}" font-size="10.5" fill="#0F6E63" text-anchor="middle" font-weight="700">今天</text>`;
+  stds.forEach((s,i)=>{const yy=18+i*rowH;g+=`<text x="${L-10}" y="${yy+4}" text-anchor="end" font-size="12" font-weight="600" fill="#15202B">${esc(s)}</text><line x1="${L}" x2="${W-14}" y1="${yy}" y2="${yy}" stroke="#E8ECF1"/>`;
+    done.filter(a=>(a.standard||'Other')===s).forEach(a=>{const c={green:'#0ca30c',yellow:'#fab219',red:'#d03b3b',gray:'#B8C1CC'}[a.light];g+=`<circle cx="${x(a.date)}" cy="${yy}" r="8" fill="${c}" stroke="#fff" stroke-width="2" style="cursor:pointer" data-tip="${esc(a.date)}　${esc(a.title)}<br>${esc(a.result||'')}${a.ncCount!=null?'・缺失 '+a.ncCount:''}" onclick="openAudit('${esc(a.id)}')"/>`})});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="稽核時間軸">${g}</svg><div class="legend"><span><i class="sw" style="background:#0ca30c;border-radius:50%"></i>通過／綠燈</span><span><i class="sw" style="background:#fab219;border-radius:50%"></i>需改善／Amber</span><span><i class="sw" style="background:#d03b3b;border-radius:50%"></i>未通過</span><span><i class="sw" style="background:#B8C1CC;border-radius:50%"></i>結果待補</span><span class="muted">點圓點看內容</span></div>`;
+}
+
+/* ── 畫面 ── */
+function allAudits(){const out=[];const add=(r,key)=>{if(!r)return;const std=r.auditType||r.assessmentType||(key==='wse_assessment'?'WSE':'');const o={id:r.id,key,standard:std,title:r.title||r.auditName||std,date:String(r.date||'').slice(0,10),result:r.result||'',ncCount:r.ncCount==null?null:+r.ncCount,raw:r};const s=(o.result+'').toLowerCase();o.light=/red|fail|不合格|未通過/.test(s)?'red':/amber|improvement|需改善|minor|項缺失/.test(s)?'yellow':/green|pass|gold|通過|核發|certified/.test(s)?'green':'gray';if(r.verify&&o.light==='green'&&!/gold|green|通過（/i.test(s))o.light='gray';out.push(o)};
+  (DB.audits||[]).forEach(r=>add(r,'audits'));(DB.wse_assessment||[]).forEach(r=>add(r,'wse_assessment'));(DB.assessments||[]).forEach(r=>add(r,'assessments'));return out}
+function render(){
+  F=ACR.build(DB,TR,{period:KIND,anchor:curAnchor(),today:todayStr()});const P=F.period,T=F.training;
+  document.querySelectorAll('#kindSeg button').forEach(b=>b.classList.toggle('on',b.dataset.k===KIND));
+  $('#plabel').textContent=P.label;$('#nextBtn').disabled=P.to>=todayStr();
+  const isCur=P.from<=todayStr()&&P.to>=todayStr();
+  $('#tabs').innerHTML=[['sum','總覽',''],['cert','證書',F.certs.verify+F.certs.nodate+F.certs.expired||''],['audit','稽核',''],['cap','缺失',F.caps.open||''],['train','培訓',T.overdue.length||''],['feed','異動',(F.updatesAll||[]).length?'':''],['hist','歷史報告',HIST.length||'']].map((t,i)=>`<a href="#s-${t[0]}" class="${i===0?'on':''}">${t[1]}${t[2]!==''?`<span class="c ${['cert','cap'].includes(t[0])&&t[2]?'r':''}">${t[2]}</span>`:''}</a>`).join('');
+  const mo=T.mo||{plan:0,done:0,cancel:0,wait:0,post:0,pct:null};
+  const lastA=F.audits.last[0];
+  const k=(href,light,l,v,unit,d)=>`<a class="kpi ${light}" href="#${href}"><div class="l">${l}</div><div class="v num">${v}<small>${unit||''}</small></div><div class="d">${d}</div></a>`;
+  const certLight=F.certs.expired?'red':(F.certs.soon||F.certs.verify+F.certs.nodate)?'yellow':F.certs.total?'green':'gray';
+  let h=`<section id="s-sum">
+    <div class="card hero ${F.light}"><div class="lamp">${ICON[F.light]}</div><div>
+      ${(F.notes||[]).map(n=>`<div class="note">📌 ${esc(n)}</div>`).join('')}
+      <h1>${esc(F.headline)}</h1>${F.second?`<div class="second">${esc(F.second)}</div>`:''}
+      <div class="tags">${(F.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}<button class="tag noprint" style="cursor:pointer;border-style:dashed" onclick="addNote()">＋ 加一句備註到這期報告</button></div>
+    </div></div>
+    <div class="kpis">
+      ${k('s-cert',certLight,'🏅 證書／許可',F.certs.valid+F.certs.soon,'/'+F.certs.total,F.certs.expired?'過期 '+F.certs.expired+' 張':(F.certs.verify+F.certs.nodate)?'到期日待確認 '+(F.certs.verify+F.certs.nodate)+' 張':F.certs.soon?'90 天內到期 '+F.certs.soon+' 張':'全部有效')}
+      ${k('s-audit',lastA?lastA.light:'gray','📋 最近稽核',lastA?esc(lastA.standard):'—','',lastA?esc(lastA.date+' '+(lastA.result||'')):'還沒有記錄')}
+      ${k('s-cap',F.caps.overdue?'red':F.caps.open?'yellow':'green','🛠 未結缺失',F.caps.open,'項',F.caps.overdue?'過期 '+F.caps.overdue+' 項'+(F.caps.repeat?'・重複 '+F.caps.repeat:''):F.caps.total?'已結 '+F.caps.closed+' 項':'沒有缺失記錄')}
+      ${k('s-train',mo.pct==null?'gray':mo.pct>=90?'green':(isCur||mo.pct>=60)?'yellow':'red','🎓 '+T.month+' 月培訓',mo.pct==null?'—':mo.pct,mo.pct==null?'':'%','計劃 '+(mo.plan-mo.cancel)+' 門・完成 '+mo.done+'・未上 '+mo.wait)}
+      ${k('s-train',T.ytd.pct==null?'gray':T.ytd.pct>=90?'green':T.ytd.pct>=70?'yellow':'red','📈 年度培訓累計',T.ytd.pct==null?'—':T.ytd.pct,'%','應上 '+(T.ytd.plan-T.ytd.cancel)+' 門次・已上 '+T.ytd.done)}
+      ${k('s-train',T.period.sessions?'blue':'gray','📝 '+(KIND==='week'?'本週':'本月')+'場次',T.period.sessions,'場',T.period.attendees+' 人次・'+T.period.hours+' 小時')}
+    </div>
+  </section>`;
+  if(F.actions.length)h+=`<section><div class="h"><h2>⚠️ 要處理</h2><span class="sub">最多列 4 件，照嚴重度排</span></div><div class="acts">${F.actions.map((a,i)=>`<div class="act"><div class="n">${i+1}</div><div><b>${esc(a.issue)}</b><span>→ <i>${esc(a.who)}</i>：${esc(a.what)}</span></div></div>`).join('')}</div></section>`;
+  /* 證書 */
+  const maxD=365;
+  h+=`<section id="s-cert"><div class="h"><h2>🏅 證書與許可</h2><span class="sub">有效 ${F.certs.valid}・90 天內到期 ${F.certs.soon}・過期 ${F.certs.expired}・待確認 ${F.certs.verify+F.certs.nodate}</span><span class="sp"></span><button class="ib noprint" onclick="newCert()">＋ 新增</button></div>
+  <div class="card"><div class="rows">${F.certs.list.length?F.certs.list.map(c=>{const w=c.days==null||c.days<0?0:Math.min(100,c.days/maxD*100),col={green:'var(--good)',yellow:'var(--warn)',red:'var(--crit)',gray:'var(--gray)'}[c.light];
+    const st=c.state==='verify'||c.state==='nodate'?'到期日待確認':c.state==='expired'?'已過期':c.state==='valid'?'有效':'快到期';
+    return `<div class="row cert-row" onclick="openCert('${esc(c.id)}')"><div class="t">${esc(c.standard||c.name)}<small>${esc(c.name!==c.standard?c.name:'')}${c.certNo?' · '+esc(c.certNo):''}</small></div><div class="bar" data-tip="${c.expiryDate?esc(c.expiryDate)+'　'+fmtDays(c.days):'沒有到期日'}"><i style="width:${w}%;background:${col}"></i><span class="tick" style="left:${90/maxD*100}%"></span></div><div class="date num small">${c.state==='verify'||c.state==='nodate'?'<span class="muted">—</span>':esc(c.expiryDate)}</div><div class="r">${pill(c.light,c.state==='valid'||c.state==='soon90'||c.state==='soon30'?fmtDays(c.days):st)}</div></div>`}).join(''):'<div class="empty">還沒有證書資料</div>'}</div>
+  <div class="legend"><span class="muted">色條＝距離到期還有多久（滿格 1 年），白線是 90 天。點一列看歷史、補到期日。</span></div></div></section>`;
+  /* 稽核 */
+  const AA=allAudits();
+  h+=`<section id="s-audit"><div class="h"><h2>📋 稽核結果</h2><span class="sub">各標準最近一次 ＋ 2024 年至今的時間軸</span></div>
+  <div class="acards">${F.audits.last.map(a=>`<div class="acard ${a.light}" onclick="openAudit('${esc(a.id)}')"><div class="s">${esc(a.standard)}</div><div class="res">${ICON[a.light]} ${esc(a.result||'結果待補')}</div><div class="m num">${esc(a.date)}${a.ncCount!=null?'・缺失 '+a.ncCount+' 項':''}</div><div class="m">${esc(a.firm||'')}</div></div>`).join('')||'<div class="card empty">還沒有稽核記錄</div>'}</div>
+  <div class="card" style="margin-top:12px">${auditTimeline(AA)}</div>
+  ${F.audits.upcoming.length?`<div class="card" style="margin-top:12px"><h4 style="margin:0 0 8px;font-size:13px">📅 接下來</h4><table class="tb"><tbody>${F.audits.upcoming.slice(0,8).map(u=>`<tr><td class="num" style="white-space:nowrap">${esc(u.date)}</td><td>${esc(u.what)}</td><td class="r">${pill(u.days<=30?'red':u.days<=90?'yellow':'gray',u.days+' 天')}</td></tr>`).join('')}</tbody></table></div>`:''}</section>`;
+  /* 缺失 */
+  const capsAll=(DB.caps||[]).map(r=>{const closed=/closed|done|complete|verified|archived|waived|結案|完成/i.test(r.status||'');const d=r.dueDate?Math.round((ACR.parse(r.dueDate)-ACR.parse(todayStr()))/864e5):null;return{r,closed,days:d,light:closed?'green':d!=null&&d<0?'red':d!=null&&d<=14?'yellow':'blue'}});
+  const capsShow=capsAll.filter(c=>CAPF==='all'||(CAPF==='open'?!c.closed:c.closed)).sort((a,b)=>a.closed-b.closed||(a.days==null?9999:a.days)-(b.days==null?9999:b.days));
+  h+=`<section id="s-cap"><div class="h"><h2>🛠 缺失改善 CAP</h2><span class="sub">未結 ${F.caps.open}・過期 ${F.caps.overdue}・14 天內到期 ${F.caps.dueSoon}・已結 ${F.caps.closed}${F.caps.repeat?'・重複缺失 '+F.caps.repeat:''}</span><span class="sp"></span>
+  <div class="seg noprint">${[['open','未結'],['closed','已結'],['all','全部']].map(x=>`<button class="${CAPF===x[0]?'on':''}" onclick="CAPF='${x[0]}';render();location.hash='s-cap'">${x[1]}</button>`).join('')}</div></div>
+  <div class="card"><div class="rows">${capsShow.length?capsShow.map(c=>{const r=c.r;return `<div class="row cap-row" onclick="openCap('${esc(r.id)}')"><div class="cl small"><b>${esc(r.clause||r.standard||'')}</b><br><span class="muted">${esc(r.severity||'')}</span></div><div class="t">${esc(r.description||'')}${r.repeat?' <span class="pill yellow">🔁 重複</span>':''}<small>${esc(r.standard||'')} · ${esc(r.category||'')} · ${esc(r.id)}</small></div><div class="own small">${esc(r.owner||'—')}</div><div class="due num small">${esc(r.dueDate||'—')}</div><div class="r">${pill(c.light,c.closed?(/waived/i.test(r.status)?'豁免':'已結案'):c.days==null?'未定期限':fmtDays(c.days))}</div></div>`}).join(''):`<div class="empty">${CAPF==='open'?'✓ 沒有未結的缺失':'沒有資料'}</div>`}</div></div></section>`;
+  /* 培訓 */
+  const cs=(TR.trainings||[]).filter(t=>t&&(t.nameZH||t.nameEN)&&t.months);let cat='',mx='';
+  cs.forEach(t=>{if(t.category!==cat){cat=t.category;mx+=`<tr><td class="cat" colspan="13">${esc(cat||'')}</td></tr>`}
+    mx+=`<tr><td class="n" onclick="openCourse(${+t.id})" title="${esc(t.nameEN||'')}">${esc(t.nameZH||t.nameEN)}</td>${Array.from({length:12},(_,i)=>{const m=i+1,c=+(t.months[m]||t.months[String(m)]||0),late=(c===1&&m<T.thisMonth);return `<td class="c s${c}${late?' late':''}" data-tip="${esc(t.nameZH||t.nameEN)}<br>${m} 月：${['沒排','計劃','已上','延後','取消'][c]}${late?'（過期未上）':''}">${['','計','✓','延','✕'][c]}</td>`}).join('')}</tr>`});
+  h+=`<section id="s-train"><div class="h"><h2>🎓 培訓</h2><span class="sub">${T.year} 年・${T.courses} 門課・記錄到 ${esc(T.lastRecord||'—')}</span><span class="sp"></span><a class="ib noprint" style="text-decoration:none;display:inline-grid;place-items:center" href="vrt_training_v1.html">開培訓管理 →</a></div>
+  <div class="grid g2"><div class="card"><h4 style="margin:0 0 6px;font-size:13px">每月計劃 vs 完成（門數）</h4>${trainChart(T)}</div>
+  <div class="card"><h4 style="margin:0 0 6px;font-size:13px">每月參訓人次</h4>${attendChart(T)}
+    <h4 style="margin:14px 0 6px;font-size:13px">各類別年度完成率</h4>${T.byCat.map(c=>{const p=c.plan?Math.round(c.done/c.plan*100):0;return `<div style="display:grid;grid-template-columns:74px 1fr 78px;gap:8px;align-items:center;font-size:12.5px;margin:5px 0"><b>${esc(c.cat)}</b><div class="bar" data-tip="${esc(c.cat)}：應上 ${c.plan}、已上 ${c.done}"><i style="width:${p}%;background:${p>=90?'var(--good)':p>=60?'var(--warn)':'var(--crit)'}"></i></div><span class="num r">${c.done}/${c.plan}・${p}%</span></div>`}).join('')}</div></div>
+  ${T.overdue.length?`<div class="card" style="margin-top:12px;border-left:5px solid var(--warn)"><h4 style="margin:0 0 8px;font-size:13px">⏳ 排了沒上、也還沒補的課（${T.overdue.length} 門）</h4><div class="tags" style="margin:0">${T.overdue.map(o=>`<span class="tag" style="cursor:pointer" onclick="openCourse(${+o.id})">${esc(o.name)}・<b>${o.months.join('、')} 月</b>沒上</span>`).join('')}</div></div>`:''}
+  <div class="card" style="margin-top:12px"><h4 style="margin:0 0 8px;font-size:13px">年度計劃表（紅框＝過了月份還沒上）</h4><div class="mx-wrap"><table class="mx"><thead><tr><th style="text-align:left">課程</th>${Array.from({length:12},(_,i)=>`<th class="${i+1===T.thisMonth?'cur':''}">${i+1}月</th>`).join('')}</tr></thead><tbody>${mx||'<tr><td class="empty" colspan="13">還沒有培訓計劃</td></tr>'}</tbody></table></div>
+  <div class="legend"><span><i class="sw" style="background:var(--plan)"></i>計劃</span><span><i class="sw" style="background:var(--good)"></i>已上 ✓</span><span><i class="sw" style="background:var(--warn)"></i>延後</span><span><i class="sw" style="background:var(--gray)"></i>取消 ✕</span><span class="muted">點課名看這門課歷次上課記錄</span></div></div>
+  <div class="card" style="margin-top:12px"><h4 style="margin:0 0 8px;font-size:13px">${esc(P.label)} 的場次（${T.period.sessions} 場・${T.period.attendees} 人次）</h4>${T.period.list.length?`<div style="overflow-x:auto"><table class="tb"><thead><tr><th>日期</th><th>課程</th><th>講師</th><th>對象</th><th>時間</th><th class="r">人數</th></tr></thead><tbody>${T.period.list.map(r=>`<tr><td class="num" style="white-space:nowrap">${esc(ACR.mdw(r.date))}</td><td><b>${esc(r.subject)}</b>${r.external?' '+pill('blue','外訓'):''}</td><td>${esc(r.trainer)}</td><td>${esc(r.participant)}</td><td class="num">${esc(r.time)}</td><td class="r num"><b>${r.attendees}</b></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">這段期間沒有培訓記錄</div>'}</div></section>`;
+  /* 異動 */
+  const ups=F.updatesAll||[];
+  h+=`<section id="s-feed"><div class="h"><h2>🔔 最新異動</h2><span class="sub">資料一更新就記在這裡，群組每小時最多通知一次</span></div><div class="card"><div class="feed">${ups.length?ups.slice(0,25).map(u=>`<div class="fi"><span class="when num">${esc((u.at||'').slice(5))} ${esc(u.time||'')}</span><span>${esc(u.icon||'•')}</span><span>${esc(u.text)}${u.by&&!/^[A-Z_+]+$/.test(u.by)?` <span class="muted small">— ${esc(u.by)}</span>`:''}</span></div>`).join(''):'<div class="empty">還沒有異動記錄</div>'}</div></div></section>`;
+  /* 歷史 */
+  h+=`<section id="s-hist"><div class="h"><h2>🗂 歷史報告</h2><span class="sub">每次發到群組的週報、月報都留一份，可以回頭核對當時的數字</span></div>${HIST.length?`<div class="hist">${HIST.map(r=>`<div class="hc ${r.light}" onclick="openHist('${esc(r.id)}')"><b>${r.kind==='month'?'月報':'週報'}｜${esc(r.label)}</b><span>${ICON[r.light]||''} ${esc(r.headline)}</span><em>${esc(r.sentAt)}・${r.auto?'自動':'手動'}${r.rev>1?'・第 '+r.rev+' 版':''}</em></div>`).join('')}</div>`:'<div class="card empty">還沒有發過報告。按右上「發到群組」就會留下第一份；之後每週一、每月第一個上班日早上 8 點自動發。</div>'}</section>
+  <div class="foot">資料日期：培訓記錄到 ${esc(F.dataDates.training||'—')}｜稽核資料 ${esc(F.dataDates.audit||'—')}｜✅ 數字由系統計算，和 Telegram 報告同一套算法</div>`;
+  $('#main').innerHTML=h;spy();
+}
+function spy(){const links=[...document.querySelectorAll('#tabs a')];const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+  window.onscroll=()=>{let cur=0;secs.forEach((s,i)=>{if(s&&s.getBoundingClientRect().top<140)cur=i});links.forEach((a,i)=>a.classList.toggle('on',i===cur))}}
+
+/* ── 側邊資訊頁 ── */
+function openD(title,body){$('#dtitle').innerHTML=title;$('#dbody').innerHTML=body;$('#dbody').scrollTop=0;$('#mask').classList.add('on');$('#drawer').classList.add('on')}
+function closeD(){$('#mask').classList.remove('on');$('#drawer').classList.remove('on')}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeD()});
+const kv=(l,v,full)=>v||v===0?`<div class="${full?'full':''}"><dt>${l}</dt><dd>${v}</dd></div>`:'';
+function tl(items){return items&&items.length?`<div class="tl">${items.map(x=>`<div><time>${esc(x.date||'')}</time><b>${esc(x.event||x.title||'')}</b><span>${esc(x.note||'')}</span></div>`).join('')}</div>`:'<div class="muted small">沒有歷史記錄</div>'}
+function nameAsk(){return `<label>你的名字<input id="f_by" value="${esc(who())}" placeholder="例：Jenny"></label>`}
+function saveBy(){const v=($('#f_by')||{}).value||'';if(v.trim())localStorage.setItem('ac_audit_checker',v.trim());return v.trim()}
+async function patch(id,set,why){const by=saveBy()||who()||'web';toast('儲存中…',8000);try{const r=await post({action:'patch',id,set,by,why});if(!r.ok)throw Error(r.error||'failed');toast('✓ 已存到雲端，報告已重算');await refresh();return r}catch(e){toast('⚠ '+e.message);return null}}
+function openCert(id){
+  const r=(DB.certs||[]).concat(DB.grs_certs||[]).find(x=>String(x.id)===String(id));if(!r)return;const c=F.certs.list.find(x=>String(x.id)===String(id))||{};
+  const hist=(r.history||[]).slice().sort((a,b)=>a.date<b.date?1:-1);
+  const rel=allAudits().filter(a=>a.standard&&r.standard&&a.standard.toLowerCase()===String(r.standard).toLowerCase()).sort((a,b)=>a.date<b.date?1:-1);
+  openD(`<h3>🏅 ${esc(r.standard||r.name)}</h3><div class="small muted">${esc(r.name||'')}・${esc(r.id)}</div>`,
+  `${r.verify?`<div class="warnbox">⚠ ${esc(r.verify)}</div>`:''}
+   <div class="card"><h4>現況</h4><dl class="kv">${kv('狀態',pill(c.light||'gray',c.state==='verify'||c.state==='nodate'?'到期日待確認':c.state==='expired'?'已過期 '+(-c.days)+' 天':fmtDays(c.days)))}${kv('到期日',esc(r.expiryDate||'未填'))}${kv('核發日',esc(r.issueDate||''))}${kv('證書號',esc(r.certNo||''))}${kv('發證／稽核單位',esc(r.issuer||''))}${kv('等級',esc(r.grade||''))}${kv('範圍',esc(r.scope||''),1)}${kv('資料來源',`<span class="small muted" style="font-weight:400">${esc(r.source||'')}</span>`,1)}</dl></div>
+   <div class="card noprint"><h4>補／改到期日</h4><div class="form"><label>新的到期日<input type="date" id="f_exp" value="${esc(r.expiryDate||'')}"></label><label>核發日<input type="date" id="f_iss" value="${esc(r.issueDate||'')}"></label><label>證書號<input id="f_no" value="${esc(r.certNo||'')}"></label><label>等級<input id="f_gr" value="${esc(r.grade||'')}" placeholder="Gold / Platinum…"></label>${nameAsk()}<button class="ib pri" onclick="saveCert('${esc(r.id)}')">💾 儲存</button></div><div class="small muted" style="margin-top:8px">存檔後「待確認」會消掉，到期前 90／60／30／14／7 天群組會自動提醒。</div></div>
+   <div class="card"><h4>歷史</h4>${tl(hist)}</div>
+   ${rel.length?`<div class="card"><h4>相關稽核</h4><table class="tb"><tbody>${rel.map(a=>`<tr class="click" onclick="openAudit('${esc(a.id)}')"><td class="num" style="white-space:nowrap">${esc(a.date)}</td><td>${esc(a.title)}</td><td class="r">${pill(a.light,a.result||'待補')}</td></tr>`).join('')}</tbody></table></div>`:''}`)}
+async function saveCert(id){const set={expiryDate:$('#f_exp').value,issueDate:$('#f_iss').value,certNo:$('#f_no').value.trim(),grade:$('#f_gr').value.trim()};if(set.expiryDate)set.verify='';const r=await patch(id,set,'證書資料更新');if(r)openCert(id)}
+function newCert(){openD('<h3>＋ 新增證書／許可</h3>',`<div class="card"><div class="form"><label>標準／名稱<input id="n_std" placeholder="例：WRAP、消防證書"></label><label>全名<input id="n_name"></label><label>證書號<input id="n_no"></label><label>發證單位<input id="n_iss"></label><label>核發日<input type="date" id="n_i"></label><label>到期日<input type="date" id="n_e"></label>${nameAsk()}<button class="ib pri" onclick="addCert()">💾 新增</button></div></div>`)}
+async function addCert(){const std=$('#n_std').value.trim();if(!std)return toast('請填標準／名稱');const by=saveBy()||'web';try{const r=await post({action:'addRecord',key:'certs',by,rec:{standard:std,name:$('#n_name').value.trim()||std,certNo:$('#n_no').value.trim(),issuer:$('#n_iss').value.trim(),issueDate:$('#n_i').value,expiryDate:$('#n_e').value,kind:'cert',history:[{date:todayStr(),event:'建檔',note:by}]}});if(!r.ok)throw Error(r.error);toast('✓ 已新增');closeD();refresh()}catch(e){toast('⚠ '+e.message)}}
+function openAudit(id){
+  const a=allAudits().find(x=>String(x.id)===String(id));if(!a)return;const r=a.raw;
+  const caps=(DB.caps||[]).filter(c=>c.auditId===r.id);const prev=allAudits().filter(x=>x.standard===a.standard&&x.id!==a.id).sort((x,y)=>x.date<y.date?1:-1);
+  const open=caps.filter(c=>!/closed|done|waived|archived|結案/i.test(c.status||'')).length;
+  openD(`<h3>📋 ${esc(a.title)}</h3><div class="small muted">${esc(a.standard)}・${esc(a.date)}・${esc(r.id||'')}</div>`,
+  `${r.verify?`<div class="warnbox">⚠ ${esc(r.verify)}</div>`:''}
+   <div class="card"><h4>結果</h4><dl class="kv">${kv('結果',pill(a.light,r.result||'待補'))}${kv('稽核日期',esc(a.date+(r.endDate?' ~ '+r.endDate:'')))}${kv('稽核公司',esc(r.firm||''))}${kv('稽核員',esc(r.auditor||''))}${kv('報告號',esc(r.reportNo||''))}${kv('缺失數',r.ncCount!=null?esc(r.ncCount)+' 項'+(caps.length?'（未結 '+open+'）':''):'')}${kv('說明',`<span style="font-weight:400">${esc(r.notes||r.description||'')}</span>`,1)}${kv('資料來源',`<span class="small muted" style="font-weight:400">${esc(r.source||'')}</span>`,1)}</dl></div>
+   ${(r.files||[]).length?`<div class="card"><h4>原始報告</h4>${r.files.map(f=>`<div><a href="${esc(f.url)}" target="_blank" rel="noopener">📄 ${esc(f.name)}</a></div>`).join('')}</div>`:''}
+   ${caps.length?`<div class="card"><h4>這次開的缺失（${caps.length}）</h4><table class="tb"><tbody>${caps.map(c=>{const cl=/closed|done|waived|archived|結案/i.test(c.status||'');return `<tr class="click" onclick="openCap('${esc(c.id)}')"><td style="white-space:nowrap"><b>${esc(c.clause||'')}</b><br><span class="small muted">${esc(c.severity||'')}</span></td><td>${esc(c.description)}${c.repeat?' '+pill('yellow','🔁 重複'):''}</td><td class="r">${pill(cl?'green':'red',cl?(/waived/i.test(c.status)?'豁免':'已結'):'未結')}</td></tr>`}).join('')}</tbody></table></div>`:''}
+   ${prev.length?`<div class="card"><h4>${esc(a.standard)} 歷次稽核</h4><table class="tb"><tbody>${prev.map(p=>`<tr class="click" onclick="openAudit('${esc(p.id)}')"><td class="num" style="white-space:nowrap">${esc(p.date)}</td><td>${esc(p.title)}</td><td class="r">${pill(p.light,p.result||'待補')}</td></tr>`).join('')}</tbody></table></div>`:''}`)}
+function openCap(id){
+  const r=(DB.caps||[]).find(x=>String(x.id)===String(id));if(!r)return;const closed=/closed|done|waived|archived|結案/i.test(r.status||'');
+  const a=allAudits().find(x=>x.id===r.auditId);const key=s=>String(s||'').toLowerCase().replace(/\s+/g,'');
+  const same=(DB.caps||[]).filter(x=>x.id!==r.id&&((r.clause&&key(x.clause)===key(r.clause))||(r.category&&key(x.category)===key(r.category)))).sort((x,y)=>String(x.date)<String(y.date)?1:-1);
+  const d=r.dueDate?Math.round((ACR.parse(r.dueDate)-ACR.parse(todayStr()))/864e5):null;
+  openD(`<h3>🛠 ${esc(r.clause?r.clause+'　':'')}${esc(String(r.description).slice(0,40))}</h3><div class="small muted">${esc(r.standard||'')}・${esc(r.id)}</div>`,
+  `${r.verify&&!closed?`<div class="warnbox">⚠ ${esc(r.verify)}</div>`:''}
+   <div class="card"><h4>缺失內容</h4><dl class="kv">${kv('狀態',pill(closed?'green':d!=null&&d<0?'red':'yellow',closed?(/waived/i.test(r.status)?'客人豁免':'已結案'):d==null?'未定期限':fmtDays(d)))}${kv('嚴重度',esc(r.severity||''))}${kv('改善期限',esc(r.dueDate||'未定'))}${kv('負責',esc(r.owner||'未指定'))}${kv('類別',esc(r.category||''))}${kv('結案日',esc(r.closedDate||''))}${kv('缺失',`<span style="font-weight:500">${esc(r.description)}</span>`,1)}${kv('備註',`<span style="font-weight:400">${esc(r.notes||'')}</span>`,1)}</dl>${a?`<div style="margin-top:10px"><a href="javascript:openAudit('${esc(a.id)}')">← 來自：${esc(a.date)} ${esc(a.title)}</a></div>`:''}</div>
+   <div class="card noprint"><h4>${closed?'重新開啟／修改':'結案或改期限'}</h4><div class="form">${closed?'':`<label>新的期限<input type="date" id="c_due" value="${esc(r.dueDate||'')}"></label>`}<label>負責人<input id="c_own" value="${esc(r.owner||'')}"></label><label>說明（做了什麼）<input id="c_note" style="min-width:230px" placeholder="例：整燙區 2 張台已設好，照片已上傳"></label>${nameAsk()}</div><div class="form" style="margin-top:10px">${closed?`<button class="ib" onclick="capSave('${esc(r.id)}','reopen')">↩ 重新開啟</button>`:`<button class="ib pri" onclick="capSave('${esc(r.id)}','close')">✓ 結案</button><button class="ib" onclick="capSave('${esc(r.id)}','save')">💾 只存期限／負責人</button>`}</div></div>
+   ${same.length?`<div class="card"><h4>🔁 同類缺失的歷史（${same.length}）</h4><table class="tb"><tbody>${same.map(x=>{const cl=/closed|done|waived|archived|結案/i.test(x.status||'');return `<tr class="click" onclick="openCap('${esc(x.id)}')"><td class="num" style="white-space:nowrap">${esc(String(x.date||'').slice(0,10))}</td><td>${esc(x.description)}<br><span class="small muted">${esc(x.standard||'')} ${esc(x.clause||'')}</span></td><td class="r">${pill(cl?'green':'red',cl?(/waived/i.test(x.status)?'豁免':'已結'):'未結')}</td></tr>`}).join('')}</tbody></table></div>`:''}
+   <div class="card"><h4>處理記錄</h4>${tl((r.log||[]).slice().reverse().map(x=>({date:x.date,event:x.by||'',note:x.note})))}</div>`)}
+async function capSave(id,mode){const note=$('#c_note').value.trim(),own=$('#c_own').value.trim();let set={owner:own},why='缺失修改';
+  if(mode==='close'){set.status='closed';set.closedDate=todayStr();set.verify='';why='缺失結案'+(note?'（'+note+'）':'')}
+  else if(mode==='reopen'){set.status='open';set.closedDate='';why='缺失重新開啟'+(note?'（'+note+'）':'')}
+  else{set.dueDate=$('#c_due').value;why='缺失改期限／負責人'+(note?'（'+note+'）':'')}
+  const r=await patch(id,set,why);if(r)openCap(id)}
+function openCourse(id){
+  const t=(TR.trainings||[]).find(x=>+x.id===+id);if(!t)return;const norm=s=>String(s||'').toLowerCase().replace(/\([^)]*\)/g,'').replace(/[^a-z一-鿿]+/g,' ').trim();
+  const en=norm(t.nameEN),zh=String(t.nameZH||'');const words=en.split(' ').filter(w=>w.length>3);
+  const recs=[];Object.keys(TR.records||{}).forEach(k=>(TR.records[k]||[]).forEach(r=>{const s=norm(r.subject);const hit=en&&(s.includes(en)||en.includes(s)||(words.length&&words.filter(w=>s.includes(w)).length>=Math.max(1,Math.ceil(words.length*0.6))))||(zh&&String(r.subject).includes(zh));if(hit)recs.push(r)}));
+  recs.sort((a,b)=>a.date<b.date?1:-1);const tot=recs.reduce((a,r)=>a+(+r.attendees||0),0);
+  openD(`<h3>🎓 ${esc(t.nameZH||t.nameEN)}</h3><div class="small muted">${esc(t.nameEN||'')}</div>`,
+  `<div class="card"><h4>課程</h4><dl class="kv">${kv('類別',esc(t.category||''))}${kv('頻率',esc(t.frequency||''))}${kv('講師',esc(t.trainer||''))}${kv('時數',esc(t.hours||''))}${kv('對象',esc(t.traineeZH||t.traineeEN||''),1)}${kv('備註',esc(t.remarks||''),1)}</dl></div>
+   <div class="card"><h4>${F.training.year} 年計劃</h4><table class="mx" style="min-width:0"><thead><tr>${Array.from({length:12},(_,i)=>`<th>${i+1}</th>`).join('')}</tr></thead><tbody><tr>${Array.from({length:12},(_,i)=>{const c=+(t.months[i+1]||t.months[String(i+1)]||0);return `<td class="c s${c}">${['','計','✓','延','✕'][c]}</td>`}).join('')}</tr></tbody></table></div>
+   <div class="card"><h4>上課記錄（${recs.length} 場・${tot} 人次）</h4>${recs.length?`<table class="tb"><thead><tr><th>日期</th><th>講師</th><th>對象</th><th class="r">人數</th></tr></thead><tbody>${recs.map(r=>`<tr><td class="num" style="white-space:nowrap">${esc(r.date)}<br><span class="small muted">${esc(r.time||'')}</span></td><td>${esc(r.trainer||'')}</td><td>${esc(r.participant||'')}</td><td class="r num"><b>${+r.attendees||0}</b></td></tr>`).join('')}</tbody></table>`:'<div class="muted small">今年還沒有這門課的上課記錄</div>'}</div>`)}
+async function openHist(id){openD('<h3>🗂 歷史報告</h3>','<div class="card empty">讀取中…</div>');try{const r=await post({action:'reportGet',id});if(!r.ok)throw Error(r.error);const x=r.report,f=x.facts||{},now=F;
+  const cmp=(l,a,b)=>`<tr><td>${l}</td><td class="r num"><b>${a}</b></td><td class="r num">${b}</td><td class="r num">${typeof a==='number'&&typeof b==='number'&&a!==b?(b>a?'<span style="color:var(--crit-ink)">▲':'<span style="color:var(--good-ink)">▼')+Math.abs(b-a)+'</span>':'—'}</td></tr>`;
+  openD(`<h3>${x.kind==='month'?'月報':'週報'}｜${esc(x.label)}</h3><div class="small muted">${esc(x.sentAt)} 發出・${x.auto?'自動':'手動'}${x.by?'・'+esc(x.by):''}${x.rev>1?'・第 '+x.rev+' 版':''}</div>`,
+  `<div class="card"><h4>當時發到群組的內容</h4><pre class="tg">${x.text.replace(/<(?!\/?(b|code)>)[^>]*>/g,'')}</pre></div>
+   ${f.caps?`<div class="card"><h4>當時 vs 現在</h4><table class="tb"><thead><tr><th>項目</th><th class="r">當時</th><th class="r">現在</th><th class="r">變化</th></tr></thead><tbody>${cmp('未結缺失',f.caps.open,now.caps.open)}${cmp('過期缺失',f.caps.overdue,now.caps.overdue)}${cmp('證書待確認',(f.certs.verify||0)+(f.certs.nodate||0),now.certs.verify+now.certs.nodate)}${cmp('年度培訓已上（門次）',f.training.ytd.done,now.training.ytd.done)}${cmp('年度培訓人次',f.training.ytd.attendees,now.training.ytd.attendees)}</tbody></table></div>`:''}`)}catch(e){$('#dbody').innerHTML=`<div class="card empty">⚠ ${esc(e.message)}</div>`}}
+function addNote(){openD('<h3>📌 加一句備註</h3>',`<div class="card"><div class="small muted" style="margin-bottom:8px">這句話會放在這期報告最上面（網頁和 Telegram 都會帶），例如突發狀況、客人來廠、稽核改期。</div><div class="form"><label>備註<input id="n_text" style="min-width:300px" maxlength="120" placeholder="例：11/20 BIG W 追蹤稽核，等客人通知確定日期"></label>${nameAsk()}<button class="ib pri" onclick="saveNote()">💾 加入</button></div></div>`)}
+async function saveNote(){const t=$('#n_text').value.trim();if(!t)return toast('請輸入內容');try{const r=await post({action:'note',text:t,period:F.period.key,by:saveBy()||'web'});if(!r.ok)throw Error(r.error);toast('✓ 已加入');closeD();refresh()}catch(e){toast('⚠ '+e.message)}}
+async function sendReport(){const P=F.period;openD('<h3>✈ 發到 Telegram 群組</h3>',`<div class="card"><h4>預覽（${esc(P.label)}）</h4><pre class="tg">${ACR.toTelegram(F).replace(/<(?!\/?(b|code)>)[^>]*>/g,'')}</pre></div><div class="card"><div class="form">${nameAsk()}<button class="ib pri" id="goSend" onclick="doSend()">✈ 確定發出</button><button class="ib" onclick="closeD()">取消</button></div><div class="small muted" style="margin-top:8px">發出後會留在「歷史報告」。同一期重發會標第 2 版。</div></div>`)}
+async function doSend(){const b=$('#goSend');b.disabled=true;b.textContent='發送中…';try{const r=await post({action:'reportSend',kind:KIND,anchor:F.period.from,by:saveBy()||'web'});if(!r.ok)throw Error(r.error||'failed');toast('✓ 已發到群組');closeD();refresh()}catch(e){toast('⚠ '+e.message);b.disabled=false;b.textContent='✈ 確定發出'}}
+
+if(loadCache()){render();setFresh('wait','同步雲端…')}
+refresh();
+</script>
+</body>
+</html>
