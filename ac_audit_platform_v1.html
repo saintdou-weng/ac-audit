@@ -32,7 +32,7 @@ async function cloudDown(){try{cloudState('wait','收取中…');const j=await p
 async function cloudSync(){try{const m=await post({action:'meta'}),d=db();if(Number(d.meta&&d.meta.updatedAt||0)>Number(m.updatedAt||0))return cloudUp();return cloudDown()}catch(e){toast('⚠ '+e.message)}}async function sendMenu(){try{const j=await post({action:'auditPanel'});if(!j.ok)throw Error(j.error||'Telegram failed');toast('✈ Audit 群組平台已發送')}catch(e){toast('⚠ '+e.message)}}setLang(LANG);stats();ping();
 </script>
 <script src="assets/ac_tool_sync.js?v=2"></script>
-<script src="assets/ac_audit_engine.js?v=1"></script>
+<script src="assets/ac_audit_engine.js?v=2"></script>
 <script>
 /* ═══ 雲端同步中心 Sync Center v1 — 首頁全部更新 / 選擇更新 ═══
    安全規則：一律先收取雲端 → 與本機合併（依記錄簽章去重、刪除標記不復活、較新 _updated 優先）→ 只把勾選模組寫回雲端與本機。
@@ -41,7 +41,7 @@ const SC_GROUPS=[
  {id:'assess',icon:'🧾',zh:'Assessment 評估',en:'Assessment',km:'Assessment',keys:['assessments']},
  {id:'wse',icon:'📋',zh:'WSE 稽核',en:'WSE Audit',km:'WSE',keys:['wse_assessment']},
  {id:'wrap',icon:'♻️',zh:'WRAP 稽核',en:'WRAP Audit',km:'WRAP',keys:['audits','caps']},
- {id:'certs',icon:'📜',zh:'證書／許可・行事曆',en:'Certificates / Permits',km:'Certificates',keys:['certs','calendar']},
+ {id:'certs',icon:'📜',zh:'驗廠證書・行事曆',en:'Audit certificates',km:'Certificates',keys:['certs','calendar']},
  {id:'grs',icon:'🏅',zh:'GRS',en:'GRS',km:'GRS',keys:['grs_certs','grs_tc','grs_suppliers','grs_trace']},
  {id:'dcc',icon:'🗄',zh:'DCC 文件管制',en:'DCC Documents',km:'DCC',keys:['dcc_control','documents','incoming_control','policies']},
  {id:'law',icon:'⚖️',zh:'法律 / 廠規',en:'Law / Rules',km:'ច្បាប់',keys:['cambodia_law','factory_rules']},

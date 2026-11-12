@@ -202,7 +202,7 @@ pre.tg{white-space:pre-wrap;word-break:break-word;font-family:var(--f);font-size
 <div class="mask" id="mask" onclick="closeD()"></div>
 <aside class="drawer" id="drawer"><div class="dh"><div id="dtitle"></div><button class="x" onclick="closeD()">×</button></div><div class="db" id="dbody"></div></aside>
 <div id="toast"></div><div id="tip"></div>
-<script src="assets/ac_audit_engine.js?v=1"></script>
+<script src="assets/ac_audit_engine.js?v=2"></script>
 <script>
 const GAS_DEFAULT='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
 const CACHE='ac_audit_dash_cache_v1';
@@ -301,7 +301,7 @@ function render(){
       <div class="tags">${(F.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}<button class="tag noprint" style="cursor:pointer;border-style:dashed" onclick="addNote()">＋ 加一句備註到這期報告</button></div>
     </div></div>
     <div class="kpis">
-      ${k('s-cert',certLight,'🏅 證書／許可',F.certs.valid+F.certs.soon,'/'+F.certs.total,F.certs.expired?'過期 '+F.certs.expired+' 張':(F.certs.verify+F.certs.nodate)?'到期日待確認 '+(F.certs.verify+F.certs.nodate)+' 張':F.certs.soon?'90 天內到期 '+F.certs.soon+' 張':'全部有效')}
+      ${k('s-cert',certLight,'🏅 驗廠證書',F.certs.valid+F.certs.soon,'/'+F.certs.total,F.certs.expired?'過期 '+F.certs.expired+' 張':(F.certs.verify+F.certs.nodate)?'到期日待確認 '+(F.certs.verify+F.certs.nodate)+' 張':F.certs.soon?'90 天內到期 '+F.certs.soon+' 張':'全部有效')}
       ${k('s-audit',lastA?lastA.light:'gray','📋 最近稽核',lastA?esc(lastA.standard):'—','',lastA?esc(lastA.date+' '+(lastA.result||'')):'還沒有記錄')}
       ${k('s-cap',F.caps.overdue?'red':F.caps.open?'yellow':'green','🛠 未結缺失',F.caps.open,'項',F.caps.overdue?'過期 '+F.caps.overdue+' 項'+(F.caps.repeat?'・重複 '+F.caps.repeat:''):F.caps.total?'已結 '+F.caps.closed+' 項':'沒有缺失記錄')}
       ${k('s-train',mo.pct==null?'gray':mo.pct>=90?'green':(isCur||mo.pct>=60)?'yellow':'red','🎓 '+T.month+' 月培訓',mo.pct==null?'—':mo.pct,mo.pct==null?'':'%','計劃 '+(mo.plan-mo.cancel)+' 門・完成 '+mo.done+'・未上 '+mo.wait)}
@@ -312,7 +312,8 @@ function render(){
   if(F.actions.length)h+=`<section><div class="h"><h2>⚠️ 要處理</h2><span class="sub">最多列 4 件，照嚴重度排</span></div><div class="acts">${F.actions.map((a,i)=>`<div class="act"><div class="n">${i+1}</div><div><b>${esc(a.issue)}</b><span>→ <i>${esc(a.who)}</i>：${esc(a.what)}</span></div></div>`).join('')}</div></section>`;
   /* 證書 */
   const maxD=365;
-  h+=`<section id="s-cert"><div class="h"><h2>🏅 證書與許可</h2><span class="sub">有效 ${F.certs.valid}・90 天內到期 ${F.certs.soon}・過期 ${F.certs.expired}・待確認 ${F.certs.verify+F.certs.nodate}</span><span class="sp"></span><button class="ib noprint" onclick="newCert()">＋ 新增</button></div>
+  h+=`<section id="s-cert"><div class="h"><h2>🏅 驗廠證書</h2><span class="sub">有效 ${F.certs.valid}・90 天內到期 ${F.certs.soon}・過期 ${F.certs.expired}・待確認 ${F.certs.verify+F.certs.nodate}</span><span class="sp"></span><button class="ib noprint" onclick="newCert()">＋ 新增</button></div>
+  <a class="noprint" href="https://saintdou-weng.github.io/ac-hra-portal/ac_hra_certificate_visa_v1.html" target="_blank" rel="noopener" style="display:block;margin:0 0 10px;padding:10px 14px;border:1px dashed #b9c9c6;border-radius:12px;color:#0F6E63;text-decoration:none;font-size:14px;background:#f4faf9">🛂 政府證照／許可（消防、營運、環保檢測、簽證…）在 <b>HRA 平台・證書類別</b> 管理，這裡只放驗廠證書　→ 打開</a>
   <div class="card"><div class="rows">${F.certs.list.length?F.certs.list.map(c=>{const w=c.days==null||c.days<0?0:Math.min(100,c.days/maxD*100),col={green:'var(--good)',yellow:'var(--warn)',red:'var(--crit)',gray:'var(--gray)'}[c.light];
     const st=c.state==='verify'||c.state==='nodate'?'到期日待確認':c.state==='expired'?'已過期':c.state==='valid'?'有效':'快到期';
     return `<div class="row cert-row" onclick="openCert('${esc(c.id)}')"><div class="t">${esc(c.standard||c.name)}<small>${esc(c.name!==c.standard?c.name:'')}${c.certNo?' · '+esc(c.certNo):''}</small></div><div class="bar" data-tip="${c.expiryDate?esc(c.expiryDate)+'　'+fmtDays(c.days):'沒有到期日'}"><i style="width:${w}%;background:${col}"></i><span class="tick" style="left:${90/maxD*100}%"></span></div><div class="date num small">${c.state==='verify'||c.state==='nodate'?'<span class="muted">—</span>':esc(c.expiryDate)}</div><div class="r">${pill(c.light,c.state==='valid'||c.state==='soon90'||c.state==='soon30'?fmtDays(c.days):st)}</div></div>`}).join(''):'<div class="empty">還沒有證書資料</div>'}</div>
@@ -372,7 +373,7 @@ function openCert(id){
    <div class="card"><h4>歷史</h4>${tl(hist)}</div>
    ${rel.length?`<div class="card"><h4>相關稽核</h4><table class="tb"><tbody>${rel.map(a=>`<tr class="click" onclick="openAudit('${esc(a.id)}')"><td class="num" style="white-space:nowrap">${esc(a.date)}</td><td>${esc(a.title)}</td><td class="r">${pill(a.light,a.result||'待補')}</td></tr>`).join('')}</tbody></table></div>`:''}`)}
 async function saveCert(id){const set={expiryDate:$('#f_exp').value,issueDate:$('#f_iss').value,certNo:$('#f_no').value.trim(),grade:$('#f_gr').value.trim()};if(set.expiryDate)set.verify='';const r=await patch(id,set,'證書資料更新');if(r)openCert(id)}
-function newCert(){openD('<h3>＋ 新增證書／許可</h3>',`<div class="card"><div class="form"><label>標準／名稱<input id="n_std" placeholder="例：WRAP、消防證書"></label><label>全名<input id="n_name"></label><label>證書號<input id="n_no"></label><label>發證單位<input id="n_iss"></label><label>核發日<input type="date" id="n_i"></label><label>到期日<input type="date" id="n_e"></label>${nameAsk()}<button class="ib pri" onclick="addCert()">💾 新增</button></div></div>`)}
+function newCert(){openD('<h3>＋ 新增驗廠證書</h3>',`<div class="card"><div class="form"><label>標準／名稱<input id="n_std" placeholder="例：WRAP、GRS"></label><label>全名<input id="n_name"></label><label>證書號<input id="n_no"></label><label>發證單位<input id="n_iss"></label><label>核發日<input type="date" id="n_i"></label><label>到期日<input type="date" id="n_e"></label>${nameAsk()}<button class="ib pri" onclick="addCert()">💾 新增</button></div></div>`)}
 async function addCert(){const std=$('#n_std').value.trim();if(!std)return toast('請填標準／名稱');const by=saveBy()||'web';try{const r=await post({action:'addRecord',key:'certs',by,rec:{standard:std,name:$('#n_name').value.trim()||std,certNo:$('#n_no').value.trim(),issuer:$('#n_iss').value.trim(),issueDate:$('#n_i').value,expiryDate:$('#n_e').value,kind:'cert',history:[{date:todayStr(),event:'建檔',note:by}]}});if(!r.ok)throw Error(r.error);toast('✓ 已新增');closeD();refresh()}catch(e){toast('⚠ '+e.message)}}
 function openAudit(id){
   const a=allAudits().find(x=>String(x.id)===String(id));if(!a)return;const r=a.raw;

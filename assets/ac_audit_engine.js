@@ -239,7 +239,7 @@ var ACR = (function () {
     if (F.caps.overdue) { var o = F.caps.list[0]; sc('capOverdue', 90, 'red', (o.standard ? o.standard + ' ' : '') + '缺失 ' + F.caps.overdue + ' 項已過改善期限，平台上還沒有結案記錄'); A.push({ issue: '過期未結的缺失 ' + F.caps.overdue + ' 項，最久過 ' + Math.abs(o.days) + ' 天' + (F.caps.repeat ? '；其中 ' + F.caps.repeat + ' 項是之前驗廠也被開過的重複缺失' : ''), who: o.owner || 'Compliance', what: '已改善的補上證據按結案；還沒好的寫新的完成日' }); }
     var vf = c.list.filter(function (x) { return x.state === 'verify' || x.state === 'nodate'; });
     vf.sort(function (x, y) { return (x.kind === 'cert' ? 0 : 1) - (y.kind === 'cert' ? 0 : 1); });
-    if (vf.length) { sc('certVerify', 74, 'yellow', '證書／許可有 ' + vf.length + ' 張到期日待確認'); A.push({ issue: '到期日待確認 ' + vf.length + ' 張：' + vf.slice(0, 3).map(function (x) { return x.standard || x.name; }).join('、') + (vf.length > 3 ? '…' : ''), who: 'Compliance', what: '點開每張證書補上新的到期日（附掃描檔）' }); }
+    if (vf.length) { sc('certVerify', 74, 'yellow', '驗廠證書有 ' + vf.length + ' 張到期日待確認'); A.push({ issue: '到期日待確認 ' + vf.length + ' 張：' + vf.slice(0, 3).map(function (x) { return x.standard || x.name; }).join('、') + (vf.length > 3 ? '…' : ''), who: 'Compliance', what: '點開每張證書補上新的到期日（附掃描檔）' }); }
     var ua = F.audits.upcoming.filter(function (u) { return u.kind === 'audit' && u.days <= 30; });
     if (ua.length) { sc('auditSoon', 80, 'yellow', ua[0].what + ' 還有 ' + ua[0].days + ' 天（' + md(ua[0].date) + '）'); A.push({ issue: ua[0].what + ' ' + ua[0].date + '，剩 ' + ua[0].days + ' 天', who: 'Compliance', what: '照檢查表把文件、現場、訪談先走一遍' }); }
     if (F.audits.inPeriod.length) { var a = F.audits.inPeriod[0]; sc('auditDone', 75, 'blue', md(a.date) + ' ' + a.standard + ' 稽核' + (a.result ? '，結果 ' + a.result : '') + (a.ncCount ? '，缺失 ' + a.ncCount + ' 項' : '')); }

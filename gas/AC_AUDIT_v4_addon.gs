@@ -33,7 +33,7 @@ function v4FeedEntries_(db, entries, silent) {
   props.setProperty('V4_PENDING', JSON.stringify(pend));
 }
 var V4_MOD_ICON = { certs: '🏅', audits: '📋', caps: '🛠', assessments: '🧾', wse_assessment: '📋', grs_certs: '🏅', grs_tc: '🏅', grs_suppliers: '🏅', grs_trace: '🏅', documents: '🗄', dcc_control: '🗄', incoming_control: '🗄', policies: '📌', factory_rules: '📕', cambodia_law: '⚖️', incidents: '⚠️', damage_report: '⚠️', msg: '📧', calendar: '📅' };
-function v4ModName_(k) { return k === 'certs' ? '證書／許可' : k === 'calendar' ? '行事曆' : modLabel_(k); }
+function v4ModName_(k) { return k === 'certs' ? '驗廠證書' : k === 'calendar' ? '行事曆' : modLabel_(k); }
 function v4Strip_(r) { var o = {}; for (var k in r) { if (k.charAt(0) !== '_' && k !== 'photos') o[k] = r[k]; } return JSON.stringify(o); }
 /* upload_ 合併後呼叫：比對雲端原本與合併結果，寫入異動 feed */
 function v4AfterMerge_(cloud, merged, reason, payload) {
