@@ -280,46 +280,59 @@ var ACR = (function () {
   /* ── Telegram 文字 ── */
   var ICON = { red: '🔴', yellow: '🟡', green: '🟢', blue: '🔵', gray: '⚪' };
   function bar(pct) { if (pct == null) return '⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜'; var n = Math.max(0, Math.min(10, Math.round(pct / 10))), c = pct >= 90 ? '🟩' : pct >= 60 ? '🟨' : '🟥', s = ''; for (var i = 0; i < 10; i++) s += i < n ? c : '⬜'; return s; }
+  function bar5(pct) { if (pct == null) return '⬜⬜⬜⬜⬜'; var n = Math.max(0, Math.min(5, Math.round(pct / 20))), c = pct >= 90 ? '🟩' : pct >= 60 ? '🟨' : '🟥', s = ''; if (pct > 0 && n === 0) n = 1; if (pct < 100 && n === 5) n = 4; for (var i = 0; i < 5; i++) s += i < n ? c : '⬜'; return s; }
+  function num(n) { return String(Math.round(+n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  /* 固定四區塊：證書 → 稽核 → 缺失 → 培訓；每行一件事，用｜分欄 */
   function toTelegram(F) {
-    var P = F.period, T = F.training, L = [], kind = P.kind === 'month' ? '月報 Monthly' : '週報 Weekly';
-    L.push('📂 <b>AC Audit ' + kind + '｜' + esc(P.label) + '</b>');
-    (F.notes || []).slice(0, 2).forEach(function (n) { L.push('📌 ' + esc(n)); });
+    var P = F.period, T = F.training, L = [], mon = P.kind === 'month';
+    L.push('📂 <b>AC Audit ' + (mon ? '月報 Monthly' : '週報 Weekly') + '</b>');
+    L.push('🗓 ' + esc(P.label));
     L.push(ICON[F.light] + ' <b>' + esc(F.headline) + '</b>');
-    if (F.second) L.push('　 ' + esc(F.second));
-    if (F.tags && F.tags.length) L.push('🏷 ' + F.tags.slice(0, 3).map(esc).join('｜'));
-    L.push('');
-    /* 證書 */
+    (F.notes || []).slice(0, 2).forEach(function (n) { L.push('📌 ' + esc(n)); });
+    /* 1 證書 */
+    L.push(''); L.push('<b>1️⃣ 驗廠證書 Certs</b>｜' + F.certs.total + ' 張');
     if (F.certs.total) {
-      L.push('🏅 <b>證書 Certificates</b>　有效 ' + F.certs.valid + '｜快到期 ' + F.certs.soon + '｜過期 ' + F.certs.expired + (F.certs.verify + F.certs.nodate ? '｜待確認 ' + (F.certs.verify + F.certs.nodate) : ''));
-      F.certs.list.filter(function (c) { return c.state !== 'verify' && c.state !== 'nodate' && (P.kind === 'month' || c.light !== 'green'); }).slice(0, 5).forEach(function (c) { L.push('　' + ICON[c.light] + ' ' + esc(c.standard || c.name) + (c.grade ? ' ' + esc(c.grade) : '') + '　' + esc(c.expiryDate) + (c.days < 0 ? '（過期 ' + (-c.days) + ' 天）' : '（剩 ' + c.days + ' 天）')); });
-    } else L.push('🏅 <b>證書 Certificates</b>　還沒建檔');
-    /* 稽核 */
-    if (F.audits.last.length) {
-      L.push('📋 <b>稽核 Audits</b>　最近結果');
-      F.audits.last.slice(0, P.kind === 'month' ? 5 : 3).forEach(function (a) { L.push('　' + ICON[a.light] + ' ' + esc(a.standard) + '　' + esc(a.date) + (a.result ? '　' + esc(a.result) : '') + (a.ncCount != null ? '　缺失 ' + a.ncCount : '')); });
-    }
-    if (F.caps.total) { L.push('🛠 <b>缺失 CAP</b>　未結 ' + F.caps.open + '｜逾期 ' + F.caps.overdue + '｜14 天內到期 ' + F.caps.dueSoon + '｜已結 ' + F.caps.closed); var nc = P.kind === 'month' ? 5 : 3; F.caps.list.slice(0, nc).forEach(function (c) { L.push('　' + ICON[c.light] + ' ' + (c.clause ? esc(c.clause) + ' ' : '') + esc(String(c.desc).slice(0, 22)) + (c.due ? '　' + md(c.due) + (c.days < 0 ? ' 過 ' + (-c.days) + ' 天' : '') : '') + (c.repeat ? ' 🔁重複' : '')); }); if (F.caps.list.length > nc) L.push('　… 另 ' + (F.caps.list.length - nc) + ' 項'); }
-    /* 培訓 */
+      F.certs.list.slice(0, 5).forEach(function (c) {
+        var st = c.state === 'verify' || c.state === 'nodate' ? '到期日待補' : c.days < 0 ? esc(c.expiryDate) + '｜過期 ' + (-c.days) + ' 天' : esc(c.expiryDate) + '｜剩 ' + c.days + ' 天';
+        L.push(ICON[c.light] + ' ' + esc(String(c.standard || c.name).slice(0, 14)) + '｜' + st);
+      });
+    } else L.push('⚪ 還沒建檔');
+    /* 2 稽核 */
+    L.push(''); L.push('<b>2️⃣ 稽核 Audits</b>' + ((F.audits.inPeriod || []).length ? '｜本期 ' + F.audits.inPeriod.length + ' 場' : ''));
+    if (F.audits.last.length) F.audits.last.slice(0, 3).forEach(function (a) {
+      L.push(ICON[a.light] + ' ' + esc(a.standard) + '｜' + esc(String(a.date).slice(2)) + '｜' + esc(String(a.result || '—').split(/[–\-（(]/)[0].replace(/\s+$/, '').slice(0, 10)) + (a.ncCount != null ? '｜缺失 ' + a.ncCount : ''));
+    }); else L.push('⚪ 還沒有記錄');
+    F.audits.upcoming.filter(function (u) { return u.kind !== 'cert' && u.days <= 60; }).slice(0, 2).forEach(function (u) { L.push('📅 ' + md(u.date) + '｜' + esc(String(u.what).slice(0, 14)) + '｜剩 ' + u.days + ' 天'); });
+    /* 3 缺失 */
+    L.push(''); L.push('<b>3️⃣ 缺失 CAP</b>｜未結 ' + F.caps.open + '｜過期 ' + F.caps.overdue);
+    if (F.caps.total) {
+      var cp = Math.round(F.caps.closed / F.caps.total * 100);
+      L.push(bar5(cp) + ' 已結 ' + F.caps.closed + '/' + F.caps.total + '（' + cp + '%）');
+      var nc = mon ? 5 : 3;
+      F.caps.list.slice(0, nc).forEach(function (c) {
+        var lab = String(c.category || '').split(' ')[0] || String(c.desc).slice(0, 8);
+        L.push(ICON[c.light] + ' ' + (c.clause ? esc(c.clause) + ' ' : '') + esc(lab) + '｜' + (c.days == null ? '沒有期限' : c.days < 0 ? '過 ' + (-c.days) + ' 天' : '剩 ' + c.days + ' 天') + (c.repeat ? '｜🔁' : ''));
+      });
+      if (F.caps.list.length > nc) L.push('　 …另 ' + (F.caps.list.length - nc) + ' 項');
+      if (F.caps.repeat) L.push('　 🔁 重複缺失 ' + F.caps.repeat + ' 項');
+    } else L.push('⚪ 沒有記錄');
+    /* 4 培訓 */
+    L.push(''); L.push('<b>4️⃣ 培訓 Training</b>');
     if (T.courses) {
-      var mo = T.mo;
-      L.push('🎓 <b>培訓 Training</b>　' + T.month + ' 月計劃 ' + (mo.plan - mo.cancel) + ' 門：完成 ' + mo.done + '｜未上 ' + mo.wait + '｜延後 ' + mo.post);
-      L.push('　' + bar(mo.pct) + ' ' + (mo.pct == null ? '—' : mo.pct + '%'));
-      L.push('　' + (P.kind === 'month' ? '本月' : '本週') + ' ' + T.period.sessions + ' 場｜' + T.period.attendees + ' 人次｜' + T.period.hours + ' 小時');
-      T.period.list.slice(0, P.kind === 'month' ? 6 : 5).forEach(function (r) { L.push('　• ' + md(r.date) + ' ' + esc(String(r.subject).slice(0, 34)) + '　' + r.attendees + ' 人'); });
-      if (T.period.list.length > (P.kind === 'month' ? 6 : 5)) L.push('　… 另 ' + (T.period.list.length - (P.kind === 'month' ? 6 : 5)) + ' 場');
-      L.push('　年度累計 YTD：應上 ' + (T.ytd.plan - T.ytd.cancel) + ' 門次、已上 ' + T.ytd.done + '（' + (T.ytd.pct == null ? '—' : T.ytd.pct + '%') + '）｜' + T.ytd.sessions + ' 場｜' + T.ytd.attendees + ' 人次');
-      if (mo.wait && T.names.wait.length) L.push('　⏳ 本月還沒上：' + T.names.wait.slice(0, 4).map(esc).join('、') + (T.names.wait.length > 4 ? ' 等 ' + T.names.wait.length + ' 門' : ''));
-    }
-    if (F.docs.total) L.push('🗄 <b>文件 DCC</b>　' + F.docs.total + ' 份｜過期 ' + F.docs.expired + '｜60 天內要審 ' + F.docs.reviewDue);
-    /* 接下來 */
-    var up = F.audits.upcoming.filter(function (u) { return u.days <= 60; }).slice(0, 4);
-    if (up.length) { L.push('📅 <b>接下來 Next</b>'); up.forEach(function (u) { L.push('　• ' + md(u.date) + '（' + u.days + ' 天）' + esc(u.what)); }); }
-    if (F.updates.count) L.push('🔔 資料異動 Updates：' + F.updates.count + ' 筆');
+      var mo = T.mo, due = mo.plan - mo.cancel, yd = T.ytd.plan - T.ytd.cancel;
+      L.push(T.month + ' 月 ' + bar5(mo.pct) + ' ' + (mo.pct == null ? '—' : mo.pct + '%') + '｜' + mo.done + '/' + due + ' 門');
+      L.push('年度 ' + bar5(T.ytd.pct) + ' ' + (T.ytd.pct == null ? '—' : T.ytd.pct + '%') + '｜' + T.ytd.done + '/' + yd + ' 門');
+      L.push((mon ? '本月' : '本週') + '｜' + T.period.sessions + ' 場｜' + num(T.period.attendees) + ' 人次｜' + T.period.hours + ' 小時');
+      L.push('年度｜' + T.ytd.sessions + ' 場｜' + num(T.ytd.attendees) + ' 人次');
+      if (mo.wait && T.names.wait.length) L.push('⏳ 還沒上 ' + mo.wait + ' 門：' + T.names.wait.slice(0, 2).map(function (x) { return esc(String(x).slice(0, 10)); }).join('、') + (T.names.wait.length > 2 ? '…' : ''));
+      if (mo.cancel) L.push('🚫 取消 ' + mo.cancel + ' 門');
+    } else L.push('⚪ 還沒有計劃表');
+    /* 要處理 */
     if (F.actions.length) {
-      L.push(''); L.push('⚠️ <b>要處理 To do</b>');
-      F.actions.forEach(function (a, i) { L.push((i + 1) + '. ' + esc(a.issue)); L.push('　→ ' + esc(a.who) + '：' + esc(a.what)); });
+      L.push(''); L.push('<b>⚠️ 要處理 To do</b>');
+      F.actions.slice(0, 3).forEach(function (a, i) { L.push((i + 1) + '. ' + esc(a.who) + '｜' + esc(String(a.issue).split(/[；：]/)[0])); });
     }
-    L.push(''); L.push('🗓 資料日期：培訓記錄到 ' + (F.dataDates.training || '—') + (F.dataDates.audit ? '｜稽核資料 ' + F.dataDates.audit : '') + '　✅ 數字由系統計算核對');
+    L.push(''); L.push('✅ 系統計算核對｜資料到 ' + md(F.dataDates.audit || F.dataDates.training || ymd(new Date())));
     return L.join('\n');
   }
 
