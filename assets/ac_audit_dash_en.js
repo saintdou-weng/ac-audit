@@ -125,7 +125,7 @@ var ACR_EN = (function () {
     if (D[t]) return lead + D[t] + tail;
     var cnt = function (x) { return (x.match(/[一-鿿]/g) || []).length; }, c0 = cnt(t), orig = t;
     t = t.replace(/(^|[^\d,、 ])(1[0-2]|[1-9]) ?月(?!培訓|快|沒有|已上)/g, function (m, a, b) { return a + MONTHS[b - 1]; });
-    t = t.replace(/^(1[0-2]|[1-9]) 月培訓$/, function (m, a) { return MONTHS[a - 1] + ' training'; });
+    t = t.replace(/(^|\s)(1[0-2]|[1-9]) 月培訓$/, function (m, p, a) { return p + MONTHS[a - 1] + ' training'; });
     for (var i = 0; i < R.length; i++) { t = t.replace(R[i][0], R[i][1]); }
     var ruled = t !== orig;
     if (CJK.test(t)) for (var k = 0; k < keys.length && CJK.test(t); k++) { if (t.indexOf(keys[k]) >= 0) t = t.split(keys[k]).join(' ' + D[keys[k]] + ' '); }
