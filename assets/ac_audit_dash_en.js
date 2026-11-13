@@ -53,6 +53,7 @@ var ACR_EN = (function () {
   ].map(function (x) { return [new RegExp(x[0], 'g'), x[1]]; });
 
   var D = {
+    '法規與驗廠標準更新': 'Law & audit-standard updates', 'AI 定期上網查，有新的才加進來；僅供參考，請以原文為準': 'Checked online by AI on a schedule; new items only. Reference only — rely on the original text', '上次檢查': 'last checked', '法規': 'Laws',
     '還沒有發過報告。按右上「發到群組」就會留下第一份；之後每週一、每月第一個上班日早上': 'No report sent yet. Press "Send to group" to keep the first one; after that every Monday and the first working day of each month at',
     '每次發到群組的週報、月報都留一份，可以回頭核對當時的數字': 'Every weekly and monthly report sent to the group is kept, so you can check the numbers at that time',
     '或照片拖進「統一匯入中心」就會自動掛到對應的場次。': 'or photos into the Import Center and they attach to the matching session.',

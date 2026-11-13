@@ -1,0 +1,57 @@
+{
+ "updatedAt": "2026-11-13",
+ "note": "AI 上網蒐集，僅供參考，不是正式法律意見。每筆都附來源，請以原文為準。",
+ "items": [
+  {
+   "id": "KH-LAB-2026-226",
+   "date": "2026-09-30",
+   "cat": "labour",
+   "catZh": "勞工法",
+   "catEn": "Labour law",
+   "titleZh": "2027 年成衣業最低工資：正式工 USD 212、試用期 USD 210（Prakas 226/26）",
+   "titleEn": "2027 minimum wage for garment sector: USD 212 regular, USD 210 probation (Prakas No. 226/26)",
+   "summaryZh": "勞工部 2026-09-30 公告 Prakas 226/26，適用紡織、成衣、製鞋、旅行用品與箱包業。計件工資照實際產量算，低於最低工資時雇主要補足差額。每月 USD 2.50 的臨時津貼 2027 年繼續發，交通與住宿津貼及其他既有福利不變。",
+   "summaryEn": "MLVT Prakas No. 226/26 (30 Sep 2026) covers textile, garment, footwear, travel goods and bags. Piece-rate workers are paid on output, topped up to the minimum if lower. The temporary USD 2.50 monthly allowance continues in 2027; transport/accommodation allowances and other existing benefits are unchanged.",
+   "effective": "2027-01-01",
+   "impactZh": "1 月薪資起底薪要調到 212／210；薪資結構表、試用轉正、計件補差額的算法都要跟著改。",
+   "impactEn": "Base pay moves to 212 / 210 from January payroll; update the salary structure, probation-to-regular step and piece-rate top-up.",
+   "source": "https://kpmg.com/kh/en/insights/2026/11/New-Minimum-Wage-for-2027.html",
+   "sourceName": "KPMG Cambodia technical update",
+   "checkedAt": "2026-11-13"
+  },
+  {
+   "id": "TE-MMS-2026",
+   "date": "2026-04-01",
+   "cat": "GRS",
+   "catZh": "GRS",
+   "catEn": "GRS",
+   "titleZh": "GRS 將併入 Textile Exchange 新標準 Materials Matter：2026-12-31 生效、2027-12-31 起強制",
+   "titleEn": "GRS moves into Textile Exchange's Materials Matter Standard: effective 31 Dec 2026, mandatory from 31 Dec 2027",
+   "summaryZh": "Textile Exchange 以 Materials Matter Standard 整合現有標準，GRS／RCS 涵蓋的回收材料在第一版範圍內。轉換政策（Transition Policy）已於 2026-04-01 公布，說明持證單位要怎麼轉換。",
+   "summaryEn": "Textile Exchange is unifying its standards under the Materials Matter Standard; recycled materials now covered by GRS/RCS are in scope of the first version. The Transition Policy published 1 April 2026 sets out what certified organisations must do.",
+   "effective": "2026-12-31",
+   "impactZh": "下次 GRS 續證前，請向 Control Union 確認要用哪一版標準稽核、現有 Scope Certificate 的過渡做法。本頁沒有查到 GRS 最後可稽核日，需看 Transition Policy 原文。",
+   "impactEn": "Before the next GRS renewal, confirm with Control Union which standard the audit will use and how the current scope certificate transitions. The last GRS audit date was not found on the page; check the Transition Policy.",
+   "source": "https://textileexchange.org/materials-matter-standards-transition/",
+   "sourceName": "Textile Exchange",
+   "checkedAt": "2026-11-13"
+  },
+  {
+   "id": "KH-ENV-2025-9540",
+   "date": "2025-11-26",
+   "cat": "environment",
+   "catZh": "環境法",
+   "catEn": "Environment law",
+   "titleZh": "環境部 Prakas 9540：中小型工廠要簽「環境保護協議（EPA）」",
+   "titleEn": "MOE Prakas No. 9540: Environmental Protection Agreement (EPA) for small and medium factories",
+   "summaryZh": "環境部 2025-11-26 公告，設有生產機器設備、投資額 USD 5 萬到 50 萬的工廠（六個行業，依 Prakas 3591 的分類）要準備 EPA 和環境管理計劃送審，審查約 30 個工作天，之後有定期遵循義務。違反可處罰款、停業或吊銷許可。",
+   "summaryEn": "Issued 26 Nov 2025. Factories with production machinery and investment of USD 50,000–500,000 in six sectors (per Prakas No. 3591) must prepare an EPA and environmental management plan for MOE review (about 30 working days), with ongoing periodic obligations. Penalties include fines, suspension or revocation of permits.",
+   "effective": "2025-11-26",
+   "impactZh": "VRT 是否適用還不確定：來源沒有列出六個行業，也要看 VRT 的投資額級距（規模較大的工廠通常走 EIA 而不是 EPA）。請 Compliance 對照 Prakas 3591 確認。",
+   "impactEn": "Whether this applies to VRT is not confirmed: the source does not list the six sectors, and it depends on VRT's investment bracket (larger factories normally fall under EIA rather than EPA). Compliance should check against Prakas No. 3591.",
+   "source": "https://www.dfdl.com/insights/legal-and-tax-updates/cambodia-new-environmental-compliance-rules-for-smes-in-cambodia-what-business-owners-need-to-know-now/",
+   "sourceName": "DFDL legal update",
+   "checkedAt": "2026-11-13"
+  }
+ ]
+}

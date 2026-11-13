@@ -145,6 +145,7 @@ function v4Hourly_() {
   /* 3) 到期提醒：只在碰到節點那天發一次 */
   if (H >= 8 && props.getProperty('V4_DAILY_SENT') !== today) {
     props.setProperty('V4_DAILY_SENT', today);
+    try { v4LawCheck_(); } catch (lawErr) { appendLog_('V4_LAW_ERROR', lawErr.message); }
     var F = v4Build_('week', today).F, L = [];
     F.certs.list.forEach(function (c) { if (c.days != null && [90, 60, 30, 14, 7, 3, 1, 0].indexOf(c.days) >= 0) L.push((c.days <= 30 ? '🔴' : '🟡') + ' ' + ACR.esc(c.standard || c.name) + ' 證書 ' + c.expiryDate + ' 到期' + (c.days ? '，剩 ' + c.days + ' 天' : '，就是今天')); });
     F.caps.list.forEach(function (c) { if (c.days != null && [7, 3, 1, 0].indexOf(c.days) >= 0) L.push('🟡 缺失 <code>' + ACR.esc(c.id) + '</code> ' + ACR.esc(String(c.desc).slice(0, 26)) + ' ' + c.due + ' 到期' + (c.days ? '，剩 ' + c.days + ' 天' : '，就是今天')); });
@@ -269,12 +270,36 @@ function v4PptImport_(driveId, by) {
   return { ok: true, file: fname, sessions: out, photosSaved: saved };
 }
 
+
+/* ══ 法規／標準更新：讀 GitHub Pages 上的 data/law_updates.json，有新的就進異動並通知群組 ══ */
+var V4_LAW_URL = 'https://saintdou-weng.github.io/ac-audit/data/law_updates.json';
+function v4LawCheck_() {
+  var props = PropertiesService.getScriptProperties(), seen = {};
+  try { seen = JSON.parse(props.getProperty('V4_LAW_SEEN') || '{}'); } catch (e) { seen = {}; }
+  var res = UrlFetchApp.fetch(V4_LAW_URL + '?t=' + Date.now(), { muteHttpExceptions: true });
+  if (res.getResponseCode() !== 200) return { ok: false, code: res.getResponseCode() };
+  var j = JSON.parse(res.getContentText()), fresh = (j.items || []).filter(function (x) { return x.id && !seen[x.id]; });
+  if (!fresh.length) return { ok: true, fresh: 0 };
+  var first = !Object.keys(seen).length;
+  fresh.forEach(function (x) { seen[x.id] = v4Today_(); });
+  props.setProperty('V4_LAW_SEEN', JSON.stringify(seen));
+  var db = v4LoadDb_();
+  v4FeedEntries_(db, fresh.map(function (x) { return { mod: 'law', icon: '⚖️', text: (x.catZh || '法規') + '：' + x.titleZh, by: 'AI 法規更新' }; }), true);
+  v4SaveDb_(db);
+  var L = ['⚖️ <b>法規／標準更新 Law & standard updates</b>', '🗓 ' + v4Today_() + '｜新增 ' + fresh.length + ' 則' + (first ? '（首次建檔）' : ''), ''];
+  fresh.slice(0, 5).forEach(function (x) { L.push('🔹 <b>' + ACR.esc(x.catZh || '') + '</b>｜' + ACR.esc(x.titleZh)); if (x.effective) L.push('　 生效 ' + x.effective); if (x.impactZh) L.push('　 ➜ ' + ACR.esc(String(x.impactZh).slice(0, 90))); L.push(''); });
+  L.push('ℹ️ AI 上網蒐集，僅供參考，請以原文為準');
+  try { sendMessage_(CFG('GROUP_CHAT_ID'), L.join('\n'), { inline_keyboard: [[{ text: '⚖️ 看全文與來源', url: V4_REPORT_URL + '#s-law' }]] }); } catch (e2) { appendLog_('V4_LAW_TG_ERROR', e2.message); }
+  return { ok: true, fresh: fresh.length };
+}
+
 function v4Api_(action, d) {
   d = d || {};
   if (action === 'report') { var r = v4Build_(d.kind || d.period || 'week', d.anchor || ''); return jsonOut({ ok: true, facts: r.F, text: r.text }); }
   if (action === 'reportSend') return jsonOut(v4SendReport_(d.kind || 'week', d.anchor || '', null, false, d.by || 'web'));
   if (action === 'reportHistory') { var s = v4ReportsLoad_(); return jsonOut({ ok: true, list: s.list.map(function (x) { return { id: x.id, kind: x.kind, key: x.key, label: x.label, from: x.from, to: x.to, sentAt: x.sentAt, auto: x.auto, by: x.by, rev: x.rev, light: x.light, headline: x.headline }; }) }); }
   if (action === 'reportGet') { var s2 = v4ReportsLoad_(), hit = null; s2.list.forEach(function (x) { if (x.id === d.id) hit = x; }); return jsonOut(hit ? { ok: true, report: hit } : { ok: false, error: 'not found' }); }
+  if (action === 'lawCheck') { try { return jsonOut(v4LawCheck_()); } catch (le) { return jsonOut({ ok: false, error: String(le && le.message || le) }); } }
   if (action === 'pptImport') { try { return jsonOut(v4PptImport_(d.driveId, d.by || 'web')); } catch (pe) { return jsonOut({ ok: false, error: String(pe && pe.message || pe) }); } }
   if (action === 'patch') return jsonOut(v4Patch_(d.id, d.set || {}, d.by || 'web', d.why || ''));
   if (action === 'addRecord') return jsonOut(v4AddRecord_(d.key, d.rec || {}, d.by || 'web'));

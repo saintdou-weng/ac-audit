@@ -204,14 +204,14 @@ pre.tg{white-space:pre-wrap;word-break:break-word;font-family:var(--f);font-size
 <aside class="drawer" id="drawer"><div class="dh"><div id="dtitle"></div><button class="x" onclick="closeD()">×</button></div><div class="db" id="dbody"></div></aside>
 <div id="toast"></div><div id="tip"></div>
 <script src="assets/ac_audit_engine.js?v=5"></script>
-<script src="assets/ac_audit_dash_en.js?v=2"></script>
+<script src="assets/ac_audit_dash_en.js?v=3"></script>
 <script>
 const GAS_DEFAULT='https://script.google.com/macros/s/AKfycbxOXfNmyfqZI6f9Uc__hxcmuiQt-QowkULw23GggAKM6nZ1mQ8DcOx5rwxa7d0obpIf/exec';
 const CACHE='ac_audit_dash_cache_v1';
 let LANG=(function(){try{return localStorage.getItem('ac_audit_dash_lang')||'zh'}catch(e){return 'zh'}})();
 function setLang(l){LANG=l;try{localStorage.setItem('ac_audit_dash_lang',l)}catch(e){}location.reload()}
 /* English：畫面每次更新後，把新出現的中文字換成英文（資料原文不動）*/
-document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('langBtn');if(b)b.textContent=LANG==='en'?'中文':'EN';if(LANG!=='en'||!window.ACR_EN)return;document.documentElement.lang='en';ACR_EN.apply(document.body);document.title=ACR_EN.tr(document.title);
+document.addEventListener('DOMContentLoaded',()=>{loadLaw();const b=document.getElementById('langBtn');if(b)b.textContent=LANG==='en'?'中文':'EN';if(LANG!=='en'||!window.ACR_EN)return;document.documentElement.lang='en';ACR_EN.apply(document.body);document.title=ACR_EN.tr(document.title);
   new MutationObserver(ms=>{ms.forEach(m=>{m.addedNodes.forEach(n=>{if(n.nodeType===1)ACR_EN.apply(n);else if(n.nodeType===3&&/[\u4e00-\u9fff]/.test(n.nodeValue)&&n.parentNode&&!(n.parentNode.closest&&n.parentNode.closest('[data-raw],pre,textarea')))n.nodeValue=ACR_EN.tr(n.nodeValue)})})}).observe(document.body,{childList:true,subtree:true})});
 let DB={},TR={trainings:[],records:{}},HIST=[],F=null,KIND=localStorage.getItem('ac_audit_dash_kind')||'week',ANCHOR=null,LOADED=0,CAPF='open';
 const $=s=>document.querySelector(s),esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -296,7 +296,7 @@ function render(){
   document.querySelectorAll('#kindSeg button').forEach(b=>b.classList.toggle('on',b.dataset.k===KIND));
   $('#plabel').textContent=P.label;$('#nextBtn').disabled=P.to>=todayStr();
   const isCur=P.from<=todayStr()&&P.to>=todayStr();
-  $('#tabs').innerHTML=[['sum','總覽',''],['cert','證書',F.certs.verify+F.certs.nodate+F.certs.expired||''],['audit','稽核',''],['cap','缺失',F.caps.open||''],['train','培訓',T.overdue.length||''],['feed','異動',(F.updatesAll||[]).length?'':''],['hist','歷史報告',HIST.length||'']].map((t,i)=>`<a href="#s-${t[0]}" class="${i===0?'on':''}">${t[1]}${t[2]!==''?`<span class="c ${['cert','cap'].includes(t[0])&&t[2]?'r':''}">${t[2]}</span>`:''}</a>`).join('');
+  $('#tabs').innerHTML=[['sum','總覽',''],['cert','證書',F.certs.verify+F.certs.nodate+F.certs.expired||''],['audit','稽核',''],['cap','缺失',F.caps.open||''],['train','培訓',T.overdue.length||''],['law','法規',LAW.items.length||''],['feed','異動',(F.updatesAll||[]).length?'':''],['hist','歷史報告',HIST.length||'']].map((t,i)=>`<a href="#s-${t[0]}" class="${i===0?'on':''}">${t[1]}${t[2]!==''?`<span class="c ${['cert','cap'].includes(t[0])&&t[2]?'r':''}">${t[2]}</span>`:''}</a>`).join('');
   const mo=T.mo||{plan:0,done:0,cancel:0,wait:0,post:0,pct:null};
   const lastA=F.audits.last[0];
   const k=(href,light,l,v,unit,d)=>`<a class="kpi ${light}" href="#${href}"><div class="l">${l}</div><div class="v num">${v}<small>${unit||''}</small></div><div class="d">${d}</div></a>`;
@@ -353,6 +353,7 @@ function render(){
   const ups=F.updatesAll||[];
   h+=`<section id="s-feed"><div class="h"><h2>🔔 最新異動</h2><span class="sub">資料一更新就記在這裡，群組每小時最多通知一次</span></div><div class="card"><div class="feed">${ups.length?ups.slice(0,25).map(u=>`<div class="fi"><span class="when num">${esc((u.at||'').slice(5))} ${esc(u.time||'')}</span><span>${esc(u.icon||'•')}</span><span><span data-raw>${esc(u.text)}</span>${u.by&&!/^[A-Z_+]+$/.test(u.by)?` <span class="muted small">— ${esc(u.by)}</span>`:''}</span></div>`).join(''):'<div class="empty">還沒有異動記錄</div>'}</div></div></section>`;
   /* 歷史 */
+  h+=lawSection();
   h+=`<section id="s-hist"><div class="h"><h2>🗂 歷史報告</h2><span class="sub">每次發到群組的週報、月報都留一份，可以回頭核對當時的數字</span></div>${HIST.length?`<div class="hist">${HIST.map(r=>`<div class="hc ${r.light}" onclick="openHist('${esc(r.id)}')"><b>${r.kind==='month'?'月報':'週報'}｜${esc(r.label)}</b><span>${ICON[r.light]||''} ${esc(r.headline)}</span><em>${esc(r.sentAt)}・${r.auto?'自動':'手動'}${r.rev>1?'・第 '+r.rev+' 版':''}</em></div>`).join('')}</div>`:'<div class="card empty">還沒有發過報告。按右上「發到群組」就會留下第一份；之後每週一、每月第一個上班日早上 8 點自動發。</div>'}</section>
   <div class="foot">資料日期：培訓記錄到 ${esc(F.dataDates.training||'—')}｜稽核資料 ${esc(F.dataDates.audit||'—')}｜✅ 數字由系統計算，和 Telegram 報告同一套算法</div>`;
   $('#main').innerHTML=h;spy();
@@ -411,6 +412,10 @@ async function capSave(id,mode){const note=$('#c_note').value.trim(),own=$('#c_o
   else if(mode==='reopen'){set.status='open';set.closedDate='';why='缺失重新開啟'+(note?'（'+note+'）':'')}
   else{set.dueDate=$('#c_due').value;why='缺失改期限／負責人'+(note?'（'+note+'）':'')}
   const r=await patch(id,set,why);if(r)openCap(id)}
+let LAW={items:[]};
+async function loadLaw(){try{const j=await fetch('data/law_updates.json?t='+Date.now()).then(r=>r.json());if(j&&j.items){LAW=j;if(F)render()}}catch(e){}}
+function lawSection(){const en=LANG==='en',its=(LAW.items||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));const col={labour:'#2a78d6',environment:'#0ca30c',GRS:'#0F6E63',WRAP:'#8a5cd6',WSE:'#ec835a'};
+  return `<section id="s-law"><div class="h"><h2>⚖️ 法規與驗廠標準更新</h2><span class="sub">AI 定期上網查，有新的才加進來；僅供參考，請以原文為準${LAW.updatedAt?'・上次檢查 '+esc(LAW.updatedAt):''}</span></div>${its.length?its.map(x=>`<div class="card" style="margin-bottom:10px;border-left:4px solid ${col[x.cat]||'#8a8f8e'}" data-raw><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><span class="pill" style="background:${col[x.cat]||'#8a8f8e'}1a;color:${col[x.cat]||'#555'}">${esc(en?x.catEn:x.catZh)}</span><span class="small muted">${en?'Published':'公告'} ${esc(x.date)}${x.effective?'　'+(en?'Effective':'生效')+' '+esc(x.effective):''}</span></div><div style="font-weight:700;font-size:15px;line-height:1.4">${esc(en?x.titleEn:x.titleZh)}</div><div style="margin-top:6px;font-size:13.5px;line-height:1.6">${esc(en?x.summaryEn:x.summaryZh)}</div><div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:#fff8e6;font-size:13px;line-height:1.55"><b>${en?'For VRT':'對工廠的影響'}：</b>${esc(en?x.impactEn:x.impactZh)}</div><div class="small" style="margin-top:8px"><a href="${esc(x.source)}" target="_blank" rel="noopener">🔗 ${esc(x.sourceName||'source')}</a>　<span class="muted">${en?'checked':'查證日'} ${esc(x.checkedAt||'')}</span></div></div>`).join(''):'<div class="card empty">還沒有資料</div>'}</section>`}
 function drvImg(a,w){return a&&a.driveId?'https://drive.google.com/thumbnail?id='+encodeURIComponent(a.driveId)+'&sz=w'+(w||400):''}
 function isImg(a){return a&&a.driveId&&/image|\.(jpe?g|png|webp)$/i.test((a.mime||'')+' '+(a.name||''))}
 function recOf(month,id){return ((TR.records||{})[month]||[]).find(x=>String(x.id)===String(id))}
