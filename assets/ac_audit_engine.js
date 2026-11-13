@@ -163,7 +163,7 @@ var ACR = (function () {
     ytd.pct = ytd.plan - ytd.cancel > 0 ? Math.round(ytd.done / (ytd.plan - ytd.cancel) * 100) : null;
     /* 期間內的場次 */
     var list = [];
-    Object.keys(recs).forEach(function (k) { arr(recs[k]).forEach(function (r) { if (inRange(r.date, P.from, P.to)) list.push({ date: String(r.date).slice(0, 10), subject: r.subject || '', trainer: r.trainer || '', dept: r.dept || '', time: r.time || '', hours: hoursOf(r.duration), participant: r.participant || '', attendees: +r.attendees || 0, absences: +r.absences || 0, external: /external|外訓/i.test(String(r.remarks || '')) }); }); });
+    Object.keys(recs).forEach(function (k) { arr(recs[k]).forEach(function (r) { if (inRange(r.date, P.from, P.to)) list.push({ id: r.id, month: k, remarks: r.remarks || '', photos: arr(r.evidence).length, date: String(r.date).slice(0, 10), subject: r.subject || '', trainer: r.trainer || '', dept: r.dept || '', time: r.time || '', hours: hoursOf(r.duration), participant: r.participant || '', attendees: +r.attendees || 0, absences: +r.absences || 0, external: /external|外訓/i.test(String(r.remarks || '')) }); }); });
     list.sort(function (a, b) { return a.date < b.date ? -1 : 1; });
     var per = { sessions: list.length, attendees: 0, hours: 0, list: list };
     list.forEach(function (r) { per.attendees += r.attendees; per.hours += r.hours; });

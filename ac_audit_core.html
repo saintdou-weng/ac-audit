@@ -1472,7 +1472,13 @@ async function smartImportFiles(files){
         const j=await gasCall({action:'uploadAttachment',module:'smart_'+c.mod,name:up.name,originalName:up.originalName,mime:up.mime,size:f.size,lastModified:f.lastModified||0,signature:sig,dataUrl:up.dataUrl});
         if(!j.ok)throw new Error(j.msg||j.error||'Drive upload failed');
         DB.msg.push({id:uid('MSG'),_created:Date.now(),_updated:Date.now(),_summarySentAt:Date.now(),date:todayStr(),from:'智慧匯入',subject:f.name,msgType:'evidence',category:c.mod,dept:c.dept,auditId:'',content:'',convertedTo:'',photos:[j.file]});touched=true;
-        row.s=c.mod==='其他'?'warn':'ok';row.msg=c.mod==='其他'?'已上傳，但檔名看不出類別，先放「其他」':'已上傳並歸類';smartDrawLog();continue}
+        row.s=c.mod==='其他'?'warn':'ok';row.msg=c.mod==='其他'?'已上傳，但檔名看不出類別，先放「其他」':'已上傳並歸類';smartDrawLog();
+        if(ext==='pptx'){row.s='run';row.msg='已上傳，正在讀投影片（課程、日期、人數、照片）…';smartDrawLog();
+          try{const pj=await gasCall({action:'pptImport',driveId:j.file.driveId,by:'智慧匯入'});
+            if(pj.ok&&pj.sessions&&pj.sessions.length){row.s='ok';row.to='培訓記錄';row.msg='讀到 '+pj.sessions.length+' 場培訓，照片 '+pj.sessions.reduce((a,x)=>a+x.photos,0)+' 張，已掛到培訓記錄';row.sub=pj.sessions.map(x=>x.date+'｜'+x.subject+'｜'+x.recTotal+' 人｜📷 '+x.photos+(x.created?'｜新增場次':'')+(x.pptTotal&&x.recTotal&&x.pptTotal!==x.recTotal?'｜⚠ PPT 寫 '+x.pptTotal+' 人':''))}
+            else{row.s='warn';row.msg=pj.ok?'已上傳；投影片裡沒有找到「Training : … / Date : …」格式，沒有寫進培訓記錄':'已上傳，但讀投影片失敗：'+(pj.error||'')}
+          }catch(e){row.s='warn';row.msg='已上傳，但讀投影片失敗：'+e.message}smartDrawLog()}
+        continue}
       smartLog(f.name,'err','不支援這種檔案');
     }catch(e){smartLog(f.name,'err','失敗：'+e.message)}
   }

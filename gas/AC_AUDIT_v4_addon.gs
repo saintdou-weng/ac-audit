@@ -208,12 +208,74 @@ function v4Note_(text, period, by) {
 }
 
 // ── 網頁 API ──
+
+/* ══ 培訓 PPT 匯入：把每張投影片的「課程／日期／人數／照片」寫回培訓記錄 ══ */
+function v4Unesc_(t) { return String(t).replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'"); }
+function v4PptImport_(driveId, by) {
+  if (!driveId) return { ok: false, error: 'no driveId' };
+  var file = DriveApp.getFileById(driveId), fname = file.getName().replace(/^.*__\d{8}_\d{6}__/, '');
+  var parts = Utilities.unzip(file.getBlob().setContentType('application/zip')), map = {};
+  parts.forEach(function (b) { map[b.getName()] = b; });
+  var nums = Object.keys(map).map(function (n) { var m = n.match(/^ppt\/slides\/slide(\d+)\.xml$/); return m ? +m[1] : 0; }).filter(function (x) { return x; }).sort(function (a, b) { return a - b; });
+  var MON = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+  var use = {}, sl = [];
+  nums.forEach(function (n) {
+    var rel = map['ppt/slides/_rels/slide' + n + '.xml.rels'], imgs = [];
+    if (rel) (rel.getDataAsString('UTF-8').match(/Target="[^"]*media\/[^"]+"/g) || []).forEach(function (t) { var nm = 'ppt/media/' + t.replace(/^.*media\//, '').replace(/"$/, ''); if (/\.(jpe?g|png)$/i.test(nm) && map[nm] && imgs.indexOf(nm) < 0) { imgs.push(nm); use[nm] = (use[nm] || 0) + 1; } });
+    var xml = map['ppt/slides/slide' + n + '.xml'].getDataAsString('UTF-8');
+    var paras = (xml.match(/<a:p(?: [^>]*)?>[\s\S]*?<\/a:p>/g) || []).map(function (p) { return v4Unesc_((p.match(/<a:t[^>]*>[^<]*<\/a:t>/g) || []).map(function (t) { return t.replace(/<[^>]+>/g, ''); }).join('')).replace(/\s+/g, ' ').replace(/^ | $/g, ''); });
+    sl.push({ n: n, paras: paras, imgs: imgs });
+  });
+  var sessions = [];
+  sl.forEach(function (S) {
+    var text = S.paras.join('\n');
+    var mt = text.match(/Training\s*[:：]\s*(.+)/i), md = text.match(/Date\s*[:：]\s*(\d{1,2})\s*[-\/ ]\s*([A-Za-z]{3,9})\s*[-\/ ,]\s*(\d{4})/i);
+    if (!mt || !md) return;
+    var mo = MON[md[2].slice(0, 3).toLowerCase()]; if (!mo) return;
+    var tm = text.match(/Time\s*[:：]?\s*(\d{1,2}[:.]\d{2})\s*[-–~]\s*(\d{1,2}[:.]\d{2})/i), tt = text.match(/Total\s*PPL\s*Attend\s*[:：]?\s*(\d+)/i);
+    var dept = [], labs = ['Sew.', 'Cut.', 'W/H', 'QC', 'Pack', 'Other'];
+    S.paras.forEach(function (p, i) { if (labs.indexOf(p) >= 0 && /^\d+$/.test(S.paras[i + 1] || '') && +S.paras[i + 1] > 0) dept.push(p.replace(/\.$/, '') + ' ' + S.paras[i + 1]); });
+    var imgs = S.imgs.filter(function (nm) { return use[nm] < 3 && map[nm].getBytes().length >= 30000; }).sort(function (a, b) { return map[b].getBytes().length - map[a].getBytes().length; }).slice(0, 4);
+    sessions.push({ slide: S.n, subject: mt[1].replace(/\s+/g, ' ').replace(/^ | $/g, ''), date: md[3] + '-' + ('0' + mo).slice(-2) + '-' + ('0' + md[1]).slice(-2), time: tm ? tm[1].replace('.', ':') + '-' + tm[2].replace('.', ':') : '', total: tt ? +tt[1] : 0, dept: dept.join('・'), imgs: imgs });
+  });
+  if (!sessions.length) return { ok: true, file: fname, sessions: [], note: '沒有找到「Training : … / Date : …」格式的投影片' };
+  var folder = getAttachmentFolder_(), idx = loadAttachmentIndex_(), saved = 0;
+  var data = getTrainingData_(); data.records = data.records || {};
+  var norm = function (x) { return String(x || '').toLowerCase().replace(/\([^)]*\)/g, '').replace(/[^a-z]/g, ''); };
+  var out = [];
+  sessions.forEach(function (s, si) {
+    var files = s.imgs.map(function (nm, k) {
+      var sig = 'ppt|' + driveId + '|' + nm; if (idx.files[sig]) return idx.files[sig];
+      var ext = nm.replace(/^.*\./, '.').toLowerCase(), b = map[nm], mime = /png/.test(ext) ? 'image/png' : 'image/jpeg';
+      var name = safeFileName_(['training', s.date, s.subject.slice(0, 40), (k + 1) + ext].join('__'));
+      var f = folder.createFile(Utilities.newBlob(b.getBytes(), mime, name));
+      try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+      var id = f.getId(), info = { driveId: id, name: s.date + ' ' + s.subject.slice(0, 40) + ' #' + (k + 1) + ext, storedName: name, mime: mime, size: b.getBytes().length, module: 'training', recordId: '', signature: sig, url: f.getUrl(), webViewUrl: f.getUrl(), downloadUrl: 'https://drive.google.com/uc?export=download&id=' + id, uploadedAt: new Date().toISOString(), storage: 'google_drive', source: fname };
+      idx.files[sig] = info; saved++; return info;
+    });
+    var mk = s.date.slice(0, 7), list = data.records[mk] = data.records[mk] || [];
+    var cand = list.filter(function (r) { var a = norm(r.subject), b = norm(s.subject); return String(r.date).slice(0, 10) === s.date && a && b && (a.indexOf(b.slice(0, 10)) === 0 || b.indexOf(a.slice(0, 10)) === 0); });
+    var rec = cand.filter(function (r) { return String(r.time).replace(/\s/g, '') === s.time; })[0] || cand[0], made = false;
+    if (!rec) { rec = { id: 'ppt' + Date.now() + si, seq: list.length + 1, subject: s.subject, dept: '', trainer: '', date: s.date, time: s.time, duration: '', participant: '', attendees: s.total, absences: 0, remarks: '', evidence: [] }; list.push(rec); made = true; }
+    rec.evidence = Array.isArray(rec.evidence) ? rec.evidence : [];
+    files.forEach(function (f) { if (!rec.evidence.some(function (e) { return e && e.driveId === f.driveId; })) rec.evidence.push(f); });
+    if (s.dept && String(rec.remarks || '').indexOf(s.dept) < 0) rec.remarks = (rec.remarks ? rec.remarks + '｜' : '') + s.dept;
+    if (!(+rec.attendees) && s.total) rec.attendees = s.total;
+    out.push({ date: s.date, subject: s.subject, time: s.time, pptTotal: s.total, recTotal: +rec.attendees || 0, photos: files.length, created: made, dept: s.dept });
+  });
+  if (saved) saveAttachmentIndex_(idx);
+  saveTrainingData_(data);
+  try { var db = v4LoadDb_(); v4FeedEntries_(db, [{ mod: 'training', icon: '📷', text: '培訓 PPT 匯入：' + fname + '（' + out.length + ' 場、照片 ' + out.reduce(function (a, x) { return a + x.photos; }, 0) + ' 張）', by: by || 'web' }], false); v4SaveDb_(db, 'PPT import'); } catch (e2) {}
+  return { ok: true, file: fname, sessions: out, photosSaved: saved };
+}
+
 function v4Api_(action, d) {
   d = d || {};
   if (action === 'report') { var r = v4Build_(d.kind || d.period || 'week', d.anchor || ''); return jsonOut({ ok: true, facts: r.F, text: r.text }); }
   if (action === 'reportSend') return jsonOut(v4SendReport_(d.kind || 'week', d.anchor || '', null, false, d.by || 'web'));
   if (action === 'reportHistory') { var s = v4ReportsLoad_(); return jsonOut({ ok: true, list: s.list.map(function (x) { return { id: x.id, kind: x.kind, key: x.key, label: x.label, from: x.from, to: x.to, sentAt: x.sentAt, auto: x.auto, by: x.by, rev: x.rev, light: x.light, headline: x.headline }; }) }); }
   if (action === 'reportGet') { var s2 = v4ReportsLoad_(), hit = null; s2.list.forEach(function (x) { if (x.id === d.id) hit = x; }); return jsonOut(hit ? { ok: true, report: hit } : { ok: false, error: 'not found' }); }
+  if (action === 'pptImport') { try { return jsonOut(v4PptImport_(d.driveId, d.by || 'web')); } catch (pe) { return jsonOut({ ok: false, error: String(pe && pe.message || pe) }); } }
   if (action === 'patch') return jsonOut(v4Patch_(d.id, d.set || {}, d.by || 'web', d.why || ''));
   if (action === 'addRecord') return jsonOut(v4AddRecord_(d.key, d.rec || {}, d.by || 'web'));
   if (action === 'note') return jsonOut(v4Note_(d.text || '', d.period || '', d.by || 'web'));
