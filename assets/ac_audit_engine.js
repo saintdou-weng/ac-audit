@@ -103,8 +103,9 @@ var ACR = (function () {
     return arr(db.caps).map(function (r) {
       var st = low(r.status), closed = /closed|done|complete|verified|archived|waived|結案|完成/.test(st);
       var due = String(r.dueDate || r.due || '').slice(0, 10), d = parse(due), days = d ? diffDays(d, today) : null;
-      var light = closed ? 'green' : (days != null && days < 0 ? 'red' : (days != null && days <= 14 ? 'yellow' : 'blue'));
-      return { id: r.id || '', standard: r.standard || r.auditType || '', category: r.category || '', desc: r.description || r.title || '', severity: r.severity || '', owner: r.owner || '', due: due, days: days, closed: closed, closedAt: String(r.closedDate || r.closedAt || '').slice(0, 10), created: String(r.date || r.foundDate || '').slice(0, 10), light: light, repeat: !!r.repeat, clause: r.clause || '', verify: r.verify || '', auditId: r.auditId || '', raw: r };
+      var sub = !closed && /submitted|送出|待審|review/.test(st);
+      var light = closed ? 'green' : sub ? 'yellow' : (days != null && days < 0 ? 'red' : (days != null && days <= 14 ? 'yellow' : 'blue'));
+      return { id: r.id || '', standard: r.standard || r.auditType || '', category: r.category || '', desc: r.description || r.title || '', severity: r.severity || '', owner: r.owner || '', due: due, days: days, closed: closed, submitted: sub, submittedAt: String(r.submittedDate || '').slice(0, 10), closedAt: String(r.closedDate || r.closedAt || '').slice(0, 10), created: String(r.date || r.foundDate || '').slice(0, 10), light: light, repeat: !!r.repeat, clause: r.clause || '', verify: r.verify || '', auditId: r.auditId || '', raw: r };
     });
   }
 
@@ -209,8 +210,9 @@ var ACR = (function () {
     var open = caps.filter(function (c) { return !c.closed; });
     F.caps = {
       total: caps.length, open: open.length,
-      overdue: open.filter(function (c) { return c.days != null && c.days < 0; }).length,
-      dueSoon: open.filter(function (c) { return c.days != null && c.days >= 0 && c.days <= 14; }).length,
+      overdue: open.filter(function (c) { return !c.submitted && c.days != null && c.days < 0; }).length,
+      submitted: open.filter(function (c) { return c.submitted; }).length,
+      dueSoon: open.filter(function (c) { return !c.submitted && c.days != null && c.days >= 0 && c.days <= 14; }).length,
       closed: caps.length - open.length, repeat: open.filter(function (c) { return c.repeat; }).length,
       closedInPeriod: caps.filter(function (c) { return c.closed && inRange(c.closedAt, P.from, P.to); }).length,
       newInPeriod: caps.filter(function (c) { return inRange(c.created, P.from, P.to); }).length,
@@ -236,7 +238,8 @@ var ACR = (function () {
     var exp = c.list.filter(function (x) { return x.state === 'expired'; }), s30 = c.list.filter(function (x) { return x.state === 'soon30'; }), s90 = c.list.filter(function (x) { return x.state === 'soon90'; });
     if (exp.length) { sc('certExpired', 100, 'red', nm(exp[0]) + ' 證書已過期 ' + Math.abs(exp[0].days) + ' 天' + (exp.length > 1 ? '，另有 ' + (exp.length - 1) + ' 張也過期' : '')); A.push({ issue: nm(exp[0]) + ' 證書 ' + exp[0].expiryDate + ' 到期，已過 ' + Math.abs(exp[0].days) + ' 天', who: 'Compliance', what: '確認換證進度，把新證書補進平台' }); }
     if (s30.length) { sc('certSoon30', 88, 'red', nm(s30[0]) + ' 證書剩 ' + s30[0].days + ' 天到期（' + md(s30[0].expiryDate) + '）'); A.push({ issue: nm(s30[0]) + ' 證書 ' + s30[0].expiryDate + ' 到期，剩 ' + s30[0].days + ' 天', who: 'Compliance', what: '這週確認換證稽核日期' }); }
-    if (F.caps.overdue) { var o = F.caps.list[0]; sc('capOverdue', 90, 'red', (o.standard ? o.standard + ' ' : '') + '缺失 ' + F.caps.overdue + ' 項已過改善期限，平台上還沒有結案記錄'); A.push({ issue: '過期未結的缺失 ' + F.caps.overdue + ' 項，最久過 ' + Math.abs(o.days) + ' 天' + (F.caps.repeat ? '；其中 ' + F.caps.repeat + ' 項是之前驗廠也被開過的重複缺失' : ''), who: o.owner || 'Compliance', what: '已改善的補上證據按結案；還沒好的寫新的完成日' }); }
+    if (F.caps.submitted) { var sb = F.caps.list.filter(function (c) { return c.submitted; }), s0 = sb[0]; sc('capSubmitted', 78, 'yellow', (s0.standard ? s0.standard + ' ' : '') + '缺失 ' + sb.length + ' 項 CAP 已送出，等稽核方審核'); A.push({ issue: 'CAP 已送出 ' + sb.length + ' 項' + (s0.submittedAt ? '（' + md(s0.submittedAt) + '）' : '') + '，還沒收到審核結果', who: 'Compliance', what: '追稽核方的審核結果；通過就按結案，被退回就上傳新版 CAP' }); }
+    if (F.caps.overdue) { var o = F.caps.list.filter(function (c) { return !c.closed && !c.submitted && c.days != null && c.days < 0; })[0]; sc('capOverdue', 90, 'red', (o.standard ? o.standard + ' ' : '') + '缺失 ' + F.caps.overdue + ' 項已過改善期限，平台上還沒有結案記錄'); A.push({ issue: '過期未結的缺失 ' + F.caps.overdue + ' 項，最久過 ' + Math.abs(o.days) + ' 天' + (F.caps.repeat ? '；其中 ' + F.caps.repeat + ' 項是之前驗廠也被開過的重複缺失' : ''), who: o.owner || 'Compliance', what: '已改善的補上證據按結案；還沒好的寫新的完成日' }); }
     var vf = c.list.filter(function (x) { return x.state === 'verify' || x.state === 'nodate'; });
     vf.sort(function (x, y) { return (x.kind === 'cert' ? 0 : 1) - (y.kind === 'cert' ? 0 : 1); });
     if (vf.length) { sc('certVerify', 74, 'yellow', '驗廠證書有 ' + vf.length + ' 張到期日待確認'); A.push({ issue: '到期日待確認 ' + vf.length + ' 張：' + vf.slice(0, 3).map(function (x) { return x.standard || x.name; }).join('、') + (vf.length > 3 ? '…' : ''), who: 'Compliance', what: '點開每張證書補上新的到期日（附掃描檔）' }); }
@@ -304,14 +307,14 @@ var ACR = (function () {
     }); else L.push('⚪ 還沒有記錄');
     F.audits.upcoming.filter(function (u) { return u.kind !== 'cert' && u.days <= 60; }).slice(0, 2).forEach(function (u) { L.push('📅 ' + md(u.date) + '｜' + esc(String(u.what).slice(0, 14)) + '｜剩 ' + u.days + ' 天'); });
     /* 3 缺失 */
-    L.push(''); L.push('<b>3️⃣ 缺失 CAP</b>｜未結 ' + F.caps.open + '｜過期 ' + F.caps.overdue);
+    L.push(''); L.push('<b>3️⃣ 缺失 CAP</b>｜未結 ' + F.caps.open + (F.caps.submitted ? '｜待審 ' + F.caps.submitted : '') + '｜過期 ' + F.caps.overdue);
     if (F.caps.total) {
       var cp = Math.round(F.caps.closed / F.caps.total * 100);
       L.push(bar5(cp) + ' 已結 ' + F.caps.closed + '/' + F.caps.total + '（' + cp + '%）');
       var nc = mon ? 5 : 3;
       F.caps.list.slice(0, nc).forEach(function (c) {
         var lab = String(c.category || '').split(' ')[0] || String(c.desc).slice(0, 8);
-        L.push(ICON[c.light] + ' ' + (c.clause ? esc(c.clause) + ' ' : '') + esc(lab) + '｜' + (c.days == null ? '沒有期限' : c.days < 0 ? '過 ' + (-c.days) + ' 天' : '剩 ' + c.days + ' 天') + (c.repeat ? '｜🔁' : ''));
+        L.push(ICON[c.light] + ' ' + (c.clause ? esc(c.clause) + ' ' : '') + esc(lab) + '｜' + (c.submitted ? '已送' + (c.submittedAt ? ' ' + md(c.submittedAt) : '') + '｜待審' : c.days == null ? '沒有期限' : c.days < 0 ? '過 ' + (-c.days) + ' 天' : '剩 ' + c.days + ' 天') + (c.repeat ? '｜🔁' : ''));
       });
       if (F.caps.list.length > nc) L.push('　 …另 ' + (F.caps.list.length - nc) + ' 項');
       if (F.caps.repeat) L.push('　 🔁 重複缺失 ' + F.caps.repeat + ' 項');

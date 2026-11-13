@@ -1364,6 +1364,7 @@ const HUB_TARGETS=['auto','training','audits','documents','policies'];
 function renderImportHub(){
   $('#main').innerHTML=
    '<div class="pgtitle"><h2>📥 '+esc(t('importHub'))+'</h2><span class="sub">'+(LANG==='zh'?'MSG / Excel / CSV / JSON 統一入口；先預覽、再寫入，不直接覆蓋。':'One import gate for MSG / Excel / CSV / JSON. Preview first, then commit.')+'</span></div>'+ 
+   smartZoneHtml()+
    '<div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:14px">'+
     '<div class="panel"><h3>① '+(LANG==='zh'?'選擇資料':'Select Data')+'<span class="rule"></span></h3>'+ 
       '<div class="toolbar" style="margin-top:6px"><button class="btn pri" onclick="pickUnifiedImport()">📎 '+(LANG==='zh'?'選擇檔案':'Choose File')+'</button>'+ 
@@ -1376,7 +1377,113 @@ function renderImportHub(){
       '<button class="btn" onclick="clearHubImport()">🧹 '+(LANG==='zh'?'清除預覽':'Clear')+'</button></div>'+ 
       '<p class="hint" id="hubInfo" style="margin-top:10px">'+(LANG==='zh'?'尚未載入資料。':'No file loaded.')+'</p></div>'+ 
    '</div><div class="panel"><h3>③ Preview<span class="rule"></span></h3><div id="hubPreview" class="tblwrap"><div class="empty"><div class="e1">📥</div>'+(LANG==='zh'?'請先選擇檔案或貼上內容。':'Choose a file or paste content first.')+'</div></div></div>';
+  smartDrawLog();
 }
+/* =====================================================================
+   SMART IMPORT — 拖進來就自動判斷：Email(.msg/.eml)、CAP Excel、培訓表、PDF／照片
+===================================================================== */
+let SMART_LOG=[];
+function smartZoneHtml(){
+  return '<div id="smartZone" class="panel" style="margin-bottom:14px;border:2px dashed #b9c9c6;background:#f6fbfa;text-align:center;padding:26px 16px;cursor:pointer" onclick="smartPick()">'+
+    '<div style="font-size:34px">📥</div><div style="font-size:17px;font-weight:700;margin-top:4px">'+(LANG==='zh'?'智慧匯入：把檔案或 Email 拖到這裡':'Smart import: drop files or emails here')+'</div>'+
+    '<div class="hint" style="margin-top:6px">'+(LANG==='zh'?'可一次多個：.msg / .eml（含附件）、CAP Excel、培訓表、PDF、照片。系統自己判斷放哪個分頁，匯過的不重複。':'Multiple files OK: .msg / .eml with attachments, CAP Excel, training sheets, PDF, photos. Auto-routed, no duplicates.')+'</div>'+
+    '<input type="file" id="smartFile" multiple style="display:none" onclick="event.stopPropagation()" onchange="smartOnPick(this)"></div><div id="smartLog"></div>';
+}
+function smartPick(){const i=$('#smartFile');if(i)i.click()}
+function smartOnPick(i){const fs=[...i.files];i.value='';if(fs.length)smartImportFiles(fs)}
+function smartDrawLog(){const el=$('#smartLog');if(!el)return;if(!SMART_LOG.length){el.innerHTML='';return}
+  const col={ok:'#0ca30c',skip:'#8a8f8e',warn:'#c98a00',err:'#d03b3b',run:'#2a78d6'},ic={ok:'✅',skip:'⏭',warn:'⚠️',err:'❌',run:'⏳'};
+  el.innerHTML='<div class="panel" style="margin-bottom:14px"><h3>'+(LANG==='zh'?'匯入結果':'Result')+'<span class="rule"></span></h3>'+SMART_LOG.map(x=>'<div style="display:flex;gap:10px;padding:8px 0;border-top:1px solid #eef1f0;align-items:flex-start"><div>'+ic[x.s]+'</div><div style="flex:1"><div style="font-weight:600;word-break:break-all">'+esc(x.file)+'</div><div style="font-size:13px;color:'+col[x.s]+'">'+esc(x.msg)+'</div>'+(x.sub||[]).map(y=>'<div class="hint" style="margin-top:2px">・'+esc(y)+'</div>').join('')+'</div><div style="font-size:12px;white-space:nowrap;background:#eef4f3;border-radius:8px;padding:3px 8px">'+esc(x.to||'')+'</div></div>').join('')+
+   '<div class="toolbar" style="margin-top:10px"><a class="btn pri" href="audit_dashboard_v1.html#s-cap" target="_blank">📊 '+(LANG==='zh'?'到報告中心看結果':'Open report center')+'</a><button class="btn" onclick="SMART_LOG=[];smartDrawLog()">🧹 '+(LANG==='zh'?'清除':'Clear')+'</button></div></div>';}
+function smartLog(file,s,msg,to,sub){const x={file:file,s:s,msg:msg,to:to||'',sub:sub||[]};SMART_LOG.unshift(x);smartDrawLog();return x}
+function smartBuf(f){return new Promise((ok,no)=>{const r=new FileReader();r.onload=e=>ok(new Uint8Array(e.target.result));r.onerror=()=>no(new Error('read fail'));r.readAsArrayBuffer(f)})}
+/* Outlook .msg（CFB）：主旨、寄件者、日期、內文、附件 */
+function parseMsgFile(u8){
+  const cfb=XLSX.CFB.read(u8,{type:'array'}),P=cfb.FullPaths,F=cfb.FileIndex,root=P[0];
+  const dec=(i,suf)=>{const c=F[i].content;if(!c)return'';const b=c instanceof Uint8Array?c:new Uint8Array(c);return new TextDecoder(suf==='001F'?'utf-16le':'windows-1252').decode(b).replace(/\u0000+$/,'')};
+  const str=(dir,prop)=>{for(const suf of['001F','001E']){const i=P.indexOf(dir+'__substg1.0_'+prop+suf);if(i>=0)return dec(i,suf)}return''};
+  const hdr=str(root,'007D'),dm=hdr.match(/^Date:\s*(.+)$/mi);let date='';if(dm){const d=new Date(dm[1]);if(!isNaN(d))date=fmtDate(d)}
+  const body=str(root,'1000');if(!date){const m=body.match(/^Sent:\s*(.+)$/mi);if(m){const d=new Date(m[1].replace(/^\w+,\s*/,''));if(!isNaN(d))date=fmtDate(d)}}
+  const atts=[];P.forEach(p=>{const m=p.match(/^(.*__attach_version1\.0_#[0-9A-Fa-f]+\/)$/);if(!m||p.slice(root.length).split('/').length!==2)return;
+    const name=str(p,'3707')||str(p,'3704'),i=P.indexOf(p+'__substg1.0_37010102');if(i<0||!name)return;const c=F[i].content;atts.push({name:name,data:c instanceof Uint8Array?c:new Uint8Array(c)})});
+  return {subject:str(root,'0037'),from:str(root,'0C1A')||str(root,'5D01'),date:date||todayStr(),body:body,atts:atts};
+}
+/* CAP Excel（WSE-CORRECTIVE ACTIONS AND IMPROVEMENT PLAN 這類表）*/
+function xlDate(v){if(v==null||v==='')return'';if(typeof v==='number'){const d=XLSX.SSF.parse_date_code(v);return d?d.y+'-'+pad(d.m)+'-'+pad(d.d):''}const s=String(v),m=s.match(/(\d{1,2})(?:st|nd|rd|th)?[\s\-\/]+([A-Za-z]{3,9})[\s\-\/,]+(\d{4})/);if(m){const mi='janfebmaraprmayjunjulaugsepoctnovdec'.indexOf(m[2].slice(0,3).toLowerCase())/3;if(mi>=0&&mi%1===0)return m[3]+'-'+pad(mi+1)+'-'+pad(+m[1])}const d=new Date(s);return isNaN(d)?'':fmtDate(d)}
+function parseCapWorkbook(wb){
+  for(const sn of wb.SheetNames){const A=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:'',raw:true});
+    const head=A.slice(0,12).map(r=>r.join(' ')).join(' ');if(!/corrective\s+action/i.test(head))continue;
+    const after=(re)=>{for(const r of A.slice(0,12)){const i=r.findIndex(c=>re.test(String(c)));if(i>=0){for(let j=i+1;j<r.length;j++)if(r[j]!=='')return r[j]}}return''};
+    const out={program:String(after(/program type/i)||'WSE').trim(),auditDate:xlDate(after(/audit date/i)),customer:String(after(/customer name/i)||'').trim(),items:[]};let col=null;
+    A.forEach(r=>{const cells=r.map(c=>String(c));const ci=cells.findIndex(c=>/clause\s*number/i.test(c));
+      if(ci>=0){col={clause:ci,desc:cells.findIndex(c=>/description/i.test(c)),prop:cells.findIndex(c=>/proposed/i.test(c)),due:cells.findIndex(c=>/due\s*date/i.test(c)),taken:cells.findIndex(c=>/action\s*taken/i.test(c)),by:cells.findIndex(c=>/date\s*\/\s*by/i.test(c)),remark:cells.findIndex(c=>/remark/i.test(c))};return}
+      if(!col)return;const m=cells[col.clause].match(/(?:clause[:：]?\s*)?([A-Z][A-Z\-]{1,8}\s*\d+(?:\.\d+)*)\s*\(?\s*(critical|major|minor|observation)?/i);if(!m||!/\d/.test(m[1]))return;
+      const g=k=>col[k]>=0?String(r[col[k]]==null?'':r[col[k]]).trim():'';
+      out.items.push({clause:m[1].replace(/\s+/g,' ').trim(),severity:m[2]?m[2][0].toUpperCase()+m[2].slice(1).toLowerCase():'',desc:g('desc'),proposed:g('prop'),due:xlDate(g('due')),taken:g('taken'),by:g('by'),date:col.by>=0?xlDate(r[col.by+1]):'',remark:g('remark')})});
+    if(out.items.length)return out}
+  return null;
+}
+function applyCapImport(cap,src){
+  const key=s=>String(s||'').toLowerCase().replace(/[^a-z0-9.]/g,''),prog=cap.program||'WSE',ad=cap.auditDate;
+  DB.audits=DB.audits||[];DB.caps=DB.caps||[];
+  let aud=DB.audits.concat(DB.wse_assessment||[]).find(a=>ad&&String(a.date).slice(0,10)===ad&&new RegExp(prog,'i').test((a.auditType||'')+' '+(a.title||'')));
+  if(!aud){aud={id:uid('AUD'),_created:Date.now(),_updated:Date.now(),_summarySentAt:Date.now(),auditType:prog,title:prog+' audit',auditName:prog+' audit',date:ad||src.date,status:'open',source:src.source};DB.audits.push(aud)}
+  const fm=String(src.file||'').match(/revis\w*[\s\-_]*(\d+)/i),label=/final/i.test(src.file||'')?'Final':fm?'Revised-'+fm[1]:'初版';
+  const res={added:0,updated:0,same:0,audit:aud,label:label,list:[]};
+  cap.items.forEach(it=>{
+    let r=DB.caps.find(c=>key(c.clause)===key(it.clause)&&(c.auditId===aud.id||String(c.date).slice(0,10)===String(aud.date).slice(0,10)));
+    if(!r){r={id:uid('CAP'),_created:Date.now(),_summarySentAt:Date.now(),auditId:aud.id,standard:prog,clause:it.clause,severity:it.severity,category:'',description:it.desc,dueDate:it.due,owner:'',status:'open',date:String(aud.date).slice(0,10)};DB.caps.push(r);res.added++}
+    r.versions=r.versions||[];
+    if(r.versions.some(v=>v.file===src.file&&v.taken===it.taken)){res.same++;return}
+    r.versions.push({label:label,date:src.date,by:it.by||src.by||'',source:src.source||'',file:src.file||'',taken:it.taken,note:it.remark||''});
+    r.taken=it.taken;r.proposed=it.proposed;if(!r.severity)r.severity=it.severity;
+    if(it.taken&&!/closed|done|waived|archived|結案/i.test(r.status||'')){r.status='submitted';r.submittedDate=it.date||src.date}
+    r.verify='';r._updated=Date.now();res.updated++;res.list.push(it.clause);
+  });
+  return res;
+}
+function smartClassify(name){const s=String(name||'').toLowerCase();
+  const mod=/orientation|新進|入職/.test(s)?'Orientation':/training|培訓|訓練|attendance sheet|sign.?in/.test(s)?'培訓':/rule|regulation|廠規|handbook/.test(s)?'廠規':/\bwse\b|woolworths|big\s?w/.test(s)?'WSE':/wrap/.test(s)?'WRAP':/\bgrs\b|scope cert|\btc\b/.test(s)?'GRS':/risk|風險/.test(s)?'Risk Assessment':/\bcap\b|corrective/.test(s)?'CAP':/law|prakas|法規|勞工法/.test(s)?'法規':'其他';
+  const dept=/\bqc\b|\bqa\b|quality|品管/.test(s)?'QC':/prod|sewing|cutting|packing|車縫|裁剪|生產/.test(s)?'Production':/\bhr\b|hra|人事|payroll/.test(s)?'HR':/\bga\b|security|fire|消防|保安/.test(s)?'GA':/wh|warehouse|倉/.test(s)?'Warehouse':'';
+  return {mod:mod,dept:dept};}
+async function smartImportFiles(files){
+  if(CURRENT!=='importHub')go('importHub');let touched=false,reasons=[];
+  /* 先收雲端最新資料再比對，才不會把已有的缺失重複建一筆 */
+  try{const dl=await gasCall({action:'download'});if(dl&&dl.data){DB=mergeAuditDB(DB,dl.data);delete DB.tools}}catch(e){smartLog('雲端','warn','連不上雲端，先用這台電腦的資料比對：'+e.message)}
+  for(const f of files){const ext=f.name.toLowerCase().split('.').pop();
+    try{
+      if(ext==='msg'){const m=parseMsgFile(await smartBuf(f));const sub=[];let to='Email 證據';
+        DB.msg=DB.msg||[];let rec=DB.msg.find(x=>x.subject===m.subject&&x.date===m.date&&x.from===m.from);
+        if(!rec){rec={id:uid('MSG'),_created:Date.now(),_updated:Date.now(),_summarySentAt:Date.now(),date:m.date,from:m.from,subject:m.subject,msgType:'evidence',auditId:'',content:m.body.slice(0,20000),convertedTo:'',photos:[],attachments:m.atts.map(a=>a.name).filter(n=>!/^image\d+\./i.test(n))};DB.msg.push(rec);touched=true;sub.push('Email 已存成證據：'+rec.id)}else sub.push('這封 Email 之前匯過，不重複存');
+        for(const a of m.atts){if(!/\.xlsx?$/i.test(a.name))continue;let wb;try{wb=XLSX.read(a.data,{type:'array',cellDates:false,raw:true})}catch(e){continue}
+          const cap=parseCapWorkbook(wb);
+          if(cap){const r=applyCapImport(cap,{file:a.name,date:m.date,by:m.from,source:'Email：'+m.subject});rec.auditId=r.audit.id;rec.convertedTo='CAP';to=cap.program+' CAP';touched=touched||r.updated>0||r.added>0;
+            sub.push('附件 '+a.name+' → '+cap.program+' '+cap.auditDate+' 的 CAP（'+r.label+'）：更新 '+r.updated+' 項、新增 '+r.added+' 項'+(r.same?'、'+r.same+' 項跟上次一樣沒動':''));if(r.updated)reasons.push(cap.program+' CAP '+r.label)}
+          else sub.push('附件 '+a.name+'：不是 CAP 表，請另外拖進來用一般匯入');}
+        smartLog(f.name,'ok',m.date+'｜'+m.from+'｜'+m.subject,to,sub);continue}
+      if(ext==='xlsx'||ext==='xls'){const wb=XLSX.read(await smartBuf(f),{type:'array',cellDates:false,raw:true}),cap=parseCapWorkbook(wb);
+        if(cap){const r=applyCapImport(cap,{file:f.name,date:todayStr(),by:(CFG&&CFG.checker)||'',source:'手動匯入'});touched=touched||r.updated>0||r.added>0;if(r.updated)reasons.push(cap.program+' CAP '+r.label);
+          smartLog(f.name,r.updated||r.added?'ok':'skip',cap.program+' '+cap.auditDate+' 的 CAP（'+r.label+'）：更新 '+r.updated+' 項、新增 '+r.added+' 項'+(r.same?'、'+r.same+' 項沒變':''),cap.program+' CAP');continue}
+        readUnifiedFile(f);smartLog(f.name,'warn','已讀入，請在下面預覽後按「確認寫入」',hubTargetLabel(detectHubRoute([],f.name)));continue}
+      if(['csv','json','txt','eml'].includes(ext)){readUnifiedFile(f);smartLog(f.name,'warn','已讀入，請在下面預覽後按「確認寫入」','一般匯入');continue}
+      if(/^(pdf|jpg|jpeg|png|webp|heic|docx?|pptx?)$/.test(ext)){const c=smartClassify(f.name);DB.msg=DB.msg||[];const sig=attSignature(f);
+        if(DB.msg.some(x=>(x.photos||[]).some(p=>p.signature===sig))){smartLog(f.name,'skip','之前匯過，不重複上傳',c.mod+(c.dept?'・'+c.dept:''));continue}
+        const row=smartLog(f.name,'run','上傳到雲端硬碟中…',c.mod+(c.dept?'・'+c.dept:''));const up=await fileToUploadData(f);
+        const j=await gasCall({action:'uploadAttachment',module:'smart_'+c.mod,name:up.name,originalName:up.originalName,mime:up.mime,size:f.size,lastModified:f.lastModified||0,signature:sig,dataUrl:up.dataUrl});
+        if(!j.ok)throw new Error(j.msg||j.error||'Drive upload failed');
+        DB.msg.push({id:uid('MSG'),_created:Date.now(),_updated:Date.now(),_summarySentAt:Date.now(),date:todayStr(),from:'智慧匯入',subject:f.name,msgType:'evidence',category:c.mod,dept:c.dept,auditId:'',content:'',convertedTo:'',photos:[j.file]});touched=true;
+        row.s=c.mod==='其他'?'warn':'ok';row.msg=c.mod==='其他'?'已上傳，但檔名看不出類別，先放「其他」':'已上傳並歸類';smartDrawLog();continue}
+      smartLog(f.name,'err','不支援這種檔案');
+    }catch(e){smartLog(f.name,'err','失敗：'+e.message)}
+  }
+  if(touched){DB.meta.updatedAt=Date.now();saveDB(false);try{await cloudUpload(false,'智慧匯入'+(reasons.length?'：'+reasons.join('、'):''));toast('☁ 已同步到雲端 ✓')}catch(e){toast('⚠ 已存在本機，雲端同步失敗：'+e.message,6000)}}
+}
+(function(){let depth=0;const has=e=>e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files');
+  window.addEventListener('dragenter',e=>{if(!has(e))return;depth++;document.body.style.outline='4px dashed #0F6E63';document.body.style.outlineOffset='-6px'});
+  window.addEventListener('dragleave',e=>{if(!has(e))return;depth=Math.max(0,depth-1);if(!depth)document.body.style.outline=''});
+  window.addEventListener('dragover',e=>{if(has(e))e.preventDefault()});
+  window.addEventListener('drop',e=>{if(!has(e))return;e.preventDefault();depth=0;document.body.style.outline='';const fs=[...e.dataTransfer.files];if(fs.length)smartImportFiles(fs)});
+})();
 function hubTargetLabel(x){return ({auto:'Auto Detect',training:'Training Bridge',audits:t('audits'),documents:t('documents'),policies:t('policies')})[x]||x}
 function pickUnifiedImport(){
   const inp=$('#unifiedImportFile');
