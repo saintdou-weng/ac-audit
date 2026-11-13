@@ -1418,7 +1418,7 @@ function parseCapWorkbook(wb){
     A.forEach(r=>{const cells=r.map(c=>String(c));const ci=cells.findIndex(c=>/clause\s*number/i.test(c));
       if(ci>=0){col={clause:ci,desc:cells.findIndex(c=>/description/i.test(c)),prop:cells.findIndex(c=>/proposed/i.test(c)),due:cells.findIndex(c=>/due\s*date/i.test(c)),taken:cells.findIndex(c=>/action\s*taken/i.test(c)),by:cells.findIndex(c=>/date\s*\/\s*by/i.test(c)),remark:cells.findIndex(c=>/remark/i.test(c))};return}
       if(!col)return;const m=cells[col.clause].match(/(?:clause[:：]?\s*)?([A-Z][A-Z\-]{1,8}\s*\d+(?:\.\d+)*)\s*\(?\s*(critical|major|minor|observation)?/i);if(!m||!/\d/.test(m[1]))return;
-      const g=k=>col[k]>=0?String(r[col[k]]==null?'':r[col[k]]).trim():'';
+      const g=k=>col[k]>=0?String(r[col[k]]==null?'':r[col[k]]).replace(/(^|\n)l\s?(?=[A-Z])/g,'$1- ').replace(/[ \t]{3,}/g,' ').trim():'';
       out.items.push({clause:m[1].replace(/\s+/g,' ').trim(),severity:m[2]?m[2][0].toUpperCase()+m[2].slice(1).toLowerCase():'',desc:g('desc'),proposed:g('prop'),due:xlDate(g('due')),taken:g('taken'),by:g('by'),date:col.by>=0?xlDate(r[col.by+1]):'',remark:g('remark')})});
     if(out.items.length)return out}
   return null;
@@ -1434,7 +1434,7 @@ function applyCapImport(cap,src){
     let r=DB.caps.find(c=>key(c.clause)===key(it.clause)&&(c.auditId===aud.id||String(c.date).slice(0,10)===String(aud.date).slice(0,10)));
     if(!r){r={id:uid('CAP'),_created:Date.now(),_summarySentAt:Date.now(),auditId:aud.id,standard:prog,clause:it.clause,severity:it.severity,category:'',description:it.desc,dueDate:it.due,owner:'',status:'open',date:String(aud.date).slice(0,10)};DB.caps.push(r);res.added++}
     r.versions=r.versions||[];
-    if(r.versions.some(v=>v.file===src.file&&v.taken===it.taken)){res.same++;return}
+    if(r.versions.some(v=>v.file===src.file&&(v.date===src.date||v.taken===it.taken))){res.same++;return}
     r.versions.push({label:label,date:src.date,by:it.by||src.by||'',source:src.source||'',file:src.file||'',taken:it.taken,note:it.remark||''});
     r.taken=it.taken;r.proposed=it.proposed;if(!r.severity)r.severity=it.severity;
     if(it.taken&&!/closed|done|waived|archived|結案/i.test(r.status||'')){r.status='submitted';r.submittedDate=it.date||src.date}
