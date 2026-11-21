@@ -21,7 +21,12 @@ var S_=function(v){return v===undefined||v===null?'':String(v)},N_=function(v){r
 function cT(t){var m={};for(var i=1;i<=12;i++)m[i]=N_((t.months||{})[i]);return {id:N_(t.id),category:S_(t.category),nameZH:S_(t.nameZH),nameEN:S_(t.nameEN),nameKH:S_(t.nameKH),trainer:S_(t.trainer),hours:Number(t.hours)||1,traineeZH:S_(t.traineeZH),traineeEN:S_(t.traineeEN),frequency:S_(t.frequency),months:m,remarks:S_(t.remarks),type:S_(t.type)||'internal',organizer:S_(t.organizer),outlineZH:S_(t.outlineZH),outlineEN:S_(t.outlineEN)}}
 function cR(r){return {id:S_(r.id),subject:S_(r.subject),dept:S_(r.dept),trainer:S_(r.trainer),date:S_(r.date).slice(0,10),time:S_(r.time),duration:S_(r.duration),participant:S_(r.participant),attendees:N_(r.attendees),absences:N_(r.absences),remarks:S_(r.remarks),ev:(Array.isArray(r.evidence)?r.evidence:[]).map(function(e){return e?S_(e.driveId||e.signature||e.url||e.name):''}).join(',')}}
 function cL(x){return {id:N_(x.id),category:S_(x.category),nameZH:S_(x.nameZH),nameEN:S_(x.nameEN),nameKH:S_(x.nameKH),type:S_(x.type)||'internal',organizer:S_(x.organizer),trainer:S_(x.trainer),traineeZH:S_(x.traineeZH),traineeEN:S_(x.traineeEN),outlineZH:S_(x.outlineZH),outlineEN:S_(x.outlineEN)}}
-function readBase(){try{return JSON.parse(localStorage.getItem(BASE)||'null')}catch(e){return null}}
+/* 上次同步的指紋存在 IndexedDB（ACAuto.kv）：這個網域的 localStorage 常常是滿的，存不進去就會每次都以雲端為準、把本機修改蓋回去 */
+var BASEMEM=null,baseReady=null;function kv(){return window.ACAuto&&ACAuto.kv}
+function loadBase(){if(baseReady)return baseReady;var ls=function(){try{return JSON.parse(localStorage.getItem(BASE)||'null')}catch(e){return null}};
+  baseReady=(kv()?kv().get('trbase').then(function(v){try{return v===undefined?ls():JSON.parse(v)}catch(e){return ls()}}):Promise.resolve(ls())).then(function(b){BASEMEM=b}).catch(function(){BASEMEM=ls()});return baseReady}
+function readBase(){return BASEMEM}
+function saveBase(b){BASEMEM=b;var tx=J(b);if(kv())kv().set('trbase',tx).then(function(){try{localStorage.removeItem(BASE)}catch(e){}}).catch(function(){try{localStorage.setItem(BASE,tx)}catch(e){}});else{try{localStorage.setItem(BASE,tx)}catch(e){}}}
 /* 一個集合（陣列）逐筆合併。idOf 取鍵；numeric=true 時處理「兩台各自新增、流水號撞號」 */
 function mergeList(L,R,B,idOf,canon,numeric){
   L=Array.isArray(L)?L:[];R=Array.isArray(R)?R:[];var hasB=!!B;B=B||{};
@@ -72,7 +77,7 @@ function run(why){
   if(navigator.onLine===false)return Promise.resolve(false);
   if(editing()&&why!=='manual'){clearTimeout(st.t);st.t=setTimeout(function(){run('retry')},8000);return Promise.resolve(false)}
   st.busy=true;
-  return fetch(url+'?action=getAll').then(function(r){return r.json()}).then(function(d){
+  return loadBase().then(function(){return fetch(url+'?action=getAll')}).then(function(r){return r.json()}).then(function(d){
     if(!d||d.error)throw new Error((d&&d.error)||'getAll failed');
     var R={trainings:Array.isArray(d.trainings)?d.trainings:[],records:(d.records&&typeof d.records==='object')?d.records:{},library:Array.isArray(d.library)?d.library:[]};
     var cloudEmpty=!R.trainings.length&&!Object.keys(R.records).length&&!R.library.length;
@@ -81,11 +86,11 @@ function run(why){
     var B=readBase(),fresh=false,Lc=local();
     if(B&&suspicious(R,B))throw new Error('cloud data looks incomplete — skipped, nothing changed');
     if(!B){ /* 這台第一次自動同步：以雲端為準合併。先把本機原本那份留一個備份（只留一份），萬一本機有還沒上傳的修改可以救回來 */
-      try{if(stored()&&finger(Lc)!==finger(R)&&!localStorage.getItem('vrt3_backup_first_autosync'))localStorage.setItem('vrt3_backup_first_autosync',J({at:new Date().toISOString(),trainings:Lc.trainings,records:Lc.records,library:Lc.library}))}catch(e){}
+      try{if(stored()&&finger(Lc)!==finger(R)&&kv()){var bk=J({at:new Date().toISOString(),trainings:Lc.trainings,records:Lc.records,library:Lc.library});kv().get('backup:training').then(function(v){if(v===undefined)kv().set('backup:training',bk)}).catch(function(){})}}catch(e){}
       Lc=dropDefaults(Lc,R)}
     var m=mergeAll(Lc,R,B);
     var fm=finger(m),needUp=fm!==finger(R)&&!(cloudEmpty&&fresh),needDown=fm!==finger(local());
-    var fin=function(){if(needDown){if(!st.xhold)writeExtra();setLocal(m);if(!st.xhold&&applyExtra(true))writeExtra()}try{localStorage.setItem(BASE,J(m.base))}catch(e){}st.sig=sig();st.last=Date.now();
+    var fin=function(){if(needDown){if(!st.xhold)writeExtra();setLocal(m);if(!st.xhold&&applyExtra(true))writeExtra()}saveBase(m.base);st.sig=sig();st.last=Date.now();
       mark(true);if(needDown&&why!=='open'&&typeof toast==='function')toast((typeof LANG!=='undefined'&&LANG==='en')?'☁ Training data updated from cloud':'☁ 已載入雲端最新培訓資料','ok');return true};
     if(!needUp)return fin();
     return fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:J({action:'saveAll',trainings:m.trainings,records:m.records,library:m.library,by:'autosync'})}).then(function(r){return r.json()}).then(function(u){
@@ -117,6 +122,6 @@ function boot(){backBtn();st.sig=sig();st.o=J(S.opts||{});
   window.addEventListener('online',function(){run('online')});
   /* 同一台裝置別的分頁（例如另一個平台的同一頁）改了資料 → 這一頁也換成新的 */
   window.addEventListener('storage',function(ev){if(KEYS.indexOf(ev.key)<0||ev.newValue===ev.oldValue)return;clearTimeout(boot.s);boot.s=setTimeout(function re(){if(editing()){boot.s=setTimeout(re,5000);return}try{load();if(typeof rebuildDataLists==='function')rebuildDataLists();renderActive();st.sig=sig()}catch(e){}},600)})}
-window.TRAuto={run:run,mergeAll:mergeAll,backup:function(){try{return JSON.parse(localStorage.getItem('vrt3_backup_first_autosync')||'null')}catch(e){return null}},state:function(){return {last:st.last,busy:st.busy}}};
+window.TRAuto={run:run,mergeAll:mergeAll,backup:function(){return kv()?kv().get('backup:training').then(function(v){try{return v===undefined?null:JSON.parse(v)}catch(e){return null}}):Promise.resolve(null)},state:function(){return {last:st.last,busy:st.busy}}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

@@ -53,3 +53,11 @@ Paul 的要求：廠規換成 2027 v5 並可新增刪除編輯儲存、匯入匯
 - 薪資架構不在這個 repo：搬到 PSJHR 原生頁 `#salstruct`（見 psjhr README v0.6.0）。
 
 測試：只在模擬雲端（Playwright 攔截 GAS）測過兩台裝置互相新增／修改／刪除、舊裝置不覆蓋、雲端回空不清資料。**還沒在真的 GAS 上實測**（雲端工作區連不到 script.google.com；要等 Paul 的電腦連上 Chrome 才能做）。實測重點：廠規改一款 → 另一台看到；培訓加一筆含附件的記錄 → 另一台看到且 Sheet 沒多出重複列。
+
+### 2026-11-21 實機（Paul 的 Chrome）測到、已修的兩件事
+1. 擴充功能會改畫面上的字 → 廠規編輯器 v2 以資料為準（見上）。
+2. **這個網域的 localStorage 已滿**（實測 5.19M 字元／365 個鍵；最大的是 `VRT_LAW_OS_OFFLINE_V2` 648K、`vrt_emps` 367K、`pptg_item_*` 332K、`ehs_backup_20261120` 330K）。同步的比對基準存不進去 → 每次都變成「以雲端為準」→ 本機修改被蓋回去。
+   - `ac_autosync.js` v3：基準一律存 IndexedDB（DB `ac_auto`，store `kv`，鍵 `base:<key>`）；`store:'idb'` 的頁面（廠規）連資料都在 IndexedDB（`data:<key>`，用 `ACAuto.get/set`）；首次同步的本機備份在 `backup:<key>`。
+   - `training_autosync.js`：指紋基準在 `trbase`、首次備份在 `backup:training`（同一個 kv）。
+   - 廠規 2027 不再是 ACTS 的 localStorage 工具（已從 `TOOLS` 與各外殼的 `TOOL_KEYS` 拿掉）。
+   - localStorage 滿這件事會影響同網域所有平台（存檔可能靜靜失敗），還沒處理，要另外和 Paul 談清理。

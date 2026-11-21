@@ -83,15 +83,16 @@ function diffText(r){var p=[],f=function(lab,o){var s=[];if(o.ch)s.push(o.ch+T('
   f(T('新增','Added'),r.add);f(T('修改','Changed'),r.mod);f(T('刪除','Removed'),r.del);if(r.moved)p.push(T('調整順序','reordered'));if(r.other)p.push(T('封面／前言／簽署有改','cover / preface / signature changed'));return p.join('；')||T('沒有變更','No change')}
 
 /* ---------- 儲存／載入 ---------- */
-function read(){try{var r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null}}
+/* 資料放 IndexedDB（ACAuto.get/set）：這個網域的 localStorage 只有 5MB 而且常常是滿的 */
+function read(){return window.ACAuto?ACAuto.get(KEY).catch(function(){return null}):Promise.resolve(null)}
+function store(d){if(!window.ACAuto)return;ACAuto.set(KEY,d).catch(function(){alert(T('這台裝置存不進去（瀏覽器儲存空間不足或被停用）。請先匯出 JSON 備份。','Could not store on this device (browser storage full or disabled). Export a JSON backup first.'))})}
 function cur(){return EDIT&&M?M:(DATA||SEED)}
 function save(silent){if(!M){if(!silent)toast(T('沒有變更','Nothing changed'));return true}var prev=DATA||SEED,r=diff(prev,M);
   if(!r.total){setDirty(false);if(!silent)toast(T('沒有變更','Nothing changed'));return true}
   var d=clone(M);d.files=(DATA&&DATA.files)||d.files||[];d.updatedAt=Date.now();d.by=who(true);d.log=((DATA&&DATA.log)||[]).concat([{id:uid('L'),at:nowStr(),by:d.by,what:diffText(r),arts:r.arts.slice(0,12)}]).slice(-60);
-  try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){alert(T('裝置儲存空間不足：請先刪掉幾張照片再存。','Device storage is full: remove some photos and save again.'));return false}
-  DATA=d;M=clone(d);UNDO=[];setDirty(false);if(window.ACAuto)ACAuto.touch();
+  DATA=d;M=clone(d);UNDO=[];setDirty(false);store(d);
   if(!silent)toast('💾 '+T('已儲存，會自動同步雲端：','Saved — syncing to cloud: ')+diffText(r));return true}
-function load(){var d=read();DATA=d&&Array.isArray(d.ch)?d:null;if(EDIT){M=clone(DATA||SEED);UNDO=[]}apply(DATA||SEED)}
+function load(){return read().then(function(d){DATA=d&&Array.isArray(d.ch)?d:null;if(EDIT){M=clone(DATA||SEED);UNDO=[]}apply(DATA||SEED)})}
 function setDirty(v){DIRTY=!!v;var b=$('#edSave');if(b){b.classList.toggle('hot',DIRTY);b.disabled=!DIRTY}document.title=(DIRTY?'● ':'')+document.title.replace(/^● /,'');var u=$('#edUndo');if(u)u.disabled=!UNDO.length}
 function pushUndo(){UNDO.push(JSON.stringify(M));if(UNDO.length>25)UNDO.shift()}
 function undo(){var s=UNDO.pop();if(!s)return toast(T('沒有可以復原的步驟','Nothing to undo'));M=JSON.parse(s);apply(M);setDirty(diff(DATA||SEED,M).total>0)}
@@ -192,7 +193,7 @@ function upFiles(){pick('',true,function(fs){if(!fs.length)return;if(!window.ACA
           got.push({id:uid('F'),name:f.name,url:x.url||x.webViewUrl||x.viewUrl||x.webViewLink||(x.driveId?'https://drive.google.com/file/d/'+x.driveId+'/view':''),driveId:x.driveId||'',size:f.size,at:nowStr(),by:who(true)})})})});
     chain.then(function(){setFiles(((DATA&&DATA.files)||[]).concat(got));toast('📎 '+T('附件已上傳 ','Uploaded ')+got.length)}).catch(function(e){if(got.length)setFiles(((DATA&&DATA.files)||[]).concat(got));toast('⚠ '+T('上傳失敗：','Upload failed: ')+(e.message||e),1)})})}
 /* 附件清單直接存（不必進編輯模式）：以目前已存的版本為底，只換附件清單 */
-function setFiles(list){var d=clone(DATA||SEED);d.files=list;d.log=(DATA&&DATA.log)||[];d.updatedAt=Date.now();if(!d.by)d.by=who();try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){toast(T('裝置儲存空間不足','Device storage is full'),1);return}DATA=d;drawFiles();if(window.ACAuto)ACAuto.touch()}
+function setFiles(list){var d=clone(DATA||SEED);d.files=list;d.log=(DATA&&DATA.log)||[];d.updatedAt=Date.now();if(!d.by)d.by=who();DATA=d;drawFiles();store(d)}
 
 /* ---------- 摘要／紀錄 ---------- */
 function summaryText(){var d=DATA||SEED,n=count(d),last=(d.log||[]).slice(-1)[0],ph=0;(d.ch||[]).forEach(function(c){c.arts.forEach(function(a){a.cl.forEach(function(x){if(x.k==='p')ph++})})});
@@ -236,8 +237,11 @@ function ui(){var st=document.createElement('style');st.id='edCss';st.textConten
   window.addEventListener('beforeunload',function(e){if(DIRTY){e.preventDefault();e.returnValue=''}});
   document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='s'&&EDIT){e.preventDefault();save()}else if(e.key==='Escape')closeModal()});
   setEdit(false)}
-function start(){ui();load();
-  if(window.ACAuto)ACAuto.init({keys:[KEY],by:'rules2027',editing:function(){var m=$('#edModal');return EDIT&&(DIRTY||!!(m&&m.classList.contains('show')))},onPull:function(){if(EDIT&&DIRTY)return;load();toast('☁ '+T('已載入雲端最新版本','Loaded the latest version from cloud'))}});
+function start(){ui();apply(SEED);
+  /* v1（只上線一個多小時）把資料放在 localStorage：清掉，資料以雲端／IndexedDB 為準 */
+  try{[KEY,'ac_sync_base_'+KEY,'ac_auto_backup_'+KEY].forEach(function(k){localStorage.removeItem(k)})}catch(e){}
+  load();
+  if(window.ACAuto)ACAuto.init({keys:[KEY],by:'rules2027',store:'idb',editing:function(){var m=$('#edModal');return EDIT&&(DIRTY||!!(m&&m.classList.contains('show')))},onPull:function(){if(EDIT&&DIRTY)return;load();toast('☁ '+T('已載入雲端最新版本','Loaded the latest version from cloud'))}});
   window.RULES27={apply:apply,save:save,diff:diff,seed:function(){return SEED},data:function(){return DATA},model:function(){return M},setEdit:setEdit,summaryText:summaryText,count:count,editText:editText,act:act,src:function(){return !!SRC},snap:snap}}
 /* 原文一律取自頁面原始檔（擴充功能改不到）；抓不到才退而用眼前的畫面 */
 function boot(){var fin=function(doc){SEED=sortAll(snap(doc));start()};
