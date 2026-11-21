@@ -9,6 +9,8 @@
     {id:'dcc_tool',key:'vrt_dcc_v2',icon:'🗂',zh:'DCC 文件工具',en:'DCC Tool',unit:'筆',count:function(d){var S=d&&d.S||{};return ['docs','certs','mtgs','ext'].reduce(function(a,k){return a+(Array.isArray(S[k])?S[k].length:0)},0)}},
     {id:'law_tool',key:'cambodia_laws_v1',icon:'📜',zh:'柬埔寨法律條文',en:'Cambodia Law Articles',unit:'部',count:function(d){return Array.isArray(d)?d.length:0}},
     {id:'rules_tool',key:'vrt_factory_rules_v2',icon:'📕',zh:'廠規手冊',en:'Factory Rules',unit:'條',count:function(d){return d&&d.html?(d.html.match(/class="art-num"/g)||[]).length:0}},
+    {id:'rules27_tool',key:'vrt_factory_rules_2027',icon:'📕',zh:'廠規 2027',en:'Factory Rules 2027',unit:'條',count:function(d){var n=0;(d&&d.ch||[]).forEach(function(c){n+=(c.arts||[]).length});return n}},
+    {id:'training_extra',key:'vrt3_extra',icon:'🎓',zh:'培訓附件／選項',en:'Training attachments',unit:'筆',count:function(d){return d&&d.ev?Object.keys(d.ev).length:0}},
     {id:'msg_tool',key:'msgProcessor_data',icon:'📧',zh:'MSG 郵件處理',en:'MSG Processor',unit:'封',count:function(d){return d&&Array.isArray(d.results)?d.results.length:0}}
   ];
   var BASE='ac_sync_base_',IDK=['id','fn','docNo','code','key','no'];

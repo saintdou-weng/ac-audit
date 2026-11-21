@@ -872,14 +872,14 @@ const INTEGRATIONS={
  incoming_control:[],
  audits:[
   {u:'audit_hub_main.html',i:'📋',zh:'WRAP Audit Hub',en:'WRAP Audit Hub',route:'audits',descZH:'WRAP 稽核主工具。',descEN:'WRAP audit main tool.'},
-  {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'Factory Rules 廠規',en:'Factory Rules',route:'audits',descZH:'與 WRAP 同頁使用的廠規手冊。',descEN:'Factory rules used in the WRAP module.'}
+  {u:'VRT_Factory_Rules_2027.html',i:'📕',zh:'Factory Rules 廠規',en:'Factory Rules',route:'audits',descZH:'與 WRAP 同頁使用的廠規手冊。',descEN:'Factory rules used in the WRAP module.'}
  ],
  documents:[
   {u:'VRT_DCC_v2.html',i:'🗄',zh:'DCC 文件管制',en:'DCC Document Control',route:'documents',action:'migrateDCC',descZH:'文件、證書、外來文件資料可遷移到本分頁。',descEN:'Migrate document/certificate/external document records here.'}
  ],
  incidents:[],
  policies:[
-  {u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules',route:'policies',descZH:'廠規、政策、SOP 內容歸到政策中心管理。',descEN:'Factory rules, policy and SOP content belong in Policy Center.'},
+  {u:'VRT_Factory_Rules_2027.html',i:'📕',zh:'廠規手冊',en:'Factory Rules',route:'policies',descZH:'廠規、政策、SOP 內容歸到政策中心管理。',descEN:'Factory rules, policy and SOP content belong in Policy Center.'},
   {u:'cambodia_law_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law',route:'policies',descZH:'法規參考可轉為政策或文件記錄，避免只留靜態頁。',descEN:'Legal references can be converted to policy/document records.'}
  ],
  msg:[]
@@ -890,11 +890,11 @@ const DIRECT_MODULES={
   assessment_center:{u:'assessment_audit_v1.html',i:'🧾',zh:'Assessment 評估',en:'Assessment',km:'Assessment'},
   wse_assessment:{u:'wse_audit_v1.html',i:'📋',zh:'WSE 稽核評估',en:'WSE Assessment',km:'WSE Audit'},
   dcc_control:{u:'dcc_audit_v1.html',i:'🗄',zh:'DCC 文件管制',en:'DCC Document Control',km:'DCC'},
-  factory_rules:{u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'廠規手冊',en:'Factory Rules',km:'ច្បាប់រោងចក្រ'},
+  factory_rules:{u:'VRT_Factory_Rules_2027.html',i:'📕',zh:'廠規手冊',en:'Factory Rules',km:'ច្បាប់រោងចក្រ'},
   cambodia_law:{u:'law_audit_v1.html',i:'⚖️',zh:'柬埔寨法律參考',en:'Cambodia Law Reference',km:'ច្បាប់កម្ពុជា'},
   audits:{u:'wrap_audit_v1.html',i:'♻️',zh:'WRAP 稽核',en:'WRAP Audit',km:'WRAP Audit'},
   documents:{u:'VRT_DCC_v2.html',i:'🗄',zh:'文件管制中心',en:'Document Control',km:'DCC'},
-  policies:{u:'VRT_Factory_Rules_v2.html',i:'📕',zh:'政策中心',en:'Policy Center',km:'Policy'}
+  policies:{u:'VRT_Factory_Rules_2027.html',i:'📕',zh:'政策中心',en:'Policy Center',km:'Policy'}
 };
 function directModuleLabel(k){const x=DIRECT_MODULES[k];if(!x)return tabLabel(k);return LANG==='zh'?x.zh:(LANG==='km'?(x.km||x.en):x.en)}
 function renderDirectModule(k){
