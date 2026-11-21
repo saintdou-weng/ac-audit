@@ -38,6 +38,7 @@ Paul 的要求：廠規換成 2027 v5 並可新增刪除編輯儲存、匯入匯
 - `VRT_Factory_Rules_2027.html`：Paul 給的 v5 原檔，尾端多掛三支 script。編輯器在 `assets/rules2027_editor.js`。
   - 資料鍵 `vrt_factory_rules_2027`（localStorage＝雲端 AC_AUDIT_DB.tools 同鍵）；沒人改過時不存任何東西，畫面就是 v5 原樣。
   - 結構：`{cover[],preH,pre[],ch[{id,o,h,arts[{id,o,h,cl[{id,o,k:c|t|p,h}]}]}],sig,files[],log[]}`；`o` 是排序值（插入取前後中間值，其他項不動，合併才不會亂）；章名存「不含第幾章」的字，章號條號畫面自動編。
+  - **存檔以資料為準，不從畫面抄字**（editor v2）：Paul 的 Chrome 有繁簡／用語轉換類擴充功能，會改畫面上的字（實測 文件→檔案、身分→身份、公布→公佈、雇主→僱主）。v1 從畫面抄字，第一次實測就把 10 款的用字改掉了。現在原文用 fetch 取頁面原始檔（`SRC`），編輯用三語文字框（點任何一段跳出），匯出也從資料產生。
   - 照片壓成 JPEG 內嵌（單張 ≤170KB）；附件走 `uploadAttachment`（module `factory_rules`）。摘要走 `tg`。
   - 舊的 2026 版 `VRT_Factory_Rules_v2.html` 留著當存檔（附件區有連結），WRAP 分頁與 core 的連結都改指 2027。
 - `assets/ac_autosync.js`（ACAuto）：開頁 download → `ACTS.sync` → 有差才 upload；本機一變動 4 秒後上傳；90 秒輪詢；回到頁面、連上網時再對一次。
