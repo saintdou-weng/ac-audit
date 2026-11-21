@@ -88,9 +88,12 @@ function run(why){
     if(!B){ /* 這台第一次自動同步：以雲端為準合併。先把本機原本那份留一個備份（只留一份），萬一本機有還沒上傳的修改可以救回來 */
       try{if(stored()&&finger(Lc)!==finger(R)&&kv()){var bk=J({at:new Date().toISOString(),trainings:Lc.trainings,records:Lc.records,library:Lc.library});kv().get('backup:training').then(function(v){if(v===undefined)kv().set('backup:training',bk)}).catch(function(){})}}catch(e){}
       Lc=dropDefaults(Lc,R)}
-    var m=mergeAll(Lc,R,B);
+    var sig0=sig(),m=mergeAll(Lc,R,B);
     var fm=finger(m),needUp=fm!==finger(R)&&!(cloudEmpty&&fresh),needDown=fm!==finger(local());
-    var fin=function(){if(needDown){if(!st.xhold)writeExtra();setLocal(m);if(!st.xhold&&applyExtra(true))writeExtra()}saveBase(m.base);st.sig=sig();st.last=Date.now();
+    var fin=function(){
+      /* 抓雲端／上傳的這幾秒內本機又改了：這次的結果不套用、基準也不更新（不然剛改的會被蓋掉或被當成刪除），馬上再跑一次 */
+      if(sig()!==sig0){st.again=true;st.last=Date.now();return true}
+      if(needDown){if(!st.xhold)writeExtra();setLocal(m);if(!st.xhold&&applyExtra(true))writeExtra()}saveBase(m.base);st.sig=sig();st.last=Date.now();
       mark(true);if(needDown&&why!=='open'&&typeof toast==='function')toast((typeof LANG!=='undefined'&&LANG==='en')?'☁ Training data updated from cloud':'☁ 已載入雲端最新培訓資料','ok');return true};
     if(!needUp)return fin();
     return fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:J({action:'saveAll',trainings:m.trainings,records:m.records,library:m.library,by:'autosync'})}).then(function(r){return r.json()}).then(function(u){

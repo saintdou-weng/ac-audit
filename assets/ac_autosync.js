@@ -67,14 +67,14 @@
       else M=g.ACTS.merge3(B,Lc,C);
       var tx=J(M);io.now[k]=tx;
       return pre.then(function(){if(Lc===undefined||!eq(M,Lc)){io.local=true;return sset(k,tx)}}).then(function(){if(C===undefined||!eq(M,C)){cloud.tools[k]={data:M,updatedAt:Date.now(),by:st.by};io.cloud=true}io.base[k]=tx})})}
-  function mergeAll(cloud,io){io.cloud=false;var p=st.pend?rebase():Promise.resolve();st.keys.forEach(function(k){p=p.then(function(){return mergeKey(k,cloud,io)})});return p}
+  function mergeAll(cloud,io){io.cloud=false;var p=st.pend?rebase():Promise.resolve();st.keys.forEach(function(k){p=p.then(function(){return mergeKey(k,cloud,io)})});return p.then(function(){io.sig=sig()})}
   function run(why){
     if(!g.ACTS||!st.keys.length)return Promise.resolve(false);
     if(st.busy){st.again=true;return Promise.resolve(false)}
     if(navigator.onLine===false){set('off');return Promise.resolve(false)}
     st.busy=true;set('wait');var io={before:{},now:{},base:{},local:false,cloud:false},rev0=st.rev;
     var fin=function(n){/* 基準只在雲端確定是這個版本之後才寫 */return Promise.all(Object.keys(io.base).map(function(k){return bset(k,io.base[k]).catch(function(e){console.warn('ACAuto base',e)})})).then(function(){
-        try{localStorage.setItem(SZ,String(n))}catch(e){}st.last=Date.now();if(st.rev===rev0||!st.idb){st.sig=sig();st.dirty=false}set('ok');if(io.local)pulled(io.before,io.now);return true})};
+        try{localStorage.setItem(SZ,String(n))}catch(e){}st.last=Date.now();if(st.idb){if(st.rev===rev0){st.sig=sig();st.dirty=false}}else{/* 合併當下的樣子為準：上傳那幾秒內頁面又存了檔，tick 會看得出來再跑一次 */st.sig=io.sig||sig();st.dirty=sig()!==st.sig}set('ok');if(io.local)pulled(io.before,io.now);return true})};
     return post({action:'download'}).then(function(dl){var s1=sane(dl),cloud=s1.doc;
       return mergeAll(cloud,io).then(function(){if(!io.cloud)return fin(s1.n);
         /* 上傳前再抓一次：這一兩秒內若別人剛存過，就拿最新那份重新合併，不把他的修改蓋掉 */
