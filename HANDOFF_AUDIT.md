@@ -27,3 +27,28 @@
 6. `vrt_training_v1.html` 的註解裡有舊的 bot token（公開 repo），建議換新 token 並刪掉那段——Paul 還沒決定。
 7. Apps Script 有一個失效的觸發器 `pollTelegram`（函式已不存在），可刪。
 8. Bot 指令（/week /cap /done …）只在模擬環境測過，還沒在群組實測。
+
+---
+## 2026-11-21 追加：廠規 2027、文件／培訓三方自動同步
+
+Paul 的要求：廠規換成 2027 v5 並可新增刪除編輯儲存、匯入匯出、加照片；DCC 文件群（DCC、外來文件、柬埔寨法律、廠規）在 PSJHR／Audit／Admin OS 任一邊改，其他兩邊同步；培訓加進 HRA Portal，一樣三方同步。
+
+作法＝「一頁、一個雲端、自動同步」：每個頁面只有一份（在 ac-audit），各平台只是開它；頁面自己會自動和雲端合併。沒有改 GAS。
+
+- `VRT_Factory_Rules_2027.html`：Paul 給的 v5 原檔，尾端多掛三支 script。編輯器在 `assets/rules2027_editor.js`。
+  - 資料鍵 `vrt_factory_rules_2027`（localStorage＝雲端 AC_AUDIT_DB.tools 同鍵）；沒人改過時不存任何東西，畫面就是 v5 原樣。
+  - 結構：`{cover[],preH,pre[],ch[{id,o,h,arts[{id,o,h,cl[{id,o,k:c|t|p,h}]}]}],sig,files[],log[]}`；`o` 是排序值（插入取前後中間值，其他項不動，合併才不會亂）；章名存「不含第幾章」的字，章號條號畫面自動編。
+  - 照片壓成 JPEG 內嵌（單張 ≤170KB）；附件走 `uploadAttachment`（module `factory_rules`）。摘要走 `tg`。
+  - 舊的 2026 版 `VRT_Factory_Rules_v2.html` 留著當存檔（附件區有連結），WRAP 分頁與 core 的連結都改指 2027。
+- `assets/ac_autosync.js`（ACAuto）：開頁 download → `ACTS.sync` → 有差才 upload；本機一變動 4 秒後上傳；90 秒輪詢；回到頁面、連上網時再對一次。
+  - 沒同步過但本機有資料的裝置：以雲端為準合併（本機獨有的保留）。
+  - 「舊記憶體存檔」保護：雲端新資料進來但頁面還沒重載時，頁面若用舊資料存檔，會用三方合併把它的修改疊回新資料（`rebase()`），不會蓋掉別台的更新。
+  - 掛在：`VRT_DCC_v2.html`（`vrt_dcc_v2`）、`MSG_Processor.html`（`msgProcessor_data`）、`cambodia_law_v1.html`（`cambodia_laws_v1`）、廠規 2027、培訓（只用來同步 `vrt3_extra`）。
+- `assets/training_autosync.js`（TRAuto）：培訓的 `saveAll` 是整份覆蓋，所以改成「getAll → 逐筆三方合併 → 有差才 saveAll」。
+  - 比對只看雲端 Sheet 真的有存的欄位（`cT/cR/cL`）；上次同步的指紋存在 `vrt3_base`。
+  - Sheet 沒有的欄位（記錄附件 evidence、traineeKH、下拉選項）另外走 tools 的 `vrt3_extra` 同步。
+  - 保險：雲端回來的筆數比上次少一大半就整次不動；沒同步過的裝置不會把「原封不動的預設資料」帶回雲端。
+- 各平台入口：PSJHR 選單「文件與培訓」（x-aud-rules／dcc／ext／law／train）；Admin OS `config.js` 廠規改 2027；HRA Portal 首頁多一格「培訓計劃」（`?from=hra` 時返回鈕回 HRA Portal）。
+- 薪資架構不在這個 repo：搬到 PSJHR 原生頁 `#salstruct`（見 psjhr README v0.6.0）。
+
+測試：只在模擬雲端（Playwright 攔截 GAS）測過兩台裝置互相新增／修改／刪除、舊裝置不覆蓋、雲端回空不清資料。**還沒在真的 GAS 上實測**（雲端工作區連不到 script.google.com；要等 Paul 的電腦連上 Chrome 才能做）。實測重點：廠規改一款 → 另一台看到；培訓加一筆含附件的記錄 → 另一台看到且 Sheet 沒多出重複列。

@@ -76,9 +76,13 @@ function run(why){
     if(!d||d.error)throw new Error((d&&d.error)||'getAll failed');
     var R={trainings:Array.isArray(d.trainings)?d.trainings:[],records:(d.records&&typeof d.records==='object')?d.records:{},library:Array.isArray(d.library)?d.library:[]};
     var cloudEmpty=!R.trainings.length&&!Object.keys(R.records).length&&!R.library.length;
-    var B=readBase(),fresh=!B&&!stored(),Lc=local();
+    /* 雲端是空的＝還沒初始化或讀取出錯：自動同步不動任何一邊（要把本機資料放上空的雲端，請按原本的「上傳」鈕） */
+    if(cloudEmpty){st.last=Date.now();return false}
+    var B=readBase(),fresh=false,Lc=local();
     if(B&&suspicious(R,B))throw new Error('cloud data looks incomplete — skipped, nothing changed');
-    if(!B&&!cloudEmpty)Lc=dropDefaults(Lc,R);
+    if(!B){ /* 這台第一次自動同步：以雲端為準合併。先把本機原本那份留一個備份（只留一份），萬一本機有還沒上傳的修改可以救回來 */
+      try{if(stored()&&finger(Lc)!==finger(R)&&!localStorage.getItem('vrt3_backup_first_autosync'))localStorage.setItem('vrt3_backup_first_autosync',J({at:new Date().toISOString(),trainings:Lc.trainings,records:Lc.records,library:Lc.library}))}catch(e){}
+      Lc=dropDefaults(Lc,R)}
     var m=mergeAll(Lc,R,B);
     var fm=finger(m),needUp=fm!==finger(R)&&!(cloudEmpty&&fresh),needDown=fm!==finger(local());
     var fin=function(){if(needDown){if(!st.xhold)writeExtra();setLocal(m);if(!st.xhold&&applyExtra(true))writeExtra()}try{localStorage.setItem(BASE,J(m.base))}catch(e){}st.sig=sig();st.last=Date.now();
@@ -106,7 +110,9 @@ function applyExtra(first){var x;try{x=JSON.parse(localStorage.getItem(XK)||'nul
   if(x.opts&&J(srt(x.opts))!==J(srt(S.opts||{}))&&Object.keys(x.opts).length){S.opts=x.opts;try{localStorage.setItem('vrt3_opts',J(S.opts))}catch(e){}ch=true}
   if(ch){localStorage.setItem('vrt3_tr',J(S.trainings));localStorage.setItem('vrt3_rc',J(S.records));st.sig=sig();try{if(typeof rebuildDataLists==='function')rebuildDataLists();renderActive()}catch(e){}}return ch}
 function tick(){var s=sig();if(s!==st.sig||J(S.opts||{})!==st.o){st.o=J(S.opts||{});if(!st.xhold)writeExtra();}if(s!==st.sig){st.sig=s;clearTimeout(st.t);st.t=setTimeout(function(){run('local')},5000)}}
-function boot(){st.sig=sig();st.o=J(S.opts||{});
+/* 從 HRA Portal 進來的：左下的返回鈕改成回 HRA Portal */
+function backBtn(){try{var from=/[?&]from=hra\b/.test(location.search)||/\/ac-hra-portal\//.test(document.referrer||'');if(!from)return;var b=document.querySelector('.ac-audit-back-btn');if(b){b.href='../ac-hra-portal/hra_portal_v2.html';b.textContent='← HRA Portal'}}catch(e){}}
+function boot(){backBtn();st.sig=sig();st.o=J(S.opts||{});
   /* 先看雲端有沒有別台傳上來的附件，再把本機的寫出去（第一次開不要拿空的去蓋） */
   if(window.ACAuto&&window.ACTS){st.xhold=localStorage.getItem(XK)===null;ACAuto.init({keys:[XK],by:'training',badge:false,first:600,editing:editing,onPull:function(){applyExtra(st.xhold);st.xhold=false;writeExtra()},onState:function(s){if(s==='ok'&&st.xhold){applyExtra(true);st.xhold=false;writeExtra()}}})}
   setTimeout(function(){run('open')},1200);setInterval(tick,3000);
@@ -115,6 +121,6 @@ function boot(){st.sig=sig();st.o=J(S.opts||{});
   window.addEventListener('online',function(){run('online')});
   /* 同一台裝置別的分頁（例如另一個平台的同一頁）改了資料 → 這一頁也換成新的 */
   window.addEventListener('storage',function(ev){if(KEYS.indexOf(ev.key)<0||ev.newValue===ev.oldValue)return;clearTimeout(boot.s);boot.s=setTimeout(function re(){if(editing()){boot.s=setTimeout(re,5000);return}try{load();if(typeof rebuildDataLists==='function')rebuildDataLists();renderActive();st.sig=sig()}catch(e){}},600)})}
-window.TRAuto={run:run,mergeAll:mergeAll,state:function(){return {last:st.last,busy:st.busy}}};
+window.TRAuto={run:run,mergeAll:mergeAll,backup:function(){try{return JSON.parse(localStorage.getItem('vrt3_backup_first_autosync')||'null')}catch(e){return null}},state:function(){return {last:st.last,busy:st.busy}}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();

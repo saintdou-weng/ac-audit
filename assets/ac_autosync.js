@@ -43,16 +43,23 @@
     if(st.busy){st.again=true;return Promise.resolve(false)}
     if(navigator.onLine===false){set('off');return Promise.resolve(false)}
     st.busy=true;set('wait');
-    return post({action:'download'}).then(function(dl){
-      if(!dl||!dl.ok)throw new Error((dl&&(dl.error||dl.msg))||'download failed');
-      var cloud=dl.data||{};var before={};st.keys.forEach(function(k){before[k]=localStorage.getItem(k)});if(st.pend)rebase();
+    var SZ='ac_auto_docsize';
+    /* 保險：雲端回來的整份資料不像樣（空的、或比上次看到的小一大半）就不上傳，免得把整個 AC_AUDIT_DB 蓋掉 */
+    function sane(dl){if(!dl||!dl.ok)throw new Error((dl&&(dl.error||dl.msg))||'download failed');var d=dl.data;if(!d||typeof d!=='object'||Array.isArray(d))throw new Error('cloud data unreadable — nothing uploaded');
+      var n=JSON.stringify(d).length,last=Number(localStorage.getItem(SZ)||0);if(n<200||(last>4000&&n<last*0.5))throw new Error('cloud data looks incomplete ('+n+' / '+last+') — nothing uploaded');return {doc:d,n:n}}
+    function merge(cloud){var before={};st.keys.forEach(function(k){before[k]=localStorage.getItem(k)});if(st.pend)rebase();
       /* 這台裝置從沒同步過、但本機已有資料：以雲端為準合併（本機獨有的仍保留），避免舊裝置把雲端的修改蓋回去 */
-      st.keys.forEach(function(k){try{if(localStorage.getItem('ac_sync_base_'+k)===null&&cloud.tools&&cloud.tools[k]&&before[k]!==null){var C0=cloud.tools[k].data,M0=g.ACTS.merge3(undefined,C0,JSON.parse(before[k]));localStorage.setItem(k,JSON.stringify(M0));localStorage.setItem('ac_sync_base_'+k,JSON.stringify(C0))}}catch(e){}});
-      var res=g.ACTS.sync(st.keys,cloud,'both',st.by);
-      var after=function(){st.last=Date.now();st.sig=sig();st.dirty=false;set('ok');if(res.localChanged.length)pulled(before);return true};
-      if(!res.cloudChanged)return after();
-      cloud.meta=cloud.meta||{};cloud.meta.updatedAt=Math.max(Number(cloud.meta.updatedAt||0),Date.now());
-      return post({action:'upload',data:cloud,updatedAt:cloud.meta.updatedAt,reason:'AUTOSYNC_'+st.by}).then(function(u){if(!u||!u.ok)throw new Error((u&&(u.error||u.msg))||'upload failed');return after()});
+      st.keys.forEach(function(k){try{if(localStorage.getItem('ac_sync_base_'+k)===null&&cloud.tools&&cloud.tools[k]&&before[k]!==null){var C0=cloud.tools[k].data,M0=g.ACTS.merge3(undefined,C0,JSON.parse(before[k]));if(JSON.stringify(C0)!==before[k]&&localStorage.getItem('ac_auto_backup_'+k)===null){try{localStorage.setItem('ac_auto_backup_'+k,before[k])}catch(e){}}localStorage.setItem(k,JSON.stringify(M0));localStorage.setItem('ac_sync_base_'+k,JSON.stringify(C0))}}catch(e){}});
+      return {res:g.ACTS.sync(st.keys,cloud,'both',st.by),before:before}}
+    return post({action:'download'}).then(function(dl){
+      var s1=sane(dl),cloud=s1.doc,m=merge(cloud),res=m.res,first=m.before,changedLocal=res.localChanged.length>0;
+      var after=function(n){try{localStorage.setItem(SZ,String(n))}catch(e){}st.last=Date.now();st.sig=sig();st.dirty=false;set('ok');if(changedLocal)pulled(first);return true};
+      if(!res.cloudChanged)return after(s1.n);
+      /* 上傳前再抓一次：這一兩秒內若別人剛存過，就拿最新那份重新合併，不把他的修改蓋掉 */
+      return post({action:'download'}).then(function(dl2){var s2=sane(dl2),c2=s2.doc;
+        if(Number((c2.meta||{}).updatedAt||0)!==Number((cloud.meta||{}).updatedAt||0)||s2.n!==s1.n){var m2=merge(c2);if(m2.res.localChanged.length)changedLocal=true;cloud=c2;if(!m2.res.cloudChanged)return after(s2.n)}
+        cloud.meta=cloud.meta||{};cloud.meta.updatedAt=Math.max(Number(cloud.meta.updatedAt||0),Date.now());
+        return post({action:'upload',data:cloud,updatedAt:cloud.meta.updatedAt,reason:'AUTOSYNC_'+st.by}).then(function(u){if(!u||!u.ok)throw new Error((u&&(u.error||u.msg))||'upload failed');return after(JSON.stringify(cloud).length)})});
     }).catch(function(e){set(navigator.onLine===false?'off':'err',String(e&&e.message||e));return false})
       .then(function(r){st.busy=false;if(st.again){st.again=false;setTimeout(function(){run('again')},800)}return r});
   }
