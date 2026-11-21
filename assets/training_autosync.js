@@ -16,10 +16,10 @@ function sig(){return KEYS.map(function(k){var v=localStorage.getItem(k)||'';ret
 function stored(){return KEYS.some(function(k){return localStorage.getItem(k)!==null})}
 function rid(r){return r.id!==undefined&&r.id!==null&&r.id!==''?String(r.id):[r.date||'',r.subject||'',r.trainer||''].join('|')}
 function nm(x){return [x.nameZH||'',x.nameEN||'',x.name||'',x.title||'',x.category||''].join('|')}
-/* 雲端（Google Sheet）只存這些欄位，比對只看這些；其餘欄位（例如記錄的附件 evidence）走 vrt3_extra 另外同步 */
+/* 雲端（Google Sheet）存這些欄位，比對只看這些（記錄的附件 evidence 雲端也有存，用檔案代號比）；雲端沒有的欄位（高棉文對象、下拉選項）走 vrt3_extra 另外同步 */
 var S_=function(v){return v===undefined||v===null?'':String(v)},N_=function(v){return Number(v)||0};
 function cT(t){var m={};for(var i=1;i<=12;i++)m[i]=N_((t.months||{})[i]);return {id:N_(t.id),category:S_(t.category),nameZH:S_(t.nameZH),nameEN:S_(t.nameEN),nameKH:S_(t.nameKH),trainer:S_(t.trainer),hours:Number(t.hours)||1,traineeZH:S_(t.traineeZH),traineeEN:S_(t.traineeEN),frequency:S_(t.frequency),months:m,remarks:S_(t.remarks),type:S_(t.type)||'internal',organizer:S_(t.organizer),outlineZH:S_(t.outlineZH),outlineEN:S_(t.outlineEN)}}
-function cR(r){return {id:S_(r.id),subject:S_(r.subject),dept:S_(r.dept),trainer:S_(r.trainer),date:S_(r.date).slice(0,10),time:S_(r.time),duration:S_(r.duration),participant:S_(r.participant),attendees:N_(r.attendees),absences:N_(r.absences),remarks:S_(r.remarks)}}
+function cR(r){return {id:S_(r.id),subject:S_(r.subject),dept:S_(r.dept),trainer:S_(r.trainer),date:S_(r.date).slice(0,10),time:S_(r.time),duration:S_(r.duration),participant:S_(r.participant),attendees:N_(r.attendees),absences:N_(r.absences),remarks:S_(r.remarks),ev:(Array.isArray(r.evidence)?r.evidence:[]).map(function(e){return e?S_(e.driveId||e.signature||e.url||e.name):''}).join(',')}}
 function cL(x){return {id:N_(x.id),category:S_(x.category),nameZH:S_(x.nameZH),nameEN:S_(x.nameEN),nameKH:S_(x.nameKH),type:S_(x.type)||'internal',organizer:S_(x.organizer),trainer:S_(x.trainer),traineeZH:S_(x.traineeZH),traineeEN:S_(x.traineeEN),outlineZH:S_(x.outlineZH),outlineEN:S_(x.outlineEN)}}
 function readBase(){try{return JSON.parse(localStorage.getItem(BASE)||'null')}catch(e){return null}}
 /* 一個集合（陣列）逐筆合併。idOf 取鍵；numeric=true 時處理「兩台各自新增、流水號撞號」 */
@@ -41,7 +41,7 @@ function mergeAll(Lc,Rm,B){B=B||null;var sid=function(x){return String(x.id)};
   var rec={},rb={},lr=Lc.records||{},rr=Rm.records||{},ks={};Object.keys(lr).concat(Object.keys(rr)).forEach(function(k){ks[k]=1});
   Object.keys(ks).sort().forEach(function(k){var m=mergeList(lr[k],rr[k],B?((B.r||{})[k]||{}):null,rid,cR,false);
     /* 同課程＋日期＋講師視為同一筆（原頁面本來就擋重複） */
-    var seen={},o=[];m.out.forEach(function(x){var q=[x.subject||'',x.date||'',x.trainer||''].join('|');if(x.date&&seen[q])return;seen[q]=1;o.push(x)});
+    var inR={};(rr[k]||[]).forEach(function(x){inR[rid(x)]=1});var seen={},o=[];m.out.forEach(function(x){var q=[x.subject||'',x.date||'',x.trainer||''].join('|');if(x.date&&q in seen){if(inR[rid(x)]&&!inR[rid(o[seen[q]])])o[seen[q]]=x;return}seen[q]=o.length;o.push(x)});
     rec[k]=o;rb[k]=mk(o,rid,cR)});
   return {trainings:t.out,library:l.out,records:rec,base:{t:t.base,l:l.base,r:rb}}}
 /* 用雲端看得到的欄位比較兩份資料是否一樣（順序不論） */
@@ -93,22 +93,18 @@ function run(why){
   }).catch(function(e){console.warn('TRAuto',e);mark(false);return false})
     .then(function(r){st.busy=false;if(st.again){st.again=false;setTimeout(function(){run('again')},1000)}return r});
 }
-/* ---- 雲端 Sheet 沒有的欄位：記錄附件（Drive 連結）、高棉文對象、下拉選項 → 走 AC_AUDIT_DB.tools 的 vrt3_extra，同樣自動合併 ---- */
+/* ---- 雲端 Sheet 沒有的欄位：高棉文對象、下拉選項 → 走 AC_AUDIT_DB.tools 的 vrt3_extra，同樣自動合併 ---- */
 var XK='vrt3_extra';
 function srt(o){var q={};Object.keys(o||{}).sort().forEach(function(k){q[k]=o[k]});return q}
-function buildExtra(){var x={ev:{},kh:{},opts:srt(S.opts||{})};Object.keys(S.records||{}).forEach(function(k){(S.records[k]||[]).forEach(function(r){if(Array.isArray(r.evidence)&&r.evidence.length)x.ev[k+'|'+rid(r)]=r.evidence})});(S.trainings||[]).forEach(function(t){if(t.traineeKH)x.kh[t.id]=t.traineeKH});return x}
-/* 本機沒有那筆記錄（還沒下載到）不等於「附件被刪了」：那些鍵原樣留著，只有記錄在、附件被拿掉才算刪 */
+function buildExtra(){var x={kh:{},opts:srt(S.opts||{})};(S.trainings||[]).forEach(function(t){if(t.traineeKH)x.kh[t.id]=t.traineeKH});return x}
+/* 本機沒有那門課（還沒下載到）不等於「被清掉了」：那些鍵原樣留著 */
 function writeExtra(){try{var x=buildExtra(),prev=null;try{prev=JSON.parse(localStorage.getItem(XK)||'null')}catch(e){}
-    if(prev){var have={},ht={};Object.keys(S.records||{}).forEach(function(k){(S.records[k]||[]).forEach(function(r){have[k+'|'+rid(r)]=1})});(S.trainings||[]).forEach(function(t){ht[t.id]=1});
-      Object.keys(prev.ev||{}).forEach(function(k){if(!(k in x.ev)&&!have[k])x.ev[k]=prev.ev[k]});Object.keys(prev.kh||{}).forEach(function(k){if(!(k in x.kh)&&!ht[k])x.kh[k]=prev.kh[k]})}
-    x.ev=srt(x.ev);x.kh=srt(x.kh);var tx=J(x);if(localStorage.getItem(XK)!==tx)localStorage.setItem(XK,tx)}catch(e){}}
+    if(prev){var ht={};(S.trainings||[]).forEach(function(t){ht[t.id]=1});Object.keys(prev.kh||{}).forEach(function(k){if(!(k in x.kh)&&!ht[k])x.kh[k]=prev.kh[k]})}
+    x.kh=srt(x.kh);var tx=J(x);if(localStorage.getItem(XK)!==tx)localStorage.setItem(XK,tx)}catch(e){}}
 function applyExtra(first){var x;try{x=JSON.parse(localStorage.getItem(XK)||'null')}catch(e){x=null}if(!x||editing())return false;var ch=false;
-  Object.keys(S.records||{}).forEach(function(k){(S.records[k]||[]).forEach(function(r){var e=(x.ev||{})[k+'|'+rid(r)]||[],mine=r.evidence||[];if(J(mine)===J(e))return;
-    if(first){/* 第一次：本機原有的附件留著，和雲端的合在一起 */var seen={},u=[];e.concat(mine).forEach(function(f){var q=f.driveId||f.signature||J(f);if(seen[q])return;seen[q]=1;u.push(f)});e=u;if(J(mine)===J(e))return}
-    if(e.length)r.evidence=e;else delete r.evidence;ch=true})});
   (S.trainings||[]).forEach(function(t){var v=(x.kh||{})[t.id]||'';if(first&&!v)return;if((t.traineeKH||'')!==v){t.traineeKH=v;ch=true}});
-  if(x.opts&&J(srt(x.opts))!==J(srt(S.opts||{}))&&Object.keys(x.opts).length){S.opts=x.opts;try{localStorage.setItem('vrt3_opts',J(S.opts))}catch(e){}ch=true}
-  if(ch){localStorage.setItem('vrt3_tr',J(S.trainings));localStorage.setItem('vrt3_rc',J(S.records));st.sig=sig();try{if(typeof rebuildDataLists==='function')rebuildDataLists();renderActive()}catch(e){}}return ch}
+  if(!first&&x.opts&&J(srt(x.opts))!==J(srt(S.opts||{}))&&Object.keys(x.opts).length){S.opts=x.opts;try{localStorage.setItem('vrt3_opts',J(S.opts))}catch(e){}ch=true}
+  if(ch){localStorage.setItem('vrt3_tr',J(S.trainings));st.sig=sig();try{if(typeof rebuildDataLists==='function')rebuildDataLists();renderActive()}catch(e){}}return ch}
 function tick(){var s=sig();if(s!==st.sig||J(S.opts||{})!==st.o){st.o=J(S.opts||{});if(!st.xhold)writeExtra();}if(s!==st.sig){st.sig=s;clearTimeout(st.t);st.t=setTimeout(function(){run('local')},5000)}}
 /* 從 HRA Portal 進來的：左下的返回鈕改成回 HRA Portal */
 function backBtn(){try{var from=/[?&]from=hra\b/.test(location.search)||/\/ac-hra-portal\//.test(document.referrer||'');if(!from)return;var b=document.querySelector('.ac-audit-back-btn');if(b){b.href='../ac-hra-portal/hra_portal_v2.html';b.textContent='← HRA Portal'}}catch(e){}}

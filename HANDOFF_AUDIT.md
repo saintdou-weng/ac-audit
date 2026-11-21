@@ -46,7 +46,7 @@ Paul 的要求：廠規換成 2027 v5 並可新增刪除編輯儲存、匯入匯
   - 掛在：`VRT_DCC_v2.html`（`vrt_dcc_v2`）、`MSG_Processor.html`（`msgProcessor_data`）、`cambodia_law_v1.html`（`cambodia_laws_v1`）、廠規 2027、培訓（只用來同步 `vrt3_extra`）。
 - `assets/training_autosync.js`（TRAuto）：培訓的 `saveAll` 是整份覆蓋，所以改成「getAll → 逐筆三方合併 → 有差才 saveAll」。
   - 比對只看雲端 Sheet 真的有存的欄位（`cT/cR/cL`）；上次同步的指紋存在 `vrt3_base`。
-  - Sheet 沒有的欄位（記錄附件 evidence、traineeKH、下拉選項）另外走 tools 的 `vrt3_extra` 同步。
+  - 線上的 GAS getAll 會回記錄的 `evidence`（附件陣列），所以附件跟著主通道走（比對用 driveId）。Sheet 沒有的欄位（traineeKH、下拉選項）另外走 tools 的 `vrt3_extra` 同步。
   - 保險：雲端回來的筆數比上次少一大半就整次不動；沒同步過的裝置不會把「原封不動的預設資料」帶回雲端。
 - 各平台入口：PSJHR 選單「文件與培訓」（x-aud-rules／dcc／ext／law／train）；Admin OS `config.js` 廠規改 2027；HRA Portal 首頁多一格「培訓計劃」（`?from=hra` 時返回鈕回 HRA Portal）。
 - 薪資架構不在這個 repo：搬到 PSJHR 原生頁 `#salstruct`（見 psjhr README v0.6.0）。
