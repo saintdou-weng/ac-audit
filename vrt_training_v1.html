@@ -2977,6 +2977,12 @@ if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
     }
     return '';
   };
+  window.acKeynoteLabel=function(row){
+    var tb=row.parentElement&&row.parentElement.id;
+    if(tb==='mbd'){var list=S.trainings.filter(function(t){return S.mFilt==='All'||t.category===S.mFilt;}),tr=list[row.sectionRowIndex];return tr?(row.sectionRowIndex+1)+'. '+(name(tr)||tr.nameZH||''):'';}
+    if(tb==='rbd'){var r=((S.records||{})[CURRENT_YEAR+'-'+String(S.month).padStart(2,'0')]||[])[row.sectionRowIndex];return r?(row.sectionRowIndex+1)+'. '+String(r.date||'').slice(5)+' '+(r.dept||r.subject||''):'';}
+    return '';
+  };
   window.acKeynoteExtra=function(row){
     var tb=row.parentElement&&row.parentElement.id,b=row.querySelector('button[onclick^="openRecord"],button[onclick^="openTraining"]');
     if((tb!=='rbd'&&tb!=='mbd')||!b)return '';
@@ -2984,6 +2990,6 @@ if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
   };
 })();
 </script>
-<script src="https://saintdou-weng.github.io/ac-hra-portal/shared/row-keynote.js?v=8" defer></script>
+<script src="https://saintdou-weng.github.io/ac-hra-portal/shared/row-keynote.js?v=9" defer></script>
 </body>
 </html>
