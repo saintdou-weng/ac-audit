@@ -2947,7 +2947,7 @@ if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
 (function(){
   function E(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function L(zh,en){return (typeof LANG!=='undefined'&&LANG==='zh')?zh:(typeof LANG!=='undefined'&&LANG==='en')?en:zh+' '+en;}
-  function driveId(a){var u=[a.fileId,a.id,a.url,a.webViewUrl,a.downloadUrl].filter(Boolean).join(' '),m=u.match(/\/d\/([-\w]{20,})|[?&]id=([-\w]{20,})/)||(/^[-\w]{25,}$/.test(a.fileId||a.id||'')?[0,a.fileId||a.id]:null);return m?(m[1]||m[2]):'';}
+  function driveId(a){if(a.driveId)return a.driveId;var u=[a.fileId,a.id,a.url,a.webViewUrl,a.downloadUrl].filter(Boolean).join(' '),m=u.match(/\/d\/([-\w]{20,})|[?&]id=([-\w]{20,})/)||(/^[-\w]{25,}$/.test(a.fileId||a.id||'')?[0,a.fileId||a.id]:null);return m?(m[1]||m[2]):'';}
   function evidenceHtml(list){
     if(!list||!list.length)return '<div class="tk-sec"><div class="tk-h">📎 '+L('照片／附件','Photos / evidence')+'</div><div style="font-size:13px;color:#94a3b8">'+L('這筆還沒有附件；按下面「編輯」可以加照片','No evidence yet — tap Edit to add photos')+'</div></div>';
     var imgs='',files='';
