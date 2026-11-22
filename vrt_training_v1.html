@@ -1000,7 +1000,7 @@ const DICT={
 };
 
 // Shorthand translator
-function str(key){ const d=DICT[key];if(!d) return key;return d[LANG]||d.zh||key; }
+function str(key){ const d=DICT[key];if(!d) return key;return d[LANG]||(LANG!=='zh'?d.en:'')||d.zh||key; }  /* 柬文沒有翻譯時用英文，不用中文 */
 
 // Apply i18n to all [data-i18n] elements
 function applyI18n(){
@@ -1214,27 +1214,27 @@ function updSyncBadge(){
   if(!dot) return;
   if(!gasUrl){
     dot.className='sync-dot red';
-    txt.textContent=LANG==='en'?'Local only':'本地模式';
+    txt.textContent=LANG!=='zh'?'Local only':'本地模式';
     if(tim) tim.textContent='未設定 GAS';
     if(cs){cs.textContent='未設定';cs.className='conn-na';}
     if(ls) ls.textContent='上次同步：尚未同步';
     return;
   }
-  if(cs){cs.textContent=LANG==='en'?'Connected':'已設定';cs.className='conn-ok';}
+  if(cs){cs.textContent=LANG!=='zh'?'Connected':'已設定';cs.className='conn-ok';}
   if(needsSync){
     dot.className='sync-dot yellow';
-    txt.textContent=LANG==='en'?'Needs sync':'有未同步資料';
+    txt.textContent=LANG!=='zh'?'Needs sync':'有未同步資料';
     if(tim) tim.textContent=lastSync?'上次: '+lastSync:'';
   }else if(lastSync){
     const d2=new Date(lastSync.replace(/\//g,'-'));
     const diff=isNaN(d2)?999:Math.round((Date.now()-d2.getTime())/60000);
     dot.className=diff<120?'sync-dot green':'sync-dot yellow';
-    txt.textContent=diff<120?(LANG==='en'?'Synced ✓':'已同步 ✓'):'建議重新同步';
-    if(tim) tim.textContent=(LANG==='en'?'':'上次 ')+lastSync;
+    txt.textContent=diff<120?(LANG!=='zh'?'Synced ✓':'已同步 ✓'):'建議重新同步';
+    if(tim) tim.textContent=(LANG!=='zh'?'':'上次 ')+lastSync;
   }else{
     dot.className='sync-dot yellow';
-    txt.textContent=LANG==='en'?'Not synced':'尚未同步';
-    if(tim) tim.textContent=LANG==='en'?'Click ⬆ to upload':'點 ⬆ 上傳';
+    txt.textContent=LANG!=='zh'?'Not synced':'尚未同步';
+    if(tim) tim.textContent=LANG!=='zh'?'Click ⬆ to upload':'點 ⬆ 上傳';
   }
   if(ls) ls.textContent='上次同步：'+(lastSync||'尚未同步');
 }
@@ -1299,14 +1299,14 @@ function renderMatrix(){
   const ms=monthsS();
   document.getElementById('mhd').innerHTML=`<tr>
     <th class="tl" style="width:34px">No.</th>
-    <th class="tl" style="width:62px">${LANG==='en'?'Category':'分類'}</th>
-    <th class="tl" style="min-width:190px">${LANG==='en'?'Training Subject':'課程名稱'}</th>
-    <th class="tl" style="min-width:90px">${LANG==='en'?'Trainer':'講師'}</th>
-    <th style="width:44px">${LANG==='en'?'Hrs':'時數'}</th>
-    <th class="tl" style="min-width:110px">${LANG==='en'?'Participant':'培訓對象'}</th>
-    <th style="width:65px">${LANG==='en'?'Freq.':'頻率'}</th>
+    <th class="tl" style="width:62px">${LANG!=='zh'?'Category':'分類'}</th>
+    <th class="tl" style="min-width:190px">${LANG!=='zh'?'Training Subject':'課程名稱'}</th>
+    <th class="tl" style="min-width:90px">${LANG!=='zh'?'Trainer':'講師'}</th>
+    <th style="width:44px">${LANG!=='zh'?'Hrs':'時數'}</th>
+    <th class="tl" style="min-width:110px">${LANG!=='zh'?'Participant':'培訓對象'}</th>
+    <th style="width:65px">${LANG!=='zh'?'Freq.':'頻率'}</th>
     ${ms.map(m=>`<th style="width:34px">${m}</th>`).join('')}
-    <th class="tl" style="min-width:100px">${LANG==='en'?'Remarks':'備註'}</th>
+    <th class="tl" style="min-width:100px">${LANG!=='zh'?'Remarks':'備註'}</th>
     <th class="c-act" style="width:66px"></th>
   </tr>`;
   const rows=S.trainings.filter(tr=>S.mFilt==='All'||tr.category===S.mFilt);
@@ -1377,28 +1377,28 @@ function matchSubj(subject,tr){
 }
 function renderRecords(){
   const M=months(),m=S.month,key=`${CURRENT_YEAR}-${String(m).padStart(2,'0')}`,recs=S.records[key]||[];
-  const mttl=LANG==='zh'?`${M[m-1]} 培訓記錄`:LANG==='en'?`${MONTHS_EN[m-1]} Training Records`:`${M[m-1]} កំណត់ត្រា`;
+  const mttl=LANG==='zh'?`${M[m-1]} 培訓記錄`:LANG!=='zh'?`${MONTHS_EN[m-1]} Training Records`:`${M[m-1]} កំណត់ត្រា`;
   document.getElementById('month-ttl').textContent=mttl;
   document.getElementById('ph-monthly-h').textContent=mttl;
   document.getElementById('ph-monthly-p').textContent='列印：'+new Date().toLocaleString('zh-TW',{hour12:false}).slice(0,16);
   document.getElementById('rhd').innerHTML=`<tr>
     <th style="width:32px">No.</th>
-    <th style="min-width:165px">${LANG==='en'?'Training Subject':'課程名稱'}</th>
-    <th style="min-width:85px">${LANG==='en'?'Dept.':'主辦部門'}</th>
-    <th style="min-width:70px">${LANG==='en'?'Trainer':'講師'}</th>
-    <th style="width:88px">${LANG==='en'?'Date':'日期'}</th>
-    <th style="width:86px">${LANG==='en'?'Time':'時間'}</th>
-    <th style="width:62px;text-align:center">${LANG==='en'?'Duration':'時數'}</th>
-    <th style="min-width:105px">${LANG==='en'?'Participant':'培訓對象'}</th>
-    <th style="width:52px;text-align:center">${LANG==='en'?'Att.':'參訓'}</th>
-    <th style="width:46px;text-align:center">${LANG==='en'?'Abs.':'缺席'}</th>
-    <th style="width:55px;text-align:center">${LANG==='en'?'Rate':'出勤率'}</th>
-    <th style="min-width:80px">${LANG==='en'?'Remarks':'備註'}</th>
+    <th style="min-width:165px">${LANG!=='zh'?'Training Subject':'課程名稱'}</th>
+    <th style="min-width:85px">${LANG!=='zh'?'Dept.':'主辦部門'}</th>
+    <th style="min-width:70px">${LANG!=='zh'?'Trainer':'講師'}</th>
+    <th style="width:88px">${LANG!=='zh'?'Date':'日期'}</th>
+    <th style="width:86px">${LANG!=='zh'?'Time':'時間'}</th>
+    <th style="width:62px;text-align:center">${LANG!=='zh'?'Duration':'時數'}</th>
+    <th style="min-width:105px">${LANG!=='zh'?'Participant':'培訓對象'}</th>
+    <th style="width:52px;text-align:center">${LANG!=='zh'?'Att.':'參訓'}</th>
+    <th style="width:46px;text-align:center">${LANG!=='zh'?'Abs.':'缺席'}</th>
+    <th style="width:55px;text-align:center">${LANG!=='zh'?'Rate':'出勤率'}</th>
+    <th style="min-width:80px">${LANG!=='zh'?'Remarks':'備註'}</th>
     <th style="width:64px"></th>
   </tr>`;
   const bd=document.getElementById('rbd');
   const emp=document.getElementById('r-empty');
-  document.getElementById('r-empty-msg').textContent=LANG==='en'?'No training records for this month.':'本月尚無培訓記錄';
+  document.getElementById('r-empty-msg').textContent=LANG!=='zh'?'No training records for this month.':'本月尚無培訓記錄';
   if(!recs.length){
     bd.innerHTML='';
     emp.style.display='block';
@@ -1412,9 +1412,9 @@ function renderRecords(){
     }
     if(getCfg().gasUrl){
       hint.style.display='block';
-      hint.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--sp);margin-bottom:5px">☁️ '+(LANG==='en'?'Records may be in GAS cloud':'資料可能在 GAS 雲端')+'</div>'+
-        '<div style="font-size:11px;color:var(--txt2);margin-bottom:8px">'+(LANG==='en'?'If you entered records on another device or after clearing cache, download from GAS.':'如果你在其他裝置輸入過記錄，或清除過瀏覽器快取，請從 GAS 下載。')+'</div>'+
-        '<button class="btn btn-p" style="font-size:12px" onclick="syncFromGAS()">⬇ '+(LANG==='en'?'Download from GAS':'從 GAS 下載')+'</button>';
+      hint.innerHTML='<div style="font-size:12px;font-weight:700;color:var(--sp);margin-bottom:5px">☁️ '+(LANG!=='zh'?'Records may be in GAS cloud':'資料可能在 GAS 雲端')+'</div>'+
+        '<div style="font-size:11px;color:var(--txt2);margin-bottom:8px">'+(LANG!=='zh'?'If you entered records on another device or after clearing cache, download from GAS.':'如果你在其他裝置輸入過記錄，或清除過瀏覽器快取，請從 GAS 下載。')+'</div>'+
+        '<button class="btn btn-p" style="font-size:12px" onclick="syncFromGAS()">⬇ '+(LANG!=='zh'?'Download from GAS':'從 GAS 下載')+'</button>';
     } else { hint.style.display='none'; }
     return;
   }
@@ -1556,7 +1556,7 @@ function renderLibrary(){
   if(!items.length){grid.innerHTML=`<div style="text-align:center;padding:36px;color:var(--muted);grid-column:1/-1"><div style="font-size:28px;margin-bottom:6px">📚</div><div>${str('lib.empty')}</div></div>`;return;}
   grid.innerHTML=items.map((item,i)=>{
     const n=LANG==='zh'?item.nameZH:LANG==='en'?item.nameEN:(item.nameKH||item.nameZH);
-    const outline=LANG==='en'?(item.outlineEN||item.outlineZH):item.outlineZH;
+    const outline=LANG!=='zh'?(item.outlineEN||item.outlineZH):item.outlineZH;
     const inPlan=S.trainings.some(tr=>tr.nameZH===item.nameZH);
     return `<div class="lc">
       <div class="lc-hdr">
@@ -1664,9 +1664,9 @@ function addOpt(k){
   const val=inp?inp.value.trim():'';
   if(!val) return;
   if(!S.opts[k]) S.opts[k]=[];
-  if(S.opts[k].includes(val)){toast(LANG==='en'?'Already exists':'已存在','warn');return;}
+  if(S.opts[k].includes(val)){toast(LANG!=='zh'?'Already exists':'已存在','warn');return;}
   S.opts[k].push(val);inp.value='';
-  save();renderOptList(k);rebuildDataLists();toast(LANG==='en'?'Added':'已新增','ok');
+  save();renderOptList(k);rebuildDataLists();toast(LANG!=='zh'?'Added':'已新增','ok');
 }
 function delOpt(k,i){
   S.opts[k].splice(i,1);save();renderOptList(k);rebuildDataLists();
@@ -1823,8 +1823,7 @@ function calcRate(){
   const rate=att>0?Math.round((att-abs)/att*100):100;
   const el=document.getElementById('rate-preview');
   el.style.display=att>0?'':'none';
-  el.textContent=LANG==='en'
-    ?`Attendance: ${rate}% (${att} attendees, ${abs} absences)`
+  el.textContent=LANG!=='zh'?`Attendance: ${rate}% (${att} attendees, ${abs} absences)`
     :`出勤率：${rate}%（${att}人參訓，${abs}人缺席）`;
 }
 function saveRecord(){
@@ -1838,7 +1837,7 @@ function saveRecord(){
   const key=`${CURRENT_YEAR}-${String(S.month).padStart(2,'0')}`;
   if(!S.records[key]) S.records[key]=[];
   const dup=S.records[key].find(r=>r.id!==S.editR && r.subject===data.subject && (r.date||'')===(data.date||'') && (r.trainer||'')===(data.trainer||''));
-  if(dup){toast(LANG==='en'?'Duplicate record blocked (same subject/date/trainer)':'已阻止重複記錄：相同課程＋日期＋講師','warn');return;}
+  if(dup){toast(LANG!=='zh'?'Duplicate record blocked (same subject/date/trainer)':'已阻止重複記錄：相同課程＋日期＋講師','warn');return;}
   if(S.editR){
     const idx=S.records[key].findIndex(r=>r.id===S.editR);
     if(idx>-1) S.records[key][idx]={...S.records[key][idx],...data};
@@ -1907,7 +1906,7 @@ function cfmReset(){
   doConfirm(str('reset.msg'),()=>{
     S.trainings=clone(DEF_TR);S.records=clone(DEF_REC);
     S.library=clone(DEF_LIB);S.opts=clone(DEF_OPTS);
-    save();rebuildDataLists();toast(LANG==='en'?'Reset to defaults':'已重置為預設資料','ok');renderActive();
+    save();rebuildDataLists();toast(LANG!=='zh'?'Reset to defaults':'已重置為預設資料','ok');renderActive();
   },str('btn.reset.confirm'));
 }
 
@@ -2061,7 +2060,7 @@ function showImpPreview(hdr,rows){
   const sh=hdr.slice(0,8),sr=rows.slice(0,8);
   prev.innerHTML=`<table class="imp-tbl"><thead><tr>${sh.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${sr.map(r=>`<tr>${sh.map(h=>`<td>${r[h]||''}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
   document.getElementById('btn-cfm-imp').style.display='inline-flex';
-  document.getElementById('imp-msg').textContent=`${LANG==='en'?'Showing':'預覽'} ${Math.min(rows.length,8)} ${LANG==='en'?'of':'/'} ${rows.length} ${LANG==='en'?'rows':'行'}`;
+  document.getElementById('imp-msg').textContent=`${LANG!=='zh'?'Showing':'預覽'} ${Math.min(rows.length,8)} ${LANG!=='zh'?'of':'/'} ${rows.length} ${LANG!=='zh'?'rows':'行'}`;
 }
 function confirmImport(){
   const cbs=[...document.querySelectorAll('.sht-cb:checked')];
@@ -2172,7 +2171,7 @@ function impMonthly(rows){
     });added++;
   });
   save();setCfg({needsSync:true});
-  toast((LANG==='en'?'Imported ':'已匯入')+added+(LANG==='en'?' records':' 筆記錄'),'ok');
+  toast((LANG!=='zh'?'Imported ':'已匯入')+added+(LANG!=='zh'?' records':' 筆記錄'),'ok');
   renderRecords();renderPills();
   if(added>0&&getCfg().gasUrl) setTimeout(()=>{if(confirm('是否立即同步到 GAS？')) syncToGAS();},600);
 }
@@ -2191,7 +2190,7 @@ function impMatrix(rows){
     });added++;
   });
   save();setCfg({needsSync:true});
-  toast((LANG==='en'?'Imported ':'已匯入')+added+(LANG==='en'?' trainings':' 個培訓項目'),'ok');
+  toast((LANG!=='zh'?'Imported ':'已匯入')+added+(LANG!=='zh'?' trainings':' 個培訓項目'),'ok');
   renderMatrix();
   if(added>0&&getCfg().gasUrl) setTimeout(()=>{if(confirm('是否立即同步到 GAS？')) syncToGAS();},600);
 }
@@ -2248,7 +2247,7 @@ async function syncToGAS(){
   const {gasUrl}=getCfg();if(!gasUrl){toast('請先設定 GAS URL','err');return;}
   const dot=document.getElementById('sync-dot'),txt=document.getElementById('sync-text');
   if(dot) dot.className='sync-dot blue';
-  if(txt) txt.textContent=LANG==='en'?'Uploading…':'上傳中…';
+  if(txt) txt.textContent=LANG!=='zh'?'Uploading…':'上傳中…';
   loading(true);
   try{
     const payload={action:'saveAll',trainings:S.trainings,records:S.records,library:S.library};
@@ -2258,8 +2257,7 @@ async function syncToGAS(){
       const ts=new Date().toLocaleString('zh-TW',{hour12:false}).slice(0,16);
       setCfg({lastSync:ts,needsSync:false});
       const rc=Object.values(S.records).reduce((a,b)=>a+b.length,0);
-      toast(LANG==='en'
-        ?'Uploaded ✓  '+S.trainings.length+' trainings · '+rc+' records'
+      toast(LANG!=='zh'?'Uploaded ✓  '+S.trainings.length+' trainings · '+rc+' records'
         :'上傳成功 ✓  培訓 '+S.trainings.length+' 項 · 記錄 '+rc+' 筆','ok');
     }else{toast('上傳失敗：'+(d.msg||d.error||''),'err');}
   }catch(e){toast('連線失敗：'+e.message,'err');}
@@ -2269,7 +2267,7 @@ async function syncFromGAS(){
   const {gasUrl}=getCfg();if(!gasUrl){toast('請先設定 GAS URL','err');return;}
   const dot=document.getElementById('sync-dot'),txt=document.getElementById('sync-text');
   if(dot) dot.className='sync-dot blue';
-  if(txt) txt.textContent=LANG==='en'?'Downloading…':'下載中…';
+  if(txt) txt.textContent=LANG!=='zh'?'Downloading…':'下載中…';
   loading(true);
   try{
     const res=await fetch(gasUrl+'?action=getAll');
@@ -2299,8 +2297,7 @@ async function syncFromGAS(){
     const ts=new Date().toLocaleString('zh-TW',{hour12:false}).slice(0,16);
     setCfg({lastSync:ts,needsSync:false});
     const rc=Object.values(S.records).reduce((a,b)=>a+b.length,0);
-    toast(LANG==='en'
-      ?'Downloaded ✓  '+S.trainings.length+' trainings · '+rc+' records'
+    toast(LANG!=='zh'?'Downloaded ✓  '+S.trainings.length+' trainings · '+rc+' records'
       :'下載成功 ✓  培訓 '+S.trainings.length+' 項 · 月份記錄共 '+rc+' 筆','ok');
     // Navigate to month with the most records so user sees the data
     const yr=CURRENT_YEAR;
@@ -2312,7 +2309,7 @@ async function syncFromGAS(){
     });
     S.month=bestMonth;
     goTab('monthly');
-  }catch(e){toast((LANG==='en'?'Download failed: ':'下載失敗：')+e.message,'err');}
+  }catch(e){toast((LANG!=='zh'?'Download failed: ':'下載失敗：')+e.message,'err');}
   loading(false);updSyncBadge();updStorInfo();
 }
 async function testGAS(){
@@ -2351,10 +2348,9 @@ function restoreJSON(inp){
     if(d.library) S.library=d.library;
     if(d.opts) S.opts=d.opts;
     save();rebuildDataLists();
-    toast(LANG==='en'
-      ?`Restored: ${S.trainings.length} trainings, ${Object.values(S.records).reduce((a,b)=>a+b.length,0)} records`
+    toast(LANG!=='zh'?`Restored: ${S.trainings.length} trainings, ${Object.values(S.records).reduce((a,b)=>a+b.length,0)} records`
       :`還原成功：${S.trainings.length}筆培訓，${Object.values(S.records).reduce((a,b)=>a+b.length,0)}筆記錄`,'ok');renderActive();
-  }catch(e2){toast((LANG==='en'?'Restore failed: ':'還原失敗：')+e2.message,'err');}};
+  }catch(e2){toast((LANG!=='zh'?'Restore failed: ':'還原失敗：')+e2.message,'err');}};
   rd.readAsText(f);inp.value='';
 }
 
@@ -2844,12 +2840,11 @@ function archiveAndNewYear(){
   const targetYear=parseInt(document.getElementById('new-year-inp').value)||2027;
   const currentYear=CURRENT_YEAR||2026;
   if(targetYear<=currentYear){
-    toast(LANG==='en'?`Target year must be after ${currentYear}`:`目標年度必須大於 ${currentYear}`,'err');
+    toast(LANG!=='zh'?`Target year must be after ${currentYear}`:`目標年度必須大於 ${currentYear}`,'err');
     return;
   }
   const recCount=Object.values(S.records).reduce((a,b)=>a+b.length,0);
-  const warningMsg=LANG==='en'
-    ?`Archive ${currentYear} and initialize ${targetYear}?\n\n• Training items (${S.trainings.length}) → KEPT\n• Month plan statuses → RESET to blank\n• Monthly records (${recCount} entries) → CLEARED\n\nPlease backup first!`
+  const warningMsg=LANG!=='zh'?`Archive ${currentYear} and initialize ${targetYear}?\n\n• Training items (${S.trainings.length}) → KEPT\n• Month plan statuses → RESET to blank\n• Monthly records (${recCount} entries) → CLEARED\n\nPlease backup first!`
     :`確定要歸檔 ${currentYear} 年並初始化 ${targetYear} 年？\n\n• 培訓項目（${S.trainings.length}筆）→ 保留\n• 月份計劃狀態 → 重置為空白\n• 月份記錄（${recCount}筆）→ 清空\n\n請確認已備份後再操作！`;
   doConfirm(warningMsg,()=>{
     // 1. Archive to localStorage
@@ -2870,14 +2865,13 @@ function archiveAndNewYear(){
     try{localStorage.setItem('vrt3_year',String(targetYear));}catch(e){}
     // 5. Save and refresh
     save();
-    toast(LANG==='en'
-      ?`✓ Archived ${currentYear}. ${targetYear} initialized. ${S.trainings.length} training items kept.`
+    toast(LANG!=='zh'?`✓ Archived ${currentYear}. ${targetYear} initialized. ${S.trainings.length} training items kept.`
       :`✓ 已歸檔 ${currentYear} 年，${targetYear} 年已初始化。${S.trainings.length} 個培訓項目保留。`,'ok');
     // Update year display and inputs
     document.getElementById('hs').textContent=`Vantage River Textiles · ${targetYear}`;
     const nyInp=document.getElementById('new-year-inp');if(nyInp) nyInp.value=targetYear+1;
     renderActive();
-  },LANG==='en'?'Confirm Archive':'確認歸檔');
+  },LANG!=='zh'?'Confirm Archive':'確認歸檔');
 }
 
 
@@ -2946,7 +2940,7 @@ if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
 <script>
 (function(){
   function E(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-  function L(zh,en){return (typeof LANG!=='undefined'&&LANG==='zh')?zh:(typeof LANG!=='undefined'&&LANG==='en')?en:zh+' '+en;}
+  function L(zh,en){return (typeof LANG!=='undefined'&&LANG==='zh')?zh:en;}
   function driveId(a){if(a.driveId)return a.driveId;var u=[a.fileId,a.id,a.url,a.webViewUrl,a.downloadUrl].filter(Boolean).join(' '),m=u.match(/\/d\/([-\w]{20,})|[?&]id=([-\w]{20,})/)||(/^[-\w]{25,}$/.test(a.fileId||a.id||'')?[0,a.fileId||a.id]:null);return m?(m[1]||m[2]):'';}
   function evidenceHtml(list){
     if(!list||!list.length)return '<div class="tk-sec"><div class="tk-h">📎 '+L('照片／附件','Photos / evidence')+'</div><div style="font-size:13px;color:#94a3b8">'+L('這筆還沒有附件；按下面「編輯」可以加照片','No evidence yet — tap Edit to add photos')+'</div></div>';
@@ -2990,6 +2984,6 @@ if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
   };
 })();
 </script>
-<script src="https://saintdou-weng.github.io/ac-hra-portal/shared/row-keynote.js?v=9" defer></script>
+<script src="https://saintdou-weng.github.io/ac-hra-portal/shared/row-keynote.js?v=10" defer></script>
 </body>
 </html>
