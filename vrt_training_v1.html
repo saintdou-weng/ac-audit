@@ -2928,5 +2928,62 @@ if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
 <script src="https://saintdou-weng.github.io/ac-admin/shared/swipe-tabs.js" defer></script>
 <!-- 2026-11-22 介面動效（外掛；拿掉這一行就恢復原樣）：主要按鈕懸停回饋／數字卡 3D 傾斜／頂列毛玻璃／回到頂部。淺色頁面沒有聚光燈；分頁、表格、清單裡的按鈕不套 -->
 <script src="assets/ux_motion.js?v=3" data-btn=".btn,.hbtn,.hd-action,.calc-btn,.topbar-btn,.tbtn,.eb,.ib,.ed-bar button" data-cards=".sum-card,.stat,.stat-card,a.kpi,.qcard" data-nav=".topbar,#header,.top,.app-header,.hdr" data-skip="table,.tabs,nav,.c-act,.status-row,.ed-tools,.ed-add,.ed-tbl,.seg,.period,.sidebar,.ed-menu" defer></script>
+<!-- 2026-11-22 Paul：培訓總表／月記錄點一列跳 Keynote（和 HRA Portal 同一份），加上這個頁面自己的內容：照片附件、12 個月狀態、當年實際場次 -->
+<style>
+.tk-sec{padding:12px 16px 4px}.tk-h{font-size:12px;font-weight:700;color:#475569;margin-bottom:8px}
+.tk-months{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.tk-m{border-radius:10px;padding:7px 2px;text-align:center;font-size:11px;background:#f1f5f9;color:#94a3b8;line-height:1.35}
+.tk-m b{display:block;font-size:15px}.tk-m.s1{background:#dbeafe;color:#1d4ed8}.tk-m.s2{background:#dcfce7;color:#15803d}.tk-m.s3{background:#fef3c7;color:#b45309}.tk-m.s4{background:#fee2e2;color:#b91c1c}
+.tk-prog{height:8px;border-radius:4px;background:#e2e8f0;overflow:hidden;margin:8px 0 4px}.tk-prog i{display:block;height:100%;background:#22c55e}
+.tk-rate{display:flex;align-items:center;gap:12px}.tk-ring{flex:none;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:18px}
+.tk-ring span{background:#fff;width:56px;height:56px;border-radius:50%;display:grid;place-items:center}
+.tk-ph{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}.tk-ph a{flex:none}.tk-ph img{height:150px;border-radius:12px;border:1px solid #e2e8f0;display:block;background:#f1f5f9;min-width:110px;object-fit:cover}
+.tk-file{display:inline-flex;align-items:center;gap:6px;border:1px solid #cbd5e1;border-radius:10px;padding:8px 12px;font-size:13px;text-decoration:none;color:#0f172a;background:#fff}
+.tk-list div{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:13px}.tk-list div:last-child{border:0}.tk-list span:first-child{color:#64748b;flex:0 0 86px}
+.tk-btn{border:0;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:700;background:#3f7d5c;color:#fff;cursor:pointer;margin:6px 6px 0 0}
+#mbd tr,#rbd tr{cursor:pointer}
+</style>
+<script>
+(function(){
+  function E(v){return String(v==null?'':v).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function L(zh,en){return (typeof LANG!=='undefined'&&LANG==='zh')?zh:(typeof LANG!=='undefined'&&LANG==='en')?en:zh+' '+en;}
+  function driveId(a){var u=[a.fileId,a.id,a.url,a.webViewUrl,a.downloadUrl].filter(Boolean).join(' '),m=u.match(/\/d\/([-\w]{20,})|[?&]id=([-\w]{20,})/)||(/^[-\w]{25,}$/.test(a.fileId||a.id||'')?[0,a.fileId||a.id]:null);return m?(m[1]||m[2]):'';}
+  function evidenceHtml(list){
+    if(!list||!list.length)return '<div class="tk-sec"><div class="tk-h">📎 '+L('照片／附件','Photos / evidence')+'</div><div style="font-size:13px;color:#94a3b8">'+L('這筆還沒有附件；按下面「編輯」可以加照片','No evidence yet — tap Edit to add photos')+'</div></div>';
+    var imgs='',files='';
+    list.forEach(function(a){var u=a.url||a.webViewUrl||a.downloadUrl||'#',id=driveId(a),isImg=/image/i.test(a.mime||'')||/\.(jpe?g|png|webp|gif|heic)$/i.test(a.name||'');
+      if(isImg&&(id||/^data:image|\.(jpe?g|png|webp|gif)(\?|$)/i.test(u)))imgs+='<a href="'+E(u)+'" target="_blank" rel="noopener"><img loading="lazy" alt="'+E(a.name||'')+'" src="'+E(id?'https://drive.google.com/thumbnail?id='+id+'&sz=w800':u)+'" onerror="this.parentNode.outerHTML=\'<a class=&quot;tk-file&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot; href=&quot;'+E(u)+'&quot;>🖼 '+E(a.name||'photo')+'</a>\'"></a>';
+      else files+='<a class="tk-file" href="'+E(u)+'" target="_blank" rel="noopener">'+(/pdf/i.test(a.mime||a.name||'')?'📄':'📎')+' '+E(a.name||'file')+'</a> ';});
+    return '<div class="tk-sec"><div class="tk-h">📎 '+L('照片／附件','Photos / evidence')+' · '+list.length+'</div>'+(imgs?'<div class="tk-ph">'+imgs+'</div>':'')+(files?'<div style="margin-top:6px">'+files+'</div>':'')+'</div>';
+  }
+  function allRecs(){var out=[];Object.keys(S.records||{}).forEach(function(k){(S.records[k]||[]).forEach(function(r){out.push({k:k,r:r});});});return out;}
+  function sameSubj(r,tr){var n=function(x){return String(x||'').toLowerCase().replace(/\s+/g,'');},s=n(r.subject);return (r.trId!=null&&String(r.trId)===String(tr.id))||(!!s&&(s===n(tr.nameZH)||s===n(tr.nameEN)||s===n(tr.nameZH)+n(tr.nameEN)||(n(tr.nameEN).length>5&&s.indexOf(n(tr.nameEN))>=0)||(n(tr.nameZH).length>2&&s.indexOf(n(tr.nameZH))>=0)));}
+  window.acKeynoteTop=function(row,table){
+    var tb=row.parentElement&&row.parentElement.id;
+    if(tb==='rbd'){   /* 月培訓記錄 */
+      var r=((S.records||{})[CURRENT_YEAR+'-'+String(S.month).padStart(2,'0')]||[])[row.sectionRowIndex];if(!r)return '';
+      var att=+r.attendees||0,abs=+r.absences||0,rate=att>0?Math.round((att-abs)/att*100):100,col=rate<80?'#ef4444':rate<90?'#f59e0b':'#22c55e';
+      return '<div class="tk-sec"><div class="tk-rate"><div class="tk-ring" style="background:conic-gradient('+col+' '+rate*3.6+'deg,#e2e8f0 0)"><span style="color:'+col+'">'+rate+'%</span></div><div style="font-size:13px;line-height:1.7"><b style="font-size:15px">'+E(r.subject||'')+'</b><br>📅 '+E(r.date||'—')+(r.time?' · 🕐 '+E(r.time):'')+(r.duration?' · ⏱ '+E(r.duration):'')+'<br>👥 '+L('應到','Expected')+' <b>'+att+'</b> · ✅ '+L('實到','Present')+' <b>'+(att-abs)+'</b> · ❌ '+L('缺席','Absent')+' <b>'+abs+'</b></div></div></div>'+evidenceHtml(r.evidence);
+    }
+    if(tb==='mbd'){   /* 年度培訓總表 */
+      var list=S.trainings.filter(function(t){return S.mFilt==='All'||t.category===S.mFilt;}),tr=list[row.sectionRowIndex];if(!tr)return '';
+      var ms=monthsS(),stS=statusS(),stN=status(),plan=0,done=0;
+      var cells=MK.map(function(m,i){var s=tr.months[m]||0;if(s>0&&s!==4)plan++;if(s===2)done++;return '<div class="tk-m s'+s+'" title="'+E(stN[s]||'')+'">'+E(ms[i])+'<b>'+(s?E(stS[s]||''):'·')+'</b></div>';}).join('');
+      var recs=allRecs().filter(function(x){return x.k.slice(0,4)===String(CURRENT_YEAR)&&sameSubj(x.r,tr);}).sort(function(a,b){return String(a.r.date||a.k).localeCompare(String(b.r.date||b.k));});
+      var ppl=recs.reduce(function(n,x){return n+((+x.r.attendees||0)-(+x.r.absences||0));},0),ev=[];recs.forEach(function(x){(x.r.evidence||[]).forEach(function(a){ev.push(a);});});
+      return '<div class="tk-sec"><div class="tk-h">📅 '+CURRENT_YEAR+' '+L('各月狀態','Monthly status')+' · '+L('完成','Done')+' '+done+' / '+plan+'</div><div class="tk-months">'+cells+'</div><div class="tk-prog"><i style="width:'+(plan?Math.round(done/plan*100):0)+'%"></i></div></div>'
+        +'<div class="tk-sec"><div class="tk-h">📝 '+L('今年實際場次','Sessions held this year')+' · '+recs.length+(recs.length?' · 👥 '+ppl:'')+'</div>'+(recs.length?'<div class="tk-list">'+recs.slice(0,12).map(function(x){var a=+x.r.attendees||0,b=+x.r.absences||0;return '<div><span>'+E(x.r.date||x.k)+'</span><span>'+E(x.r.dept||'')+' · '+E(x.r.trainer||'—')+' · 👥 '+(a-b)+'/'+a+((x.r.evidence||[]).length?' · 📎'+x.r.evidence.length:'')+'</span></div>';}).join('')+(recs.length>12?'<div><span>…</span><span>+'+(recs.length-12)+'</span></div>':'')+'</div>':'<div style="font-size:13px;color:#94a3b8">'+L('還沒有對應的培訓記錄','No matching training records yet')+'</div>')+'</div>'
+        +(ev.length?evidenceHtml(ev.slice(0,12)):'');
+    }
+    return '';
+  };
+  window.acKeynoteExtra=function(row){
+    var tb=row.parentElement&&row.parentElement.id,b=row.querySelector('button[onclick^="openRecord"],button[onclick^="openTraining"]');
+    if((tb!=='rbd'&&tb!=='mbd')||!b)return '';
+    return '<div class="tk-sec" style="padding-bottom:12px"><button type="button" class="tk-btn" onclick="document.getElementById(\'kn-x\').click();'+E(b.getAttribute('onclick'))+'">✏ '+L('編輯／加照片','Edit / add photos')+'</button></div>';
+  };
+})();
+</script>
+<script src="https://saintdou-weng.github.io/ac-hra-portal/shared/row-keynote.js?v=8" defer></script>
 </body>
 </html>
