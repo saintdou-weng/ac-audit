@@ -1039,7 +1039,7 @@ const STATUS_S_KH=['','P','✓','L','✕'];
 
 function months(){return LANG==='zh'?MONTHS_ZH:LANG==='en'?MONTHS_EN:MONTHS_KH;}
 function monthsS(){return MONTHS_EN;}
-function catN(c){return LANG==='kh'?(CAT_KH[c]||c):(CAT_ZH[c]||c);}
+function catN(c){return LANG==='kh'?(CAT_KH[c]||c):LANG==='en'?c:(CAT_ZH[c]||c);}   /* 英文模式顯示英文分類 */
 function status(){return LANG==='zh'?STATUS_ZH:LANG==='en'?STATUS_EN:STATUS_KH;}
 function statusS(){return LANG==='zh'?STATUS_S_ZH:LANG==='en'?STATUS_S_EN:STATUS_S_KH;}
 function name(tr){return LANG==='zh'?tr.nameZH:(LANG==='en'?(tr.nameEN||tr.nameZH):(tr.nameKH||tr.nameEN||tr.nameZH));}
@@ -1050,6 +1050,7 @@ function setLang(l){
   document.querySelectorAll('.lb').forEach((b,i)=>b.classList.toggle('on',['zh','en','kh'][i]===l));
   applyI18n();
   renderActive();
+  try{updSyncBadge();}catch(e){}   /* 同步狀態的字也跟著換語言 */
 }
 
 // =====================================================
