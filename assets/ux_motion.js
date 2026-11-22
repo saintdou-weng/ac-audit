@@ -1,4 +1,4 @@
-/* ux_motion.js v2（2026-11-22）· 介面動效（純外掛，不改原頁任何函式；拿掉這支 script 就完全恢復原樣）
+/* ux_motion.js v3（2026-11-22）· 介面動效（純外掛，不改原頁任何函式；拿掉這支 script 就完全恢復原樣）
    1 懸停回饋：按鈕上移 2px、陰影加深、變暗 8%、150ms ease-out（只在有滑鼠的裝置；已有 transform 的按鈕不碰）
    2 游標聚光燈：深色卡片網格上跟著滑鼠的 240px／15% 光圈，照亮範圍內卡片邊框（座標寫在 CSS 變數 --ux-x/--ux-y）
    3 3D 傾斜：重點卡片最大 8°、perspective 1000px、放大 1.02，離開 300ms 復位（卡片不套規則 1，避免 transform 打架）
@@ -58,14 +58,16 @@ var box=ds.scroll?$(ds.scroll):null,nav=null,btn=null,sraf=0;
 /* 有的頁面是 body 自己在捲（html 固定高）：三個地方取最大的那個 */
 function top(){return Math.max(box?box.scrollTop:0,window.pageYOffset||0,document.documentElement.scrollTop||0,document.body?document.body.scrollTop:0)}
 function viewH(){return box?box.clientHeight:window.innerHeight}
-function place(){/* 右下角已經有別的固定浮動鈕 → 往上讓位 */var bottom=24;for(var k=0;k<4;k++){var y=window.innerHeight-bottom-24,x=window.innerWidth-48,hit=null,els=document.elementsFromPoint?document.elementsFromPoint(x,y):[];
+function place(){/* 右下角已經有別的固定浮動鈕 → 往上讓位 */var bottom=24;for(var k=0;k<4;k++){var W=window.innerWidth,H=window.innerHeight,hit=null,els=[];if(document.elementsFromPoint)[[W-48,H-bottom-24],[W-48,H-bottom-3],[W-70,H-bottom-3],[W-26,H-bottom-45]].forEach(function(p){els=els.concat(document.elementsFromPoint(p[0],p[1]))});
     for(var i=0;i<els.length;i++){var el=els[i];if(el===btn)continue;var p=el;while(p&&p!==document.body&&getComputedStyle(p).position!=='fixed')p=p.parentElement;if(p&&p!==document.body&&p!==btn&&p.offsetWidth<200&&p.offsetHeight<200){hit=p;break}}
     if(!hit)break;bottom+=Math.max(56,hit.offsetHeight+12)}btn.style.bottom=bottom+'px'}
 function onScroll(){sraf=0;var y=top();
   if(nav){var on=y>80;if(on!==nav.classList.contains('ux-stuck'))nav.classList.toggle('ux-stuck',on)}
   if(btn){var show=y>viewH();if(show&&!btn.classList.contains('on')){place();btn.classList.add('on')}else if(!show&&btn.classList.contains('on'))btn.classList.remove('on')}}
 function ask(){if(!sraf)sraf=requestAnimationFrame(onScroll)}
-function toTop(){var y0=top(),t0=performance.now(),D=calm?1:500;function step(t){var k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3),y=Math.round(y0*(1-e));if(box&&box.scrollTop)box.scrollTop=y;if(document.body.scrollTop)document.body.scrollTop=y;if(window.pageYOffset||document.documentElement.scrollTop)window.scrollTo(0,y);if(y===0){if(box)box.scrollTop=0;document.body.scrollTop=0;window.scrollTo(0,0)}if(k<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
+function toTop(){var y0=top(),t0=performance.now(),D=calm?1:500,els=[document.documentElement,document.body,box].filter(Boolean),old=els.map(function(e){return e.style.scrollBehavior});
+  /* 頁面若設了 scroll-behavior:smooth，會和這裡的逐格捲動互相拖慢：捲的這半秒先關掉，結束再還原 */els.forEach(function(e){e.style.scrollBehavior='auto'});function done(){els.forEach(function(e,i){e.style.scrollBehavior=old[i]})}
+  function step(t){var k=Math.min(1,(t-t0)/D),e=1-Math.pow(1-k,3),y=Math.round(y0*(1-e));if(box&&box.scrollTop)box.scrollTop=y;if(document.body.scrollTop)document.body.scrollTop=y;if(window.pageYOffset||document.documentElement.scrollTop)window.scrollTo(0,y);if(y===0){if(box)box.scrollTop=0;document.body.scrollTop=0;window.scrollTo(0,0)}if(k<1)requestAnimationFrame(step);else done()}requestAnimationFrame(step)}
 function boot(){box=ds.scroll?$(ds.scroll):null;
   if(NAV){nav=$(NAV);if(nav){var cs=getComputedStyle(nav);if(cs.position!=='sticky'&&cs.position!=='fixed')nav=null;else{var c=bgOf(nav);nav.style.setProperty('--ux-navbg','rgba('+c.r+','+c.g+','+c.b+',.82)');nav.classList.add('ux-nav');/* 只有單列、約 80px 高的導覽列才收合；兩列（標題＋分頁）的收了會把分頁蓋掉 */if(nav.offsetHeight>=76&&nav.offsetHeight<=88)nav.classList.add('ux-shrink')}}}
   if(ds.top!=='0'&&window.top===window.self||ds.top==='1'){btn=document.createElement('button');btn.id='uxTop';btn.type='button';btn.className='noprint';btn.setAttribute('aria-label','Back to top');btn.title='回到頂部 Back to top';btn.textContent='↑';btn.onclick=toTop;document.body.appendChild(btn)}
