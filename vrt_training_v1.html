@@ -364,9 +364,9 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
     </div>
   </div>
   <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px;font-size:11px;color:var(--txt2)">
-    <span style="display:flex;align-items:center;gap:4px"><span class="sc-cell s1">計</span><span data-i18n="legend.plan">計劃</span></span>
+    <span style="display:flex;align-items:center;gap:4px"><span class="sc-cell s1" id="lg-s1">計</span><span data-i18n="legend.plan">計劃</span></span>
     <span style="display:flex;align-items:center;gap:4px"><span class="sc-cell s2">✓</span><span data-i18n="legend.done">已執行</span></span>
-    <span style="display:flex;align-items:center;gap:4px"><span class="sc-cell s3">延</span><span data-i18n="legend.pend">延後</span></span>
+    <span style="display:flex;align-items:center;gap:4px"><span class="sc-cell s3" id="lg-s3">延</span><span data-i18n="legend.pend">延後</span></span>
     <span style="display:flex;align-items:center;gap:4px"><span class="sc-cell s4">✕</span><span data-i18n="legend.cancel">取消</span></span>
     <span style="color:var(--muted);font-size:10px" data-i18n="legend.hint">點擊月份格切換狀態</span>
   </div>
@@ -1004,6 +1004,8 @@ function str(key){ const d=DICT[key];if(!d) return key;return d[LANG]||(LANG!=='
 
 // Apply i18n to all [data-i18n] elements
 function applyI18n(){
+  /* 2026-11-22：標題、圖例、狀態選單跟著語言走（柬文沒有就英文） */
+  try{var _t=LANG==='zh'?'VRT 人資培訓計劃系統':LANG==='en'?'VRT HR Training Plan':'VRT ផែនការបណ្តុះបណ្តាល';document.getElementById('ht').textContent=_t;document.title=_t+' '+CURRENT_YEAR;var _ss=statusS();['1','3'].forEach(function(k){var e=document.getElementById('lg-s'+k);if(e)e.textContent=_ss[+k]||e.textContent;});document.querySelectorAll('select option').forEach(function(o){if(o.dataset.zh===undefined&&/^[計延]$/.test(o.textContent))o.dataset.zh=o.textContent;if(o.dataset.zh)o.textContent=LANG==='zh'?o.dataset.zh:(_ss[+o.value]||o.dataset.zh);});}catch(e){}
   document.querySelectorAll('[data-i18n]').forEach(el=>{
     el.textContent=str(el.dataset.i18n);
   });
@@ -1040,8 +1042,8 @@ function monthsS(){return MONTHS_EN;}
 function catN(c){return LANG==='kh'?(CAT_KH[c]||c):(CAT_ZH[c]||c);}
 function status(){return LANG==='zh'?STATUS_ZH:LANG==='en'?STATUS_EN:STATUS_KH;}
 function statusS(){return LANG==='zh'?STATUS_S_ZH:LANG==='en'?STATUS_S_EN:STATUS_S_KH;}
-function name(tr){return LANG==='zh'?tr.nameZH:(LANG==='en'?tr.nameEN:(tr.nameKH||tr.nameZH));}
-function trainee(tr){return LANG==='zh'?tr.traineeZH:(LANG==='en'?tr.traineeEN:(tr.traineeKH||tr.traineeZH));}
+function name(tr){return LANG==='zh'?tr.nameZH:(LANG==='en'?(tr.nameEN||tr.nameZH):(tr.nameKH||tr.nameEN||tr.nameZH));}
+function trainee(tr){return LANG==='zh'?tr.traineeZH:(LANG==='en'?(tr.traineeEN||tr.traineeZH):(tr.traineeKH||tr.traineeEN||tr.traineeZH));}
 
 function setLang(l){
   LANG=l;
@@ -1229,7 +1231,7 @@ function updSyncBadge(){
     const d2=new Date(lastSync.replace(/\//g,'-'));
     const diff=isNaN(d2)?999:Math.round((Date.now()-d2.getTime())/60000);
     dot.className=diff<120?'sync-dot green':'sync-dot yellow';
-    txt.textContent=diff<120?(LANG!=='zh'?'Synced ✓':'已同步 ✓'):'建議重新同步';
+    txt.textContent=diff<120?(LANG!=='zh'?'Synced ✓':'已同步 ✓'):(LANG!=='zh'?'Sync again':'建議重新同步');
     if(tim) tim.textContent=(LANG!=='zh'?'':'上次 ')+lastSync;
   }else{
     dot.className='sync-dot yellow';
@@ -1320,7 +1322,7 @@ function renderMatrix(){
     return `<tr>
       <td style="text-align:center;color:var(--muted);font-size:11px">${i+1}</td>
       <td><span class="cb c-${tr.category}">${catN(tr.category)}</span></td>
-      <td><span style="font-weight:600;font-size:12px;display:block">${tr.nameZH}</span>${LANG!=='zh'?`<span style="font-size:10px;color:var(--muted)">${LANG==='en'?tr.nameEN:(tr.nameKH||tr.nameEN)}</span>`:''}</td>
+      <td><span style="font-weight:600;font-size:12px;display:block">${name(tr)||tr.nameZH}</span></td>
       <td style="font-size:11px;color:var(--txt2)">${tr.trainer||'—'}</td>
       <td style="text-align:center">${tr.hours}</td>
       <td style="font-size:11px;color:var(--txt2)">${trainee(tr)||'—'}</td>
