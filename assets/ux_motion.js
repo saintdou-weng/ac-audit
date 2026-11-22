@@ -1,4 +1,4 @@
-/* ux_motion.js v1（2026-11-22）· 介面動效（純外掛，不改原頁任何函式；拿掉這支 script 就完全恢復原樣）
+/* ux_motion.js v2（2026-11-22）· 介面動效（純外掛，不改原頁任何函式；拿掉這支 script 就完全恢復原樣）
    1 懸停回饋：按鈕上移 2px、陰影加深、變暗 8%、150ms ease-out（只在有滑鼠的裝置；已有 transform 的按鈕不碰）
    2 游標聚光燈：深色卡片網格上跟著滑鼠的 240px／15% 光圈，照亮範圍內卡片邊框（座標寫在 CSS 變數 --ux-x/--ux-y）
    3 3D 傾斜：重點卡片最大 8°、perspective 1000px、放大 1.02，離開 300ms 復位（卡片不套規則 1，避免 transform 打架）
@@ -10,6 +10,9 @@
 'use strict';
 if(window.__uxMotion)return;window.__uxMotion=1;
 var sc=document.currentScript||{},ds=sc.dataset||{};
+/* 同一頁如果已經有另一支動效（HRA Portal 的 shared/ui-fx.js，記號 __acUiFx）就整支讓位，不重複套；關閉方式也和它一致：網址加 ?fx=off 或 localStorage.ac_ui_fx='off' */
+function other(){try{if(/[?&]fx=off/.test(location.search)||localStorage.getItem('ac_ui_fx')==='off')return true}catch(e){}return !!(window.__acUiFx||document.querySelector('script[src*="ui-fx"]'))}
+function main(){if(other())return;
 var BTN=ds.btn||'button,.btn,[role="button"],input[type="button"],input[type="submit"]',CARDS=ds.cards||'',GRID=ds.grid||'',NAV=ds.nav||'',SKIP=ds.skip||'';
 var fine=window.matchMedia&&matchMedia('(hover:hover) and (pointer:fine)').matches,calm=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches;
 var $=function(s,r){try{return (r||document).querySelector(s)}catch(e){return null}},closest=function(el,s){try{return s&&el&&el.closest?el.closest(s):null}catch(e){return null}};
@@ -67,5 +70,6 @@ function boot(){box=ds.scroll?$(ds.scroll):null;
   if(NAV){nav=$(NAV);if(nav){var cs=getComputedStyle(nav);if(cs.position!=='sticky'&&cs.position!=='fixed')nav=null;else{var c=bgOf(nav);nav.style.setProperty('--ux-navbg','rgba('+c.r+','+c.g+','+c.b+',.82)');nav.classList.add('ux-nav');/* 只有單列、約 80px 高的導覽列才收合；兩列（標題＋分頁）的收了會把分頁蓋掉 */if(nav.offsetHeight>=76&&nav.offsetHeight<=88)nav.classList.add('ux-shrink')}}}
   if(ds.top!=='0'&&window.top===window.self||ds.top==='1'){btn=document.createElement('button');btn.id='uxTop';btn.type='button';btn.className='noprint';btn.setAttribute('aria-label','Back to top');btn.title='回到頂部 Back to top';btn.textContent='↑';btn.onclick=toTop;document.body.appendChild(btn)}
   document.addEventListener('scroll',function(e){var t=e.target;if(t===document||t===document.body||t===document.documentElement||t===box)ask()},{passive:true,capture:true});window.addEventListener('resize',ask,{passive:true});ask()}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+boot()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',main);else main();
 })();
