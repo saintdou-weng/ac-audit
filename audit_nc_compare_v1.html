@@ -136,7 +136,9 @@ const TOPICS=[
  ['lab','🔬','品質實驗室／測試','Quality lab & testing',/laborator|grey scale|crocking|testing|GRCG 17/i],
  ['hours','⏱','工時／加班','Working hours',/overtime|working hours|rest day|加班/i],
  ['wage','💵','工資／福利','Wages & benefits',/wage|salary|payslip|bonus|nssf|allowance|meal|deduct|medical exam fee|reimburs|resigned|工資/i],
- ['trace','♻️','GRS 追溯／標示','GRS traceability & labelling',/trace|transaction certificate|\bTC\b|mass balance|label|recycled/i]];
+ ['trace','♻️','GRS 追溯／標示','GRS traceability & labelling',/trace|transaction certificate|\bTC\b|mass balance|label|recycled/i],
+ ['env','🌿','環境政策／許可','Environmental policy & permits',/environmental policy|waste permit|solid waste|environmental (law|permit)|air emission/i],
+ ['policy','📘','政策／程序／內部稽核','Policies, procedures & internal audit',/policy|procedure|remediation|internal audit|discipl|trafficking|monitoring system|IT |backup|seal|GPS|container|tracking/i]];
 const topicOf=n=>{const s=[n.clause,n.desc].join(' ');const t=TOPICS.find(x=>x[4].test(s))||TOPICS.find(x=>x[4].test(String(n.cap||'')));return n.topic&&TOPICS.find(x=>x[0]===n.topic)?n.topic:(t?t[0]:'other')};
 const TN=id=>{const t=TOPICS.find(x=>x[0]===id);return t?t[1]+' '+(LANG==='en'?t[3]:t[2]):T('📌 其他','📌 Other')};
 /* ── 資料 ── */
