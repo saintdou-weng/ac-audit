@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>年度驗廠 NC 比對 · AC Audit</title>
+<style>
+:root{--bg:#f3f6fa;--card:#fff;--line:#e2e8f0;--ink:#0f172a;--mut:#64748b;--teal:#0f766e;--red:#dc2626;--amb:#d97706;--grn:#16a34a;--blu:#2563eb;--pur:#7c3aed}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Noto Sans TC","Noto Sans Khmer",sans-serif}
+.top{position:sticky;top:0;z-index:20;background:#0f2a3d;color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.top a{color:#cde;text-decoration:none;font-size:13px}.top h1{font-size:16px;margin:0;font-weight:800}.top .sp{flex:1}
+.lang button{background:transparent;border:1px solid #567;color:#fff;border-radius:7px;padding:3px 8px;font-size:12px;cursor:pointer}.lang button.on{background:#fff;color:#0f2a3d}
+.wrap{max-width:1250px;margin:0 auto;padding:12px}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.seg button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;margin:2px}.seg button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn{border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;white-space:nowrap}.btn.p{background:var(--teal);border-color:var(--teal);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn.d{color:var(--red);border-color:#fecaca}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-bottom:12px}
+.k{background:#fff;border:1px solid var(--line);border-left:6px solid var(--teal);border-radius:14px;padding:12px 14px}
+.k h3{margin:0;font-size:15px}.k .big{font-size:24px;font-weight:900}.k .sub{font-size:12px;color:var(--mut)}
+.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;margin:1px}
+.p-maj{background:#fee2e2;color:#991b1b}.p-min{background:#fef3c7;color:#92400e}.p-obs{background:#e0f2fe;color:#075985}.p-crit{background:#7f1d1d;color:#fff}
+.p-open{background:#fee2e2;color:#b91c1c}.p-closed{background:#dcfce7;color:#166534}
+.sect{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}
+.sect>h2{font-size:15px;margin:0;padding:10px 14px;border-bottom:1px solid #f1f5f9;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sect>h2 .r{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{padding:7px 9px;border-bottom:1px solid #f1f5f9;text-align:left;vertical-align:top;font-size:13px}th{background:#f8fafc;color:#475569;font-size:12px;white-space:nowrap}
+.mono{font-family:ui-monospace,monospace}.mut{color:var(--mut);font-size:12px}
+.heat td.c{text-align:center;min-width:54px}.heat .h1{background:#fef3c7}.heat .h2{background:#fdba74}.heat .h3{background:#f87171;color:#fff}
+.rep{border-left:5px solid var(--red)}.yr{font-size:22px;font-weight:900;color:var(--teal)}
+.old{opacity:.75}.hint{background:#eefafb;border:1px solid #b8dde3;color:#285d69;border-radius:10px;padding:9px 12px;font-size:12.5px;margin:8px 14px}
+.dept{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;padding:12px 14px}
+.dept>div{border:1px solid var(--line);border-radius:12px;padding:10px 12px}.dept h4{margin:0 0 4px;font-size:14px}.dept ul{margin:6px 0 0;padding-left:18px}.dept li{margin:2px 0}
+#mask{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:9999;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:14px}#mask.on{display:flex}
+#dlg{background:#fff;border-radius:14px;width:min(720px,100%);padding:16px}#dlg label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#475569;margin-bottom:8px}#dlg input,#dlg select,#dlg textarea{border:1px solid #cbd5e1;border-radius:8px;padding:7px 9px;font-size:14px;color:var(--ink)}#dlg .g{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0f172a;color:#fff;padding:9px 14px;border-radius:10px;font-size:13px;display:none;z-index:99999}
+@media(max-width:640px){th,td{font-size:12px;padding:6px}.top h1{font-size:14px}}
+</style></head><body>
+<div class="top"><a href="ac_audit_platform_v1.html">← AC Audit</a><h1>🔁 <span data-t="title">年度驗廠 · NC／CAP 比對</span></h1><span class="sp"></span><span class="mut" id="sync" style="color:#9fb"></span><div class="lang"><button data-l="zh">中</button><button data-l="en">EN</button></div></div>
+<div class="wrap" id="app"></div>
+<div id="mask"><div id="dlg"></div></div><div id="toast"></div>
+<input type="file" id="imp" accept=".xlsx,.xls,.csv,.json" hidden>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="assets/ac_tool_sync.js?v=5"></script>
+<script src="assets/ac_autosync.js?v=4"></script>
+<script>
+/* 年度驗廠 NC／CAP 比對 v1（2026-11-24，Paul）
+   Paul：每年的 audit（GRS、WSE、WRAP）要分年度更新，不用一直放過期的在前面；可以比對有沒有相同的 NC 及 CAP，
+         更直覺、更自動化、視覺化、易懂易操作。
+   · 每個標準只把「最新一次」放最上面；舊年度收在「歷年紀錄」，要看再展開。
+   · 每條 NC 自動歸類主題（急救箱、逃生通道、證照過期、保安門禁、化學品…），跨年度出現兩次以上就列在「重複出現的 NC」，並標出是哪幾年。
+   · 熱度表：主題 × 年度，一眼看出哪一類年年被開。
+   · 內建資料：從 Paul 雲端信箱的報告／CAP 整理（WRAP 2020、2021、2022、2025；WSE 2025）。可新增／修改／刪除，也可匯入 CAP Excel。
+   · 存在本機 ac_audit_nc_v1，用 ACAuto（Audit 雲端 tools）同步；內建資料改過的以修改的為準，刪除用墓碑不會復活。 */
+(function(){
+const K='ac_audit_nc_v1';let LANG='zh';try{LANG=localStorage.getItem('ac_audit_lang')||'zh'}catch(e){}if(LANG!=='en')LANG='zh';
+const T=(zh,en)=>LANG==='en'?en:zh;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const NOW=()=>new Date().toISOString();
+/* ── 內建：信箱裡找到的報告／CAP ── */
+const N=(no,rating,clause,desc,cap,due,status)=>({no,rating,clause,desc,cap:cap||'',due:due||'',status:status||'closed'});
+const SEED=[
+ {id:'WRAP-2020',std:'WRAP',year:2020,date:'2020-10',firm:'Intertek',type:'Initial 初次認證',result:'認證通過（CAP 結案）',src:'Email「WRAP CAP」2020-11-04（Heng Sokha）證據檔名；完整報告待補',ncs:[
+  N('NC1','Minor','','Suppliers / contractors had not signed the code acknowledgement (Fumei accessories, Harvest cartons)','取得供應商簽署確認書','2020-11'),
+  N('NC2','Minor','','Fire inspection record missing (inspection done 2020-11-03)','','2020-11'),
+  N('NC3','Minor','','No ergonomic anti-fatigue mats for standing work','','2020-11'),
+  N('NC4','Minor','','No criminal record check for security / new staff','','2020-11')]},
+ {id:'WRAP-2021',std:'WRAP',year:2021,date:'2021-10-21',firm:'Eurofins',type:'Renewal 續證',result:'認證通過（CAP 結案）',src:'Audit summary (Oct 21~22, 2021) — Eurofins CAP',ncs:[
+  N('NC1','Minor','Q8.22b','No first aid box in the kitchen area for cook usage.','Installed first aid box in kitchen','2021-10-22'),
+  N('NC2','Minor','Q8.31d','Two electrical boxes (kitchen, nurse room) not posted with safety signs.','Printed and posted safety signs','2021-11-05'),
+  N('NC3','Minor','Q8.40d','No yellow line marking the pathway to the exit at the cutting section.','Maintenance drew pathway lines to exit','2021-10-22'),
+  N('NC4','Minor','Q8.50e','Aisle in front of the stairs (accessories warehouse mezzanine) partly blocked.','Re-arranged housekeeping, aisle cleared','2021-10-22'),
+  N('NC5','Minor','Q8.55b','Thinner used for product cleaning but no eyewash installed (MSDS).','Purchased and installed eyewash station','2021-11-05'),
+  N('NC6','Minor','Q10.5','Solid waste disposal permit expired 2021-10-16.','Renewed permit','2021-11-05'),
+  N('OBS1','Observation','Q8.1','Fire license close to expiry (2021-11-03).','Renewed fire license (valid 1 year)','2021-11-05')]},
+ {id:'WRAP-2022',std:'WRAP',year:2022,date:'2022-10-24',firm:'Eurofins',type:'Renewal 續證',result:'認證通過（CAP 結案）',src:'KH_VANT_2 WRAP CAP October 24-25 2022',ncs:[
+  N('NC01','Minor','Q8.56','2 machine-oil cans at maintenance without secondary containment.','Secondary containment trays','2022-11-15'),
+  N('NC02','Minor','Q8.67','Emergency stop button of heat transfer machine not identified.','Labelled with instructions','2022-11-15'),
+  N('NC03','Minor','Q8','No noise test report.','Noise test by licensed lab','2022-11-15'),
+  N('NC04','Minor','Q8','No indoor air quality test report.','Air quality test report','2022-11-15'),
+  N('NC05','Minor','Q8','No dust test report.','Dust test report','2022-11-15'),
+  N('NC06','Minor','Q8','No illumination test report.','Light test report','2022-11-15'),
+  N('NC07','Minor','Q12.9.2a','No fencing at packing area.','Moved packing back to Shop A with fence','2022-11-15'),
+  N('NC08','Minor','Q12.10.1b','No restricted access control at packing area.','Fence + security guard at packing','2022-11-15')]},
+ {id:'WRAP-2025',std:'WRAP',year:2025,date:'2025-02-13',firm:'Eurofins',type:'Renewal 續證',result:'認證通過（CAP 結案）',src:'wrap audit report 2025.pdf（Eurofins, 2025-02-13~14）',ncs:[
+  N('NC#01','Minor','Q8.18a','2 of 8 western toilets for pregnant workers had no seats / lids (Prakas 052).','Toilets maintained, seats fitted','2025-02-27'),
+  N('NC#02','Minor','Q8.18c','Female toilets not stocked with toilet paper (Prakas 052).','Toilets fully stocked','2025-02-27'),
+  N('NC#03','Minor','Q8.22b','2 of 8 first aid kits at sewing had 10 items instead of 16 (Prakas 330).','Kits refilled to legal list','2025-02-27'),
+  N('NC#04','Minor','Q8.40d','Exit routes not marked at fabric warehouse and cutting (Labor Law art. 230).','Exit routes marked in all sections','2025-02-27'),
+  N('NC#05','Minor','Q8.62','5 of 40 sewing operators had the needle guard set too high.','Needle guards set and checked','2025-02-27'),
+  N('NC#06','Minor','Q12.10.1c','No updated list of terminated workers at the main gate since Jan 2025.','Monthly terminated list at gate','2025-02-27'),
+  N('NC#07','Minor','Q12.10.2','Visitors not registered / photo ID not checked; visitor log without signature.','Visitor registration + ID + signature','2025-02-27')]},
+ {id:'WSE-2025',std:'WSE',year:2025,date:'2025-09-15',firm:'SGT / Qualspec (Woolworths)',type:'WSE Technical',result:'Desktop CAP review 2025-10-13；第 2 次 CAP 已交',src:'WSE CAP-WP006341 2nd submitted（2025-10-20）',ncs:[
+  N('Major-1','Major','GRCG 17.1–17.3','Laboratory not adequately established: grey scale, crocking tester, washing machine missing; lab staff without third-party training.','Purchase plan (grey scale, rulers, light box, wash machine) + staff training; outsource tests to ISO/IEC 17025 labs meanwhile','2025-10-28','open'),
+  N('Minor-1','Minor','GRCG 11.3','Ceiling watermarks; cutting tables dirty; no cleaning schedule in cutting.','Deep clean + cutting cleaning schedule with photos','2025-10-28')]}
+];
+/* 主題自動歸類（關鍵字＋條款） */
+const TOPICS=[
+ ['envtest','🔊','環境檢測（噪音、空氣、粉塵、照度）','Workplace tests (noise, air, dust, light)',/noise|air quality|dust|illumination|light test/i],
+ ['firstaid','🩹','急救箱／醫務','First aid',/first aid|infirmary|急救/i],
+ ['exit','🚪','逃生通道／標線','Exits & aisles',/exit|aisle|pathway|evacuat|通道|Q8\.40|Q8\.50/i],
+ ['permit','📜','證照／許可過期','Permits & licences',/permit|licen[cs]e|expir|過期|fire inspection/i],
+ ['chem','🧪','化學品／洗眼／二次圍堵','Chemicals, eyewash, containment',/chemical|thinner|machine.?oil|msds|eye.?wash|containment/i],
+ ['elec','⚡','電氣／緊急停止','Electrical & emergency stop',/electric|emergency stop/i],
+ ['machine','🧵','機台安全防護','Machine guarding',/needle guard|machine guard|pulley guard|belt guard|eye guard/i],
+ ['toilet','🚻','廁所／清潔衛生','Toilets, cleaning & hygiene',/toilet|clean|hygien|watermark|dirt/i],
+ ['security','🛡','保安／門禁／訪客','Security, access & visitors',/security|visitor|terminated|access|fenc|restricted|crim|background|保安|門禁|訪客/i],
+ ['supplier','🤝','供應商／承包商','Suppliers & contractors',/supplier|contractor|acknowledg/i],
+ ['ergo','🪑','人體工學','Ergonomics',/ergonom|anti.?fatigue|mat\b/i],
+ ['lab','🔬','品質實驗室／測試','Quality lab & testing',/laborator|grey scale|crocking|testing|GRCG 17/i],
+ ['hours','⏱','工時／加班','Working hours',/overtime|working hours|rest day|加班/i],
+ ['wage','💵','工資／福利','Wages & benefits',/wage|salary|payslip|bonus|nssf|工資/i],
+ ['trace','♻️','GRS 追溯／標示','GRS traceability & labelling',/trace|transaction certificate|\bTC\b|mass balance|label|recycled/i]];
+const topicOf=n=>{const s=[n.clause,n.desc].join(' ');const t=TOPICS.find(x=>x[4].test(s))||TOPICS.find(x=>x[4].test(String(n.cap||'')));return n.topic&&TOPICS.find(x=>x[0]===n.topic)?n.topic:(t?t[0]:'other')};
+const TN=id=>{const t=TOPICS.find(x=>x[0]===id);return t?t[1]+' '+(LANG==='en'?t[3]:t[2]):T('📌 其他','📌 Other')};
+/* ── 資料 ── */
+function getM(){try{return JSON.parse(localStorage.getItem(K)||'{}')||{}}catch(e){return {}}}
+function putM(o){try{localStorage.setItem(K,JSON.stringify(o))}catch(e){toast(T('本機空間不足','Storage full'))}if(window.ACAuto&&ACAuto.touch)ACAuto.touch()}
+function audits(){const M=getM(),out={};SEED.forEach(a=>out[a.id]=Object.assign({},a,{_seed:1}));Object.values(M).forEach(a=>{if(!a||!a.id)return;if(a.deleted){delete out[a.id];return}out[a.id]=Object.assign({},out[a.id]||{},a)});return Object.values(out).sort((a,b)=>String(b.date||b.year).localeCompare(String(a.date||a.year)))}
+const STDS=['WRAP','GRS','WSE','C-TPAT','Other'];
+let F={std:'',showOld:false,q:''};
+function latestByStd(list){const m={};list.forEach(a=>{if(!m[a.std]||String(a.date||a.year)>String(m[a.std].date||m[a.std].year))m[a.std]=a});return m}
+function recurring(list){const by={};list.forEach(a=>(a.ncs||[]).forEach(n=>{const t=topicOf(n);(by[t]=by[t]||[]).push({a,n})}));return Object.keys(by).map(t=>({t,items:by[t],years:[...new Set(by[t].map(x=>x.a.year))].sort()})).sort((x,y)=>y.years.length-x.years.length||y.items.length-x.items.length)}
+/* ── 畫面 ── */
+function rp(r){r=String(r||'');return /crit/i.test(r)?'p-crit':/maj/i.test(r)?'p-maj':/obs/i.test(r)?'p-obs':'p-min'}
+function auditCard(a,old){const ncs=a.ncs||[],open=ncs.filter(n=>n.status==='open').length,cnt=r=>ncs.filter(n=>new RegExp(r,'i').test(n.rating)).length;
+ return `<div class="sect ${old?'old':''}"><h2><span class="yr">${esc(a.year)}</span> <b>${esc(a.std)}</b> <span class="mut">${esc(a.type||'')} · ${esc(a.firm||'')} · ${esc(a.date||'')}</span>${cnt('maj')?`<span class="pill p-maj">Major ${cnt('maj')}</span>`:''}${cnt('min')?`<span class="pill p-min">Minor ${cnt('min')}</span>`:''}${cnt('obs')?`<span class="pill p-obs">Obs ${cnt('obs')}</span>`:''}${open?`<span class="pill p-open">${T('未結案','Open')} ${open}</span>`:`<span class="pill p-closed">✓ ${T('全部結案','All closed')}</span>`}<span class="r"><button class="btn sm" onclick="NC.addNc('${esc(a.id)}')">＋ NC</button><button class="btn sm" onclick="NC.editAudit('${esc(a.id)}')">✏</button><button class="btn sm d" onclick="NC.delAudit('${esc(a.id)}')">🗑</button></span></h2>
+ ${a.result||a.src?`<div class="mut" style="padding:6px 14px">${a.result?'🏁 '+esc(a.result):''}${a.src?' · 📎 '+esc(a.src):''}</div>`:''}
+ <div class="tw"><table><thead><tr><th>#</th><th>${T('等級','Rating')}</th><th>${T('條款','Clause')}</th><th>${T('主題','Topic')}</th><th>${T('問題','Finding')}</th><th>CAP</th><th>${T('期限','Due')}</th><th>${T('狀態','Status')}</th><th></th></tr></thead><tbody>${ncs.map((n,i)=>{const t=topicOf(n),rep=RECUR[t]&&RECUR[t]>1;return `<tr class="${rep?'rep':''}"><td class="mono">${esc(n.no)}</td><td><span class="pill ${rp(n.rating)}">${esc(n.rating)}</span></td><td class="mono">${esc(n.clause)}</td><td>${TN(t)}${rep?`<div class="mut" style="color:var(--red)">🔁 ${T('第','seen in')} ${RECUR[t]} ${T('個年度','years')}</div>`:''}</td><td>${esc(n.desc)}</td><td class="mut">${esc(n.cap)}</td><td class="mono">${esc(n.due)}</td><td><button class="btn sm" onclick="NC.toggle('${esc(a.id)}',${i})"><span class="pill ${n.status==='open'?'p-open':'p-closed'}">${n.status==='open'?T('未結','Open'):T('結案','Closed')}</span></button></td><td style="white-space:nowrap"><button class="btn sm" onclick="NC.editNc('${esc(a.id)}',${i})">✏</button><button class="btn sm d" onclick="NC.delNc('${esc(a.id)}',${i})">🗑</button></td></tr>`}).join('')||`<tr><td colspan="9" class="mut">${T('沒有 NC','No NC')}</td></tr>`}</tbody></table></div></div>`}
+let RECUR={};
+function render(){const all=audits(),list=all.filter(a=>(!F.std||a.std===F.std)&&(!F.q||JSON.stringify(a).toLowerCase().includes(F.q.toLowerCase())));
+ const rec=recurring(list);RECUR={};rec.forEach(r=>RECUR[r.t]=r.years.length);
+ const latest=latestByStd(all),stds=STDS.filter(s=>all.some(a=>a.std===s));
+ const yrs=[...new Set(list.map(a=>a.year))].sort();
+ let h=`<div class="bar"><div class="seg">${['',...stds].map(s=>`<button class="${F.std===s?'on':''}" onclick="NC.f('std','${s}')">${s||T('全部','All')}</button>`).join('')}</div><input id="q" placeholder="🔍 ${T('搜尋條款／問題','Search clause / finding')}" value="${esc(F.q)}" style="border:1px solid var(--line);border-radius:8px;padding:6px 9px;flex:1;min-width:150px"><button class="btn p" onclick="NC.addAudit()">＋ ${T('新增驗廠','Add audit')}</button><button class="btn" onclick="document.getElementById('imp').click()">⬆ ${T('匯入 CAP','Import CAP')}</button><button class="btn" onclick="NC.exportX()">⬇ Excel</button></div>`;
+ /* 最新一次 */
+ h+=`<div class="cards">${stds.map(s=>{const a=latest[s],ncs=a.ncs||[],open=ncs.filter(n=>n.status==='open').length,rep=ncs.filter(n=>(RECUR[topicOf(n)]||0)>1).length;return `<div class="k" style="border-left-color:${open?'var(--red)':'var(--grn)'}"><h3>${esc(s)} <span class="mut">${T('最新','latest')}</span></h3><div class="big">${esc(a.year)}</div><div class="sub">${esc(a.date||'')} · ${esc(a.firm||'')}</div><div style="margin-top:4px">${ncs.length} NC ${open?`<span class="pill p-open">${T('未結','open')} ${open}</span>`:`<span class="pill p-closed">✓</span>`}${rep?` <span class="pill p-maj">🔁 ${T('重複','repeat')} ${rep}</span>`:''}</div></div>`}).join('')}</div>`;
+ /* 重複出現 */
+ const reps=rec.filter(r=>r.years.length>1);
+ h+=`<div class="sect"><h2>🔁 ${T('重複出現的 NC（跨年度同一類）','Repeat findings (same topic across years)')} <span class="pill p-maj">${reps.length}</span></h2>${reps.length?`<div class="hint">${T('這些是「改了又被開」的類別：建議放進每月自主檢查表，在驗廠前一個月由負責部門自己先查一次。','These keep coming back after being fixed: put them on the monthly self-check list, checked by the owner department a month before each audit.')}</div><div class="tw"><table><thead><tr><th>${T('主題','Topic')}</th><th>${T('出現年度','Years')}</th><th>${T('次數','Count')}</th><th>${T('歷次問題','Findings')}</th></tr></thead><tbody>${reps.map(r=>`<tr><td><b>${TN(r.t)}</b></td><td>${r.years.map(y=>`<span class="pill p-min">${y}</span>`).join('')}</td><td class="mono"><b>${r.items.length}</b></td><td class="mut">${r.items.map(x=>`<div>${x.a.year} ${esc(x.a.std)} ${esc(x.n.no)}${x.n.clause?' ('+esc(x.n.clause)+')':''}：${esc(String(x.n.desc).slice(0,110))}</div>`).join('')}</td></tr>`).join('')}</tbody></table></div>`:`<div class="hint">${T('目前沒有跨年度重複的類別。','No repeating topics.')}</div>`}</div>`;
+ /* 熱度表 */
+ if(yrs.length>1)h+=`<div class="sect"><h2>🔥 ${T('主題 × 年度','Topic × year')}</h2><div class="tw"><table class="heat"><thead><tr><th>${T('主題','Topic')}</th>${yrs.map(y=>`<th style="text-align:center">${y}</th>`).join('')}</tr></thead><tbody>${rec.map(r=>`<tr><td>${TN(r.t)}</td>${yrs.map(y=>{const n=r.items.filter(x=>x.a.year===y).length;return `<td class="c ${n>=3?'h3':n==2?'h2':n==1?'h1':''}">${n||''}</td>`}).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+ /* 年度清單：每個標準最新的在前；舊的收起 */
+ const latestIds=new Set(Object.values(latest).map(a=>a.id));
+ const cur=list.filter(a=>latestIds.has(a.id)),old=list.filter(a=>!latestIds.has(a.id));
+ h+=cur.map(a=>auditCard(a,false)).join('');
+ if(old.length)h+=`<div class="bar"><button class="btn" onclick="NC.f('showOld',${!F.showOld})">${F.showOld?'▲':'▼'} ${T('歷年紀錄','Earlier audits')} (${old.length})</button></div>${F.showOld?old.map(a=>auditCard(a,true)).join(''):''}`;
+ h+=deptGuide();
+ document.getElementById('app').innerHTML=h;
+ const q=document.getElementById('q');let tq=null;q.oninput=()=>{clearTimeout(tq);tq=setTimeout(()=>{F.q=q.value;render();const n=document.getElementById('q');n.focus();n.setSelectionRange(F.q.length,F.q.length)},300)};
+ document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG));document.querySelector('[data-t=title]').textContent=T('年度驗廠 · NC／CAP 比對','Yearly audits · NC / CAP comparison')}
+/* 各部門自評：依標準＋歷年重複 NC 整理 */
+function deptGuide(){const D=[
+ [T('👥 人事（HR）— Social','👥 HR — Social'),T('Phary（人資課長）','Phary (HR head)'),T('每月一次；驗廠前 1 個月全面自查','Monthly; full check 1 month before audits'),T('WRAP 原則 1–7（合法、禁止強迫勞動／童工、騷擾、工資福利、工時、歧視、結社）；柬埔寨勞動法 1997','WRAP Principles 1–7; Cambodia Labour Law 1997'),
+  [T('工資單、加班費、NSSF 與實發一致（抽 10 人）','Payslips, OT pay, NSSF match (sample 10)'),T('工時：每週加班不超過法定，有休息日','Hours: OT within legal limit, rest day'),T('新進：年齡證件、合約、試用期考核','New hires: age proof, contract, probation review'),T('離職名單每月更新給門口保安（2025 WRAP NC#06）','Monthly terminated list to the gate (2025 WRAP NC#06)')]],
+ [T('🛡 總務／保安（GA & Security）— C-TPAT／WRAP 12','🛡 GA & Security — C-TPAT / WRAP 12'),T('Phea（總務保安）','Phea (GA & Security)'),T('每週巡查；每月總檢','Weekly patrol; monthly review'),T('WRAP 原則 12（保安）、C-TPAT 最低安全要求','WRAP Principle 12, C-TPAT minimum security criteria'),
+  [T('訪客登記＋看證件＋簽名（2025 NC#07）','Visitor log + photo ID + signature (2025 NC#07)'),T('包裝／成品區圍籬與管制（2022 NC07–08）','Packing / finished-goods fence and access control (2022 NC07–08)'),T('保安與新人背景查核（2020 NC4）','Background checks (2020 NC4)'),T('證照到期表：消防、廢棄物、營業等提前 60 天續（2020–2021 重複）','Permit expiry list: fire, waste etc. renewed 60 days ahead (repeat 2020–2021)')]],
+ [T('🌿 環境（EHS）— 環境／GRS','🌿 EHS — Environment / GRS'),T('Malen（合規）＋ GA','Malen (Compliance) + GA'),T('每月；檢測每年','Monthly; tests yearly'),T('柬埔寨環境法規、WRAP 原則 10、GRS 環境與化學品要求','Cambodian environmental law, WRAP Principle 10, GRS environmental & chemical requirements'),
+  [T('噪音、空氣、粉塵、照度年度檢測報告（2022 NC03–06）','Yearly noise / air / dust / light reports (2022 NC03–06)'),T('化學品清單、MSDS、二次圍堵、洗眼器（2021 NC5、2022 NC01）','Chemical list, MSDS, containment, eyewash (2021 NC5, 2022 NC01)'),T('廢棄物許可與清運紀錄（2021 NC6）','Waste permit and pickup records (2021 NC6)'),T('GRS：投入／產出物料平衡、TC、標示','GRS: mass balance, TCs, labelling')]],
+ [T('⛑ 職安衛（H&S）— 全廠','⛑ Health & Safety — whole factory'),T('安衛委員會（Paul 主席）','H&S committee (Paul chairs)'),T('每月巡查；每半年會議','Monthly walk; meeting twice a year'),T('WRAP 原則 8；Prakas 330 急救、Prakas 052 廁所；勞動法第 229–230 條','WRAP Principle 8; Prakas 330 first aid; Prakas 052 toilets; Labour Law art. 229–230'),
+  [T('急救箱 16 項齊全（2021 NC1、2025 NC#03 重複）','First aid kits complete with 16 items (repeat 2021 NC1, 2025 NC#03)'),T('逃生通道標線、走道不堆物（2021 NC3–4、2025 NC#04 重複）','Exit lines, aisles clear (repeat 2021 NC3–4, 2025 NC#04)'),T('電箱警示、緊急停止標示（2021 NC2、2022 NC02）','Electrical warning signs, emergency stops (2021 NC2, 2022 NC02)'),T('廁所座墊、衛生紙（2025 NC#01–02）','Toilet seats and paper (2025 NC#01–02)')]],
+ [T('🏭 生產（車縫、裁剪、QC）— WSE 技術','🏭 Production (sewing, cutting, QC) — WSE technical'),T('阿凌（車間主任）＋ QC 主管','Aleak (workshop) + QC head'),T('每天 5S；每月技術自評','Daily 5S; monthly technical self-check'),T('Woolworths WSE：GRCG 一般要求、CPCC 汙染控制、CAPL 服裝','Woolworths WSE: GRCG, CPCC, CAPL'),
+  [T('針防護正確（2025 WRAP NC#05）','Needle guards set correctly (2025 WRAP NC#05)'),T('裁剪區清潔表＋天花板漏水（WSE 2025 Minor）','Cutting cleaning schedule, ceiling leaks (WSE 2025 minor)'),T('實驗室：色卡、摩擦測試、洗衣機、人員訓練（WSE 2025 Major 未結）','Lab: grey scale, crocking, wash test, staff training (WSE 2025 major, open)'),T('斷針、金屬管制紀錄','Broken needle / metal control records')]]];
+ return `<div class="sect"><h2>📋 ${T('各部門自評怎麼做（依最新標準＋歷年 NC）','How each department self-assesses (latest standards + past NCs)')}</h2><div class="hint">${T('每個部門每月照自己的清單查一次，結果記在 Assessment 頁；歷年被開過的項目（括號）是重點。驗廠前 1 個月由合規（Malen）做一次全廠模擬。標準版本以驗廠公司當年寄來的表單為準（2025 WRAP 用 2023 年 1 月版表單）。','Each department checks its list monthly and records it on the Assessment page; items in brackets were cited before. Compliance (Malen) runs a full mock audit one month before each audit. Use the form version the audit firm sends that year (2025 WRAP used the January 2023 edition).')}</div><div class="dept">${D.map(d=>`<div><h4>${d[0]}</h4><div class="mut">${T('負責','Owner')}：${d[1]} · ${d[2]}</div><div class="mut">${T('依據','Basis')}：${d[3]}</div><ul>${d[4].map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('')}</div></div>`}
+/* ── 操作 ── */
+function toast(s){const e=document.getElementById('toast');e.textContent=s;e.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>e.style.display='none',2400)}
+function save(a){const M=getM();a.updatedAt=NOW();delete a._seed;M[a.id]=a;putM(M);render()}
+function find(id){return audits().find(a=>a.id===id)}
+function dlg(html,onSave){const m=document.getElementById('mask'),d=document.getElementById('dlg');d.innerHTML=html+`<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px"><button class="btn" id="dx">${T('取消','Cancel')}</button><button class="btn p" id="ds">💾 ${T('儲存','Save')}</button></div>`;m.classList.add('on');d.querySelector('#dx').onclick=()=>m.classList.remove('on');m.onclick=e=>{if(e.target===m)m.classList.remove('on')};d.querySelector('#ds').onclick=()=>{const v={};d.querySelectorAll('[data-f]').forEach(i=>v[i.dataset.f]=i.value.trim());if(onSave(v)!==false)m.classList.remove('on')}}
+const fld=(f,l,v,type)=>type==='area'?`<label>${l}<textarea data-f="${f}" rows="3">${esc(v||'')}</textarea></label>`:type&&type.map?`<label>${l}<select data-f="${f}">${type.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select></label>`:`<label>${l}<input data-f="${f}" value="${esc(v||'')}"></label>`;
+window.NC={
+ f(k,v){F[k]=v;render()},
+ addAudit(){dlg(`<h3>＋ ${T('新增驗廠','Add audit')}</h3><div class="g">${fld('std',T('標準','Standard'),'WRAP',STDS)}${fld('year',T('年度','Year'),String(new Date().getFullYear()))}${fld('date',T('日期','Date'),'')}${fld('firm',T('驗廠公司','Audit firm'),'')}${fld('type',T('類型','Type'),'')}</div>${fld('result',T('結果','Result'),'')}${fld('src',T('來源檔','Source'),'')}`,v=>{if(!/^\d{4}$/.test(v.year)){toast(T('年度要 4 位數','Year must be 4 digits'));return false}const id=v.std+'-'+v.year+(audits().some(a=>a.id===v.std+'-'+v.year)?'-'+Date.now().toString(36).slice(-4):'');save({id,std:v.std,year:+v.year,date:v.date,firm:v.firm,type:v.type,result:v.result,src:v.src,ncs:[]})})},
+ editAudit(id){const a=find(id);if(!a)return;dlg(`<h3>✏ ${esc(a.std)} ${esc(a.year)}</h3><div class="g">${fld('date',T('日期','Date'),a.date)}${fld('firm',T('驗廠公司','Audit firm'),a.firm)}${fld('type',T('類型','Type'),a.type)}${fld('certTo',T('證書到期','Certificate valid to'),a.certTo)}</div>${fld('result',T('結果','Result'),a.result)}${fld('src',T('來源檔','Source'),a.src)}`,v=>{save(Object.assign({},a,v))})},
+ delAudit(id){const a=find(id);if(!a||!confirm(T(`刪除 ${a.std} ${a.year} 這次驗廠？`,`Delete ${a.std} ${a.year}?`)))return;const M=getM();M[id]={id,deleted:true,updatedAt:NOW()};putM(M);render()},
+ addNc(id){this.editNc(id,-1)},
+ editNc(id,i){const a=find(id);if(!a)return;const n=i>=0?a.ncs[i]:{no:'NC'+((a.ncs||[]).length+1),rating:'Minor',status:'open'};dlg(`<h3>${i>=0?'✏':'＋'} NC · ${esc(a.std)} ${esc(a.year)}</h3><div class="g">${fld('no','#',n.no)}${fld('rating',T('等級','Rating'),n.rating,['Critical','Major','Minor','Observation'])}${fld('clause',T('條款','Clause'),n.clause)}${fld('due',T('期限','Due'),n.due)}${fld('status',T('狀態','Status'),n.status||'open',['open','closed'])}${fld('topic',T('主題（空白＝自動）','Topic (blank = auto)'),n.topic||'',['',...TOPICS.map(t=>t[0])])}</div>${fld('desc',T('問題','Finding'),n.desc,'area')}${fld('cap','CAP',n.cap,'area')}`,v=>{const b=Object.assign({},a,{ncs:(a.ncs||[]).slice()});if(i>=0)b.ncs[i]=Object.assign({},n,v);else b.ncs.push(v);save(b)})},
+ delNc(id,i){const a=find(id);if(!a||!confirm(T('刪除這條 NC？','Delete this NC?')))return;const b=Object.assign({},a,{ncs:a.ncs.filter((_,k)=>k!==i)});save(b)},
+ toggle(id,i){const a=find(id);if(!a)return;const b=Object.assign({},a,{ncs:a.ncs.slice()});b.ncs[i]=Object.assign({},b.ncs[i],{status:b.ncs[i].status==='open'?'closed':'open'});save(b)},
+ exportX(){if(!window.XLSX){toast('XLSX ✗');return}const rows=[];audits().forEach(a=>(a.ncs||[]).forEach(n=>rows.push({Standard:a.std,Year:a.year,Date:a.date||'',Firm:a.firm||'',No:n.no,Rating:n.rating,Clause:n.clause||'',Topic:TN(topicOf(n)),Finding:n.desc||'',CAP:n.cap||'',Due:n.due||'',Status:n.status||''})));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'NC');XLSX.writeFile(wb,'VRT_Audit_NC_'+new Date().toISOString().slice(0,10)+'.xlsx')}
+};
+/* 匯入：本頁匯出的 Excel，或驗廠公司的 CAP 表（找含 Clause／Non-Conformance 欄的列） */
+document.getElementById('imp').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{let rows=[];if(/\.json$/i.test(f.name)){const d=JSON.parse(await f.text());rows=Array.isArray(d)?d:[]}else{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});wb.SheetNames.forEach(sn=>{const a=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''});let hi=a.findIndex(r=>r.some(c=>/clause|standard/i.test(String(c)))&&r.some(c=>/non.?conform|finding|description/i.test(String(c))));if(hi<0)return;const H=a[hi].map(c=>String(c).toLowerCase());const col=re=>H.findIndex(h=>re.test(h));const cC=col(/clause/),cD=col(/non.?conform|finding|description/),cA=col(/corrective|cap/),cDue=col(/due/),cS=col(/standard/),cY=col(/^year/),cR=col(/rating|level/),cN=col(/^no|#/),cSt=col(/status|closed/);a.slice(hi+1).forEach(r=>{if(!String(r[cD]||'').trim())return;rows.push({Standard:cS>=0?r[cS]:'',Year:cY>=0?r[cY]:'',No:cN>=0?r[cN]:'',Rating:cR>=0?r[cR]:(/major/i.test(r[cC])?'Major':/minor/i.test(r[cC])?'Minor':''),Clause:String(r[cC]||'').replace(/\((major|minor)\)/i,'').trim(),Finding:r[cD],CAP:cA>=0?r[cA]:'',Due:cDue>=0?String(r[cDue]):'',Status:cSt>=0&&/close|yes/i.test(String(r[cSt]))?'closed':'open'})})})}
+  if(!rows.length){toast(T('檔案裡找不到 NC 欄位','No NC columns found'));return}
+  let std=rows[0].Standard,yr=rows[0].Year;if(!std)std=(prompt(T('這份 CAP 是哪個標準？（WRAP／GRS／WSE）','Which standard? (WRAP / GRS / WSE)'),/wse/i.test(f.name)?'WSE':/grs/i.test(f.name)?'GRS':'WRAP')||'').trim().toUpperCase();if(!yr)yr=(prompt(T('年度？','Year?'),String(new Date().getFullYear()))||'').trim();if(!std||!/^\d{4}$/.test(String(yr)))return;
+  const M=getM();let add=0,upd=0;const groups={};rows.forEach(r=>{const s=String(r.Standard||std).toUpperCase(),y=+(r.Year||yr);(groups[s+'-'+y]=groups[s+'-'+y]||{s,y,rows:[]}).rows.push(r)});
+  Object.values(groups).forEach(g=>{const id=g.s+'-'+g.y;const a=Object.assign({id,std:g.s,year:g.y,ncs:[]},find(id)||{});const ncs=(a.ncs||[]).slice();g.rows.forEach(r=>{const n={no:String(r.No||''),rating:r.Rating||'Minor',clause:String(r.Clause||''),desc:String(r.Finding||''),cap:String(r.CAP||''),due:String(r.Due||''),status:r.Status||'open'};const k=ncs.findIndex(x=>(x.no&&x.no===n.no)||(x.clause===n.clause&&String(x.desc).slice(0,40)===n.desc.slice(0,40)));if(k>=0){ncs[k]=Object.assign({},ncs[k],n);upd++}else{ncs.push(n);add++}});a.ncs=ncs;a.updatedAt=NOW();delete a._seed;M[id]=a});putM(M);render();toast(T(`匯入：新增 ${add}，更新 ${upd}`,`Imported: ${add} new, ${upd} updated`))}catch(err){toast('❌ '+err.message)}};
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{LANG=b.dataset.l;try{localStorage.setItem('ac_audit_lang',LANG)}catch(e){}render()});
+render();
+if(window.ACAuto&&window.ACTS){try{ACAuto.init({keys:[K],by:'audit_nc',badge:false,onPull:()=>{render();document.getElementById('sync').textContent='☁ ✓ '+new Date().toTimeString().slice(0,5)}})}catch(e){console.warn('[nc] autosync',e)}}
+})();
+</script>
+<script src="https://saintdou-weng.github.io/ac-admin/shared/swipe-tabs.js" defer></script>
+</body></html>
