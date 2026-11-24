@@ -119,6 +119,9 @@ const TOPICS=[
  ['medical','🩺','醫生／醫務室／健康檢查','Doctor, clinic & medical checks',/doctor|medical|nurse|health check|clinic/i],
  ['fire','🔥','消防／偵煙／緊急照明','Fire, smoke detectors & emergency lights',/smoke|fire alarm|detector|extinguisher|emergency light|exit light|sprinkler/i],
  ['layout','🗺','廠房配置圖／EIA','Building layout & EIA',/layout|EIA|environmental impact|floor plan/i],
+ ['ppe','🦺','個人防護／堆高機／警示標誌','PPE, forklifts & warning signs',/\bPPE\b|safety shoe|forklift|pallet jack|warning sign|safety sign/i],
+ ['risk','📝','風險評估','Risk assessment',/risk assessment/i],
+ ['build','🏗','建築結構／堆放','Building structure & storage',/crack|mezzanine|stored too high|unsafe position/i],
  ['firstaid','🩹','急救箱／醫務','First aid',/first aid|infirmary|急救/i],
  ['exit','🚪','逃生通道／標線','Exits & aisles',/exit|aisle|pathway|evacuat|通道|Q8\.40|Q8\.50/i],
  ['permit','📜','證照／許可過期','Permits & licences',/permit|licen[cs]e|expir|過期|fire inspection/i],
@@ -131,7 +134,7 @@ const TOPICS=[
  ['ergo','🪑','人體工學','Ergonomics',/ergonom|anti.?fatigue|mat\b/i],
  ['lab','🔬','品質實驗室／測試','Quality lab & testing',/laborator|grey scale|crocking|testing|GRCG 17/i],
  ['hours','⏱','工時／加班','Working hours',/overtime|working hours|rest day|加班/i],
- ['wage','💵','工資／福利','Wages & benefits',/wage|salary|payslip|bonus|nssf|工資/i],
+ ['wage','💵','工資／福利','Wages & benefits',/wage|salary|payslip|bonus|nssf|allowance|meal|deduct|medical exam fee|reimburs|resigned|工資/i],
  ['trace','♻️','GRS 追溯／標示','GRS traceability & labelling',/trace|transaction certificate|\bTC\b|mass balance|label|recycled/i]];
 const topicOf=n=>{const s=[n.clause,n.desc].join(' ');const t=TOPICS.find(x=>x[4].test(s))||TOPICS.find(x=>x[4].test(String(n.cap||'')));return n.topic&&TOPICS.find(x=>x[0]===n.topic)?n.topic:(t?t[0]:'other')};
 const TN=id=>{const t=TOPICS.find(x=>x[0]===id);return t?t[1]+' '+(LANG==='en'?t[3]:t[2]):T('📌 其他','📌 Other')};
