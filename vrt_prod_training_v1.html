@@ -1110,7 +1110,7 @@ function save(){
     localStorage.setItem('vrtp_rc',JSON.stringify(S.records));
     localStorage.setItem('vrtp_lb',JSON.stringify(S.library));
     localStorage.setItem('vrtp_opts',JSON.stringify(S.opts));
-    if(getCfg().gasUrl) setCfg({needsSync:true});
+    if(getCfg().gasUrl) setCfg({needsSync:true,_dirtyAt:Date.now()});
     updStorInfo();
     updSyncBadge();
   }catch(e){toast('儲存失敗','err');}
@@ -2809,6 +2809,7 @@ renderPills();
 // Update year input to suggest next year
 const _nyInp=document.getElementById('new-year-inp');
 if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
+setInterval(function(){try{var c=getCfg(),x=window.ACAuto&&ACAuto.state();if(x&&x.state==='ok'&&x.last&&c.needsSync&&x.last>(c._dirtyAt||0)){setCfg({needsSync:false,lastSyncP:new Date(x.last).toLocaleString('zh-TW',{hour12:false}).slice(0,16)});updSyncBadge()}}catch(e){}},5000);
 if(window.VRTP_READY)VRTP_READY.then(function(){window.__VRTP_OK=true;try{load();autoMarkPastPending();applyAuditBridge();rebuildDataLists();renderActive();updSyncBadge()}catch(e){console.warn(e)}});
 </script>
 <script src="assets/ac_tool_sync.js?v=5"></script>
