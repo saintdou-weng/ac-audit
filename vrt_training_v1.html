@@ -2994,22 +2994,25 @@ if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
 })();
 </script>
 <script>
-/* ═══ 培訓材料 v2（2026-11-24，Paul）═══
-   Paul：培訓材料是給群組用的——要登入 Paul 的 Gmail／Drive 才能看的全部拿掉（怕看到私人資料）；
-         能直接點開看的才放，附件要轉成可直接點看；加智慧匯入（Excel、PDF、圖片…直接丟進來更新），
-         線上新增／刪除／編輯／儲存／匯入匯出／上傳下載，不重複下載。
-   · 內建教材：已轉成 PDF 放在 assets/materials/（公開、不用登入），用 view.html（pdf.js）在頁面裡直接看——手機也能看，不會變成下載。
-     （消防演習實況那份有員工照片，沒有放；人數紀錄在 HRA 職安衛。）
-   · 智慧匯入：PDF／圖片／Excel／Word／PPT 丟進來 → 上傳到 Audit 雲端附件（「知道連結的人可檢視」，不用登入）→ 依檔名自動分類；
-     同一個檔（檔名＋大小＋修改時間）不會重複上傳。
-   · 清單存在本機 vrt3_mat，並用 ACAuto（Audit 雲端 tools）自動同步：Audit／HRA Portal／Admin OS 開的是同一份；三方合併，不重複下載。 */
 (function(){
-const K='vrt3_mat',T3=(zh,en,kh)=>LANG==='zh'?zh:LANG==='kh'?(kh||en):en;
+/* ═══ 培訓材料 v3（2026-11-24，Paul）═══
+   Paul：教材都可更新／刪除／上傳下載、不重複；上傳下載不要卡住，已傳完／下載完的不要重來，停了下次從沒完成的繼續。
+   · 內建教材也可以改名稱／分類／說明、換新檔（🔁）、隱藏（🗑，可在「已隱藏」找回）——存成 vrt3_mat 裡 B|xxx 的覆寫，雲端同步。
+   · 刪除用墓碑（deleted:true），三方合併時不會被別台裝置「復活」。
+   · 上傳佇列：選好的檔先存進本機 IndexedDB（vrt_mat_q），背景一個一個傳，不擋畫面；
+     傳完一個就從佇列拿掉；斷線／關掉頁面，下次打開自動從還沒傳的繼續。同一個檔（檔名＋大小＋修改時間）不會重傳。
+   · 全部下載：記在 vrt3_mat_dl（每份教材的版本），已下載過的同版本不再下載；中斷後再按，只下載剩下的。 */
+const K='vrt3_mat',KDL='vrt3_mat_dl',T3=(zh,en,kh)=>LANG==='zh'?zh:LANG==='kh'?(kh||en):en;
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const MCAT={orient:['入職培訓','Orientation','ការតម្រង់ទិស'],safety:['消防安全','Fire safety','សុវត្ថិភាពអគ្គិភ័យ'],health:['急救健康','First aid & health','សង្គ្រោះបឋម'],rules:['廠規制度','Rules & policies','បទបញ្ជា'],hr:['人事表單','HR forms','ទម្រង់បុគ្គលិក'],other:['其他','Other','ផ្សេងៗ']};
 const V=(f,t)=>'assets/materials/view.html?f='+encodeURIComponent(f)+'&t='+encodeURIComponent(t);
+const HB='assets/materials/VRT_training_handbook_v4.html';
 const BUILT=[
- {_k:'B|handbook',cat:'orient',ic:'📘',zh:'新進員工培訓手冊 v3（中／英／柬）',en:'New Employee Training Handbook v3 (CN / EN / KM)',kh:'សៀវភៅបណ្តុះបណ្តាលបុគ្គលិកថ្មី v3',desc:['8 章：到職與工時、薪資假別福利、廠規獎懲、6S、反恐保安、職安消防 PPE、宿舍食堂、申訴聯絡與表單。可列印／存 PDF。','8 chapters: joining & hours, pay / leave / welfare, rules & discipline, 6S, anti-terror & security, EHS / PPE / fire, dormitory & canteen, grievance & forms. Print / save as PDF.','៨ ជំពូក៖ ការចូលធ្វើការ ប្រាក់ខែ ច្បាប់ 6S សន្តិសុខ សុវត្ថិភាព ស្នាក់នៅ និងទម្រង់'],page:'assets/materials/VRT_training_handbook_v3.html',date:'2026-08',type:'HTML'},
+ {_k:'B|handbook4',cat:'orient',ic:'📘',zh:'新進員工培訓手冊 互動版 v4（中／英／柬）',en:'New Employee Training Handbook — interactive v4 (CN / EN / KM)',kh:'សៀវភៅបណ្តុះបណ្តាលបុគ្គលិកថ្មី (អន្តរកម្ម v4)',desc:['照片輪播、第一天 8 件事、10 分鐘導覽、完整主題（含 5 種員工證＋頭巾顏色）、情境互動、隨堂測驗、常用表單。','Photo slides, first-day checklist, 10-minute tour, all topics (incl. the 5 ID card types and scarf colours), scenarios, quiz and common forms.','រូបភាព បញ្ជីថ្ងៃដំបូង ដំណើរទស្សនា ប្រធានបទទាំងអស់ សំណួរសាកល្បង'],page:HB,date:'2026-08',type:'HTML'},
+ {_k:'B|pptx202608',cat:'orient',ic:'📽',zh:'VRT 新人培訓簡報 2026-08（英文）',en:'VRT Training Material 2026-08 (English deck)',kh:'ឯកសារបណ្តុះបណ្តាល VRT 2026-08',desc:['32 頁：工時、試用期、出勤、遲到早退、指紋、員工證 5 種、頭巾、薪資計算、年假／病假／產假、Gate Pass、離職、廠規、職安衛、消防。（員工證與頭巾照片已改成範例、隱去個資）','32 slides: hours, probation, attendance, late / early leave, fingerprint, 5 ID card types, scarves, pay, AL / SL / ML, gate pass, resignation, rules, EHS, fire. (ID card and scarf photos replaced with samples — personal details hidden)','៣២ ទំព័រ'],file:'VRT_training_material_202608_EN.pdf',date:'2026-08',type:'PDF · 32'},
+ {_k:'B|idcards',cat:'orient',ic:'🪪',zh:'員工證 5 種＋頭巾顏色',en:'5 employee ID card types + scarf colours',kh:'កាតបុគ្គលិក ៥ ប្រភេទ + ពណ៌កន្សែង',desc:['試用期（白卡）、外籍（綠）、辦公室（藍）、生產（橘）、QC（黃）；車縫藍、包裝黃、QC 橘頭巾。','Probation (white card), foreign (green), office (blue), production (orange), QC (yellow); scarves: sewing blue, packing yellow, QC orange.',''],page:HB+'#id-scarf',date:'2026-08',type:'HTML'},
+ {_k:'B|quiz',cat:'orient',ic:'📝',zh:'新人隨堂測驗（10 題，三語）',en:'New employee quiz (10 questions, 3 languages)',kh:'សំណួរសាកល្បងបុគ្គលិកថ្មី (១០ សំណួរ)',desc:['上完課當場做，交卷立刻看到答對幾題。','Take it right after the class; the score shows as soon as you submit.',''],page:HB+'#quiz',date:'2026-08',type:'Quiz'},
+ {_k:'B|handbook',cat:'orient',ic:'📗',zh:'新進員工培訓手冊 v3（文字／列印版）',en:'New Employee Training Handbook v3 (text / print)',kh:'សៀវភៅបណ្តុះបណ្តាល v3 (បោះពុម្ព)',desc:['8 章：到職與工時、薪資假別福利、廠規獎懲、6S、反恐保安、職安消防 PPE、宿舍食堂、申訴聯絡與表單。可列印／存 PDF。','8 chapters: joining & hours, pay / leave / welfare, rules & discipline, 6S, anti-terror & security, EHS / PPE / fire, dormitory & canteen, grievance & forms. Print / save as PDF.','៨ ជំពូក'],page:'assets/materials/VRT_training_handbook_v3.html',date:'2026-08',type:'HTML'},
  {_k:'B|rules',cat:'rules',ic:'📕',zh:'廠規手冊 2027',en:'Factory Rules 2027',kh:'បទបញ្ជាផ្ទៃក្នុង ២០២៧',desc:['和 VRT HR／Admin OS 同一份。','Same copy as VRT HR / Admin OS.','ដូចគ្នានឹង VRT HR / Admin OS'],page:'VRT_Factory_Rules_2027.html',date:'2027',type:'HTML'},
  {_k:'B|firetrain',cat:'safety',ic:'🔥',zh:'消防演習訓練簡報 2025',en:'Fire drill training deck 2025',kh:'ឯកសារបណ្តុះបណ្តាលសមយុទ្ធអគ្គិភ័យ ២០២៥',desc:['火災原因、警鈴、逃生標示、緊急電話 117、集合點排隊點名。','Fire causes, alarm, exit signs, emergency number 117, line up and count at the assembly point.','មូលហេតុអគ្គិភ័យ សំឡេងរោទ៍ ផ្លាកច្រកចេញ លេខ ១១៧ ចំណុចប្រមូលផ្តុំ'],file:'fire_drill_training_2025.pdf',date:'2025-07',type:'PDF · 11'},
  {_k:'B|evacplan',cat:'safety',ic:'🗺️',zh:'消防演習與疏散計劃 2025',en:'Fire drill & evacuation plan 2025',kh:'ផែនការជម្លៀស ២០២៥',desc:['分工：警鈴、拍照、引導、關電、關門、點名、急救；A／B 棟各組的逃生出口。演習前 2 週要交。','Roles: alarm, photos, marshals, power off, doors, roll call, first aid; exits per team in buildings A / B. Due 2 weeks before each drill.','តួនាទី និងច្រកចេញ អគារ A / B'],file:'fire_drill_evacuation_plan_2025.pdf',date:'2025-07',type:'PDF · 2'},
@@ -3019,66 +3022,138 @@ const BUILT=[
  {_k:'B|resignform',cat:'hr',ic:'🚪',zh:'離職面談表 VRT-F-HR02（空白）',en:'Exit interview form VRT-F-HR02 (blank)',kh:'ទម្រង់សម្ភាសន៍លាលែង VRT-F-HR02',desc:['線上填寫請到 HRA Portal → 入離職 → 離職面談。','Fill online in HRA Portal → Onboarding → Exit interview.',''],file:'VRT-F-HR-02_resign_interview_form.pdf',date:'2021-06',type:'PDF · 1'},
  {_k:'B|drill',cat:'safety',ic:'🦺',zh:'消防演習紀錄（HRA 職安衛）',en:'Fire drill records (HRA Safety)',kh:'កំណត់ត្រាសមយុទ្ធ',desc:['2019 起每次演習的日期、各部門人數、疏散時間；急救員名冊、安衛委員會也在那裡。','Every drill since 2019 with headcount by department and evacuation time; first-aider roster and H&S committee too.',''],page:'../ac-hra-portal/ac_hra_safety_v1.html#drill',date:'',type:'HRA'}
 ];
-let MF='All',MQ='';
+const NOW=()=>new Date().toISOString();
+let MF='All',MQ='',SHOWHID=false;
 function getM(){let o={};try{o=JSON.parse(localStorage.getItem(K)||'{}')||{}}catch(e){o={}}
  if(Array.isArray(o.items)){const n={};o.items.forEach(x=>{if(x&&x._k&&!x.deleted&&!/drive\.google|docs\.google/.test(x.url||''))n[x._k]=x});o=n;try{localStorage.setItem(K,JSON.stringify(o))}catch(e){}}
  return o&&typeof o==='object'?o:{}}
 function putM(o){try{localStorage.setItem(K,JSON.stringify(o))}catch(e){toast(T3('本機空間不足','Local storage full','អស់ទំហំ'),'err')}if(window.ACAuto&&ACAuto.touch)ACAuto.touch()}
-function guessCat(n){n=String(n).toLowerCase();if(/fire|drill|evacu|extinguish|消防|疏散|ពន្លត់|អគ្គិភ័យ/.test(n))return 'safety';if(/first.?aid|clinic|health|nurse|急救|健康|សង្គ្រោះ/.test(n))return 'health';if(/rule|regulation|policy|code of conduct|廠規|規定|制度|បទបញ្ជា/.test(n))return 'rules';if(/resign|form|leave|contract|表單|申請|離職|請假/.test(n))return 'hr';if(/orient|handbook|new.?employee|induction|training|新人|入職|手冊|培訓/.test(n))return 'orient';return 'other'}
+function guessCat(n){n=String(n).toLowerCase();if(/fire|drill|evacu|extinguish|消防|疏散|ពន្លត់|អគ្គិភ័យ/.test(n))return 'safety';if(/first.?aid|clinic|health|nurse|急救|健康|សង្គ្រោះ/.test(n))return 'health';if(/rule|regulation|policy|code of conduct|廠規|規定|制度|បទបញ្ជា/.test(n))return 'rules';if(/resign|form|leave|contract|表單|申請|離職|請假/.test(n))return 'hr';if(/orient|handbook|new.?employee|induction|training|quiz|新人|入職|手冊|培訓|測驗/.test(n))return 'orient';return 'other'}
 function icon(x){const m=String(x.mime||'')+' '+String(x.name||'');return /pdf/i.test(m)?'📄':/image|\.(png|jpe?g|webp)/i.test(m)?'🖼':/sheet|excel|\.xls/i.test(m)?'📊':/presentation|powerpoint|\.ppt/i.test(m)?'📽':/word|\.doc/i.test(m)?'📝':'📎'}
-function viewUrl(x){if(x.file)return V(x.file,T3(x.zh,x.en,x.kh));if(x.page)return x.page;if(x.driveId)return 'assets/materials/view.html?d='+encodeURIComponent(x.driveId)+'&m='+encodeURIComponent(x.mime||'')+'&t='+encodeURIComponent(x.name||'');if(x.url&&!/drive\.google|docs\.google/.test(x.url))return x.url;return ''}
+/* 內建＋覆寫 → 顯示用的一筆 */
+function view(b,o){if(!o||!(o.name||o.desc||(o.cat&&o.cat!==b.cat)||o.driveId||o.hidden||o.date))return Object.assign({},b,{_b:1});const x=Object.assign({},b,{_b:1,_o:1,hidden:!!o.hidden,updatedAt:o.updatedAt||''});
+ if(o.name){x.zh=x.en=x.kh=o.name}if(o.desc!=null&&o.desc!==''){x.desc=[o.desc,o.desc,o.desc]}if(o.cat&&MCAT[o.cat])x.cat=o.cat;if(o.date)x.date=o.date;
+ if(o.driveId){x.driveId=o.driveId;x.mime=o.mime||'';x.size=o.size||0;x.type=o.type||x.type;delete x.file;delete x.page}return x}
+function allItems(){const M=getM();
+ const b=BUILT.map(x=>view(x,M[x._k]));
+ const u=Object.values(M).filter(x=>x&&x._k&&!/^B\|/.test(x._k)&&!x.deleted).sort((a,c)=>String(c.updatedAt||'').localeCompare(String(a.updatedAt||'')));
+ return b.concat(u)}
+function nm(x){return x._b?T3(x.zh,x.en,x.kh):x.name}
+function ds(x){return x._b?T3(x.desc[0],x.desc[1],x.desc[2]):(x.desc||'')}
+function viewUrl(x){if(x.file)return V(x.file,nm(x));if(x.page)return x.page;if(x.driveId)return 'assets/materials/view.html?d='+encodeURIComponent(x.driveId)+'&m='+encodeURIComponent(x.mime||'')+'&t='+encodeURIComponent(nm(x)||'');if(x.url&&!/drive\.google|docs\.google/.test(x.url))return x.url;return ''}
 function dlUrl(x){if(x.file)return 'assets/materials/'+x.file;if(x.driveId)return 'https://drive.google.com/uc?export=download&id='+x.driveId;return ''}
-function card(x,user){const nm=user?x.name:T3(x.zh,x.en,x.kh),d=user?(x.desc||''):T3(x.desc[0],x.desc[1],x.desc[2]),c=MCAT[x.cat]||MCAT.other,vu=viewUrl(x),du=dlUrl(x);
- return `<div class="lc"><div class="lc-hdr"><span class="lc-num" style="font-size:18px;background:transparent">${user?icon(x):x.ic}</span><div class="lc-ttl"><div class="lc-zh">${esc(nm)}</div><div class="lc-en">${esc(T3(c[0],c[1],c[2]))}${x.date?' · '+esc(x.date):''}${x.type?' · '+esc(x.type):''}${user&&x.size?' · '+(x.size/1048576).toFixed(1)+' MB':''}</div></div></div>${d?`<div class="lc-outline">${esc(d)}</div>`:''}
- <div class="lc-ft"><span class="type-i">${x.page?T3('平台頁面','Platform page','ទំព័រ'):T3('點了直接看','Tap to view','ចុចដើម្បីមើល')}</span><div style="display:flex;gap:4px;flex-wrap:wrap">${vu?`<button class="btn btn-sm btn-p" onclick="matView('${esc(x._k)}')">👁 ${T3('看','View','មើល')}</button>`:''}${du?`<a class="btn btn-sm" href="${esc(du)}" download target="_blank" rel="noopener">⬇</a>`:''}${user?`<button class="btn btn-sm" onclick="matEdit('${esc(x._k)}')">✏</button><button class="btn btn-sm btn-d" onclick="matDel('${esc(x._k)}')">🗑</button>`:''}</div></div></div>`}
-function allItems(){const M=getM();return BUILT.map(x=>({x,u:0})).concat(Object.values(M).filter(x=>x&&x._k).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||''))).map(x=>({x,u:1})))}
+function ver(x){return [x.file||'',x.driveId||'',x.updatedAt||''].join('|')}
+function getDL(){try{return JSON.parse(localStorage.getItem(KDL)||'{}')||{}}catch(e){return {}}}
+function card(x){const user=!x._b,c=MCAT[x.cat]||MCAT.other,vu=viewUrl(x),du=dlUrl(x),d=ds(x),k=esc(x._k),dl=getDL()[x._k]===ver(x);
+ return `<div class="lc"${x.hidden?' style="opacity:.55"':''}><div class="lc-hdr"><span class="lc-num" style="font-size:18px;background:transparent">${user?icon(x):x.ic}</span><div class="lc-ttl"><div class="lc-zh">${esc(nm(x))}${x._o&&!x.hidden?' <span style="font-size:10px;color:#2563eb">✏</span>':''}</div><div class="lc-en">${esc(T3(c[0],c[1],c[2]))}${x.date?' · '+esc(x.date):''}${x.type?' · '+esc(x.type):''}${x.size?' · '+(x.size/1048576).toFixed(1)+' MB':''}</div></div></div>${d?`<div class="lc-outline">${esc(d)}</div>`:''}
+ <div class="lc-ft"><span class="type-i">${x.page?T3('平台頁面','Platform page','ទំព័រ'):T3('點了直接看','Tap to view','ចុចដើម្បីមើល')}</span><div style="display:flex;gap:4px;flex-wrap:wrap">${x.hidden?`<button class="btn btn-sm btn-p" onclick="matUnhide('${k}')">↩ ${T3('恢復','Restore','ស្តារ')}</button>`:`${vu?`<button class="btn btn-sm btn-p" onclick="matView('${k}')">👁 ${T3('看','View','មើល')}</button>`:''}${du?`<a class="btn btn-sm" href="${esc(du)}" download target="_blank" rel="noopener" onclick="matDLmark('${k}')" title="${dl?T3('已下載過','Downloaded','បានទាញយក'):''}">${dl?'✔':'⬇'}</a>`:''}<button class="btn btn-sm" title="${T3('編輯','Edit','កែ')}" onclick="matEdit('${k}')">✏</button>${x.page&&!x.driveId&&x._b?'':`<button class="btn btn-sm" title="${T3('換新檔','Replace file','ប្តូរឯកសារ')}" onclick="matReplace('${k}')">🔁</button>`}${x._o&&!x.hidden?`<button class="btn btn-sm" title="${T3('還原內建','Reset to built-in','ស្តារ')}" onclick="matReset('${k}')">↺</button>`:''}<button class="btn btn-sm btn-d" title="${T3('刪除','Delete','លុប')}" onclick="matDel('${k}')">🗑</button>`}</div></div></div>`}
 window.renderMaterials=function(){const box=document.getElementById('tab-materials');if(!box)return;const q=MQ.toLowerCase();
- const list=allItems().filter(({x,u})=>(MF==='All'||x.cat===MF)&&(!q||[x.zh,x.en,x.kh,x.name,x.desc&&x.desc.join?x.desc.join(' '):x.desc].join(' ').toLowerCase().includes(q)));
- const st=window.ACAuto&&ACAuto.state?ACAuto.state():{};
- box.innerHTML=`<div class="tbr"><div class="flt"><button class="fb${MF==='All'?' on':''}" onclick="matF('All')">${T3('全部','All','ទាំងអស់')}</button>${Object.keys(MCAT).map(k=>`<button class="fb${MF===k?' on':''}" onclick="matF('${k}')">${esc(T3(MCAT[k][0],MCAT[k][1],MCAT[k][2]))}</button>`).join('')}</div>
- <div class="tbr-r"><input id="mat-q" placeholder="🔍 ${T3('搜尋','Search','ស្វែងរក')}" value="${esc(MQ)}" oninput="matQ(this.value)" style="border:1px solid var(--border);border-radius:8px;padding:6px 9px;width:130px"><button class="btn" onclick="matExport()">⬇ Excel</button><button class="btn" onclick="document.getElementById('mat-imp').click()">⬆ ${T3('匯入清單','Import list','នាំចូល')}</button><button class="btn" onclick="matLink()">🔗 ${T3('加網址','Add link','បន្ថែមតំណ')}</button><button class="btn btn-p" onclick="document.getElementById('mat-file').click()">＋ ${T3('上傳檔案','Upload files','ផ្ទុកឯកសារ')}</button></div></div>
- <input type="file" id="mat-file" multiple hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.xlsx,.xls,.csv,.doc,.docx,.ppt,.pptx" onchange="matFiles(this.files)"><input type="file" id="mat-imp" hidden accept=".json,.xlsx,.xls,.csv" onchange="matImport(this.files[0])">
- <div id="mat-drop" style="border:2px dashed #9cc9b1;border-radius:12px;background:#f3faf6;padding:14px;text-align:center;color:#3f6f56;font-size:13px;margin:4px 0 10px;cursor:pointer" onclick="document.getElementById('mat-file').click()">🧠 <b>${T3('智慧匯入','Smart import','នាំចូលឆ្លាតវៃ')}</b>：${T3('把 PDF、圖片、Excel、Word、PPT 拖進來（手機按這裡選檔）→ 自動上傳、自動分類，大家點了直接看，不用登入。同一個檔不會重複上傳。','Drop PDF, images, Excel, Word or PPT here (tap on phone) → uploaded and sorted automatically; everyone can open it without signing in. The same file is never uploaded twice.','ទាញ PDF រូបភាព Excel Word PPT មកទីនេះ')}<div id="mat-prog" style="font-size:12px;margin-top:4px"></div></div>
- <div style="font-size:12px;color:var(--txt2);margin:2px 0 10px">${T3('新人入職先看「新進員工培訓手冊」；消防演習前 2 週要交疏散計劃。這裡的檔案都不用登入就能看；有員工照片或個資的檔不要放這裡。','New hires start with the training handbook; the evacuation plan is due 2 weeks before each fire drill. Everything here opens without signing in — do not put files with staff photos or personal data here.','')}</div>
- <div class="lib-grid">${list.map(({x,u})=>card(x,u)).join('')||`<div style="text-align:center;padding:30px;color:var(--muted);grid-column:1/-1">—</div>`}</div>`;
- const dz=document.getElementById('mat-drop');['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.background='#e3f4ea'}));['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.background='#f3faf6'}));dz.addEventListener('drop',e=>matFiles(e.dataTransfer.files))};
+ const all=allItems(),nh=all.filter(x=>x.hidden).length;
+ const list=all.filter(x=>(SHOWHID?x.hidden:!x.hidden)&&(MF==='All'||x.cat===MF)&&(!q||[nm(x),x.zh,x.en,x.kh,x.name,ds(x)].join(' ').toLowerCase().includes(q)));
+ box.innerHTML=`<div class="tbr"><div class="flt"><button class="fb${MF==='All'?' on':''}" onclick="matF('All')">${T3('全部','All','ទាំងអស់')}</button>${Object.keys(MCAT).map(k=>`<button class="fb${MF===k?' on':''}" onclick="matF('${k}')">${esc(T3(MCAT[k][0],MCAT[k][1],MCAT[k][2]))}</button>`).join('')}${nh?`<button class="fb${SHOWHID?' on':''}" onclick="matHid()">🙈 ${T3('已刪除／隱藏','Deleted / hidden','បានលាក់')} ${nh}</button>`:''}</div>
+ <div class="tbr-r" style="flex-wrap:wrap"><input id="mat-q" placeholder="🔍 ${T3('搜尋','Search','ស្វែងរក')}" value="${esc(MQ)}" oninput="matQ(this.value)" style="border:1px solid var(--border);border-radius:8px;padding:6px 9px;width:130px"><button class="btn" onclick="matDLall()">⬇ ${T3('下載全部','Download all','ទាញយកទាំងអស់')}</button><button class="btn" onclick="matExport()">⬇ Excel</button><button class="btn" onclick="document.getElementById('mat-imp').click()">⬆ ${T3('匯入清單','Import list','នាំចូល')}</button><button class="btn" onclick="matLink()">🔗 ${T3('加網址','Add link','បន្ថែមតំណ')}</button><button class="btn btn-p" onclick="document.getElementById('mat-file').click()">＋ ${T3('上傳檔案','Upload files','ផ្ទុកឯកសារ')}</button></div></div>
+ <input type="file" id="mat-file" multiple hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.xlsx,.xls,.csv,.doc,.docx,.ppt,.pptx,.html,.htm" onchange="matFiles(this.files)"><input type="file" id="mat-rep" hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.xlsx,.xls,.csv,.doc,.docx,.ppt,.pptx,.html,.htm" onchange="matFiles(this.files,window._matRep)"><input type="file" id="mat-imp" hidden accept=".json,.xlsx,.xls,.csv" onchange="matImport(this.files[0])">
+ <div id="mat-drop" style="border:2px dashed #9cc9b1;border-radius:12px;background:#f3faf6;padding:14px;text-align:center;color:#3f6f56;font-size:13px;margin:4px 0 10px;cursor:pointer" onclick="document.getElementById('mat-file').click()">🧠 <b>${T3('智慧匯入','Smart import','នាំចូលឆ្លាតវៃ')}</b>：${T3('把 PDF、圖片、Excel、Word、PPT 拖進來（手機按這裡選檔）→ 背景自動上傳、自動分類，大家點了直接看，不用登入。同一個檔不會重複上傳；中斷了下次打開會從沒傳完的繼續。','Drop PDF, images, Excel, Word or PPT here (tap on phone) → uploaded in the background and sorted; everyone can open it without signing in. The same file is never uploaded twice; if interrupted, it continues with the remaining files next time.','ទាញ PDF រូបភាព Excel Word PPT មកទីនេះ')}<div id="mat-prog" style="font-size:12px;margin-top:4px"></div></div>
+ <div style="font-size:12px;color:var(--txt2);margin:2px 0 10px">${T3('新人入職先看「互動版手冊 v4」，上完課做「隨堂測驗」；消防演習前 2 週要交疏散計劃。這裡的檔案都不用登入就能看；有員工照片或個資的檔不要放這裡。','New hires start with the interactive handbook v4 and take the quiz after class; the evacuation plan is due 2 weeks before each fire drill. Everything here opens without signing in — do not put files with staff photos or personal data here.','')}</div>
+ <div class="lib-grid">${list.map(card).join('')||`<div style="text-align:center;padding:30px;color:var(--muted);grid-column:1/-1">—</div>`}</div>`;
+ const dz=document.getElementById('mat-drop');['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.background='#e3f4ea'}));['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.style.background='#f3faf6'}));dz.addEventListener('drop',e=>matFiles(e.dataTransfer.files));
+ qStatus()};
 window.matF=c=>{MF=c;renderMaterials()};
+window.matHid=()=>{SHOWHID=!SHOWHID;renderMaterials()};
 let _mq=null;window.matQ=v=>{MQ=v;clearTimeout(_mq);_mq=setTimeout(()=>{renderMaterials();const i=document.getElementById('mat-q');if(i){i.focus();i.setSelectionRange(v.length,v.length)}},300)};
+const find=k=>allItems().find(i=>i._k===k);
 /* 檢視：頁面裡開一個全螢幕視窗（手機也能直接看） */
-window.matView=k=>{const x=allItems().map(a=>a.x).find(i=>i._k===k);if(!x)return;let u=viewUrl(x);if(!u)return;if(x.page&&!x.file){window.open(u,'_blank','noopener');return}
+window.matView=k=>{const x=find(k);if(!x)return;let u=viewUrl(x);if(!u)return;if(x.page&&!x.file&&!x.driveId){if(/VRT_training_handbook_v4/.test(u)){const p=u.split('#');u=p[0]+'?lang='+(LANG==='kh'?'km':LANG)+(p[1]?'#'+p[1]:'')}window.open(u,'_blank','noopener');return}
  u+=(u.indexOf('?')>=0?'&':'?')+'l='+LANG;let ov=document.getElementById('mat-ov');if(!ov){ov=document.createElement('div');ov.id='mat-ov';ov.style.cssText='position:fixed;inset:0;z-index:2147483000;background:rgba(10,20,15,.6);display:flex;align-items:stretch;justify-content:center';document.body.appendChild(ov);window.addEventListener('message',e=>{if(e.data&&e.data.vrtViewer==='close'){const o=document.getElementById('mat-ov');if(o)o.remove()}})}
  ov.innerHTML=`<iframe src="${esc(u)}" style="width:min(1100px,100%);height:100%;border:0;background:#fff"></iframe>`};
-/* 上傳：Audit 雲端附件（GAS uploadAttachment，檔案設成知道連結即可檢視） */
-function readURL(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)})}
-window.matFiles=async files=>{files=Array.from(files||[]);if(!files.length)return;const url=(getCfg().gasUrl||'').trim();const prog=document.getElementById('mat-prog');
- if(!url){toast(T3('沒有雲端網址（設定 → GAS URL）','No cloud URL (Settings → GAS URL)','គ្មាន URL'),'err');return}
- let ok=0,skip=0,bad=0;
- for(const f of files){const sig=[f.name,f.size,f.lastModified||0].join('|'),M=getM();
-  if(Object.values(M).some(x=>x.signature===sig)){skip++;continue}
-  if(f.size>20*1048576){bad++;toast(f.name+'：'+T3('超過 20MB','over 20 MB','លើស 20MB'),'warn');continue}
-  try{if(prog)prog.textContent='☁ '+T3('上傳中','Uploading','កំពុងផ្ទុក')+'：'+f.name;
-   const mime=f.type||(/\.pdf$/i.test(f.name)?'application/pdf':'application/octet-stream');
-   const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'uploadAttachment',module:'training_material',recordId:'material',name:f.name,originalName:f.name,mime,size:f.size,lastModified:f.lastModified,signature:sig,dataUrl:await readURL(f)})});
-   const j=await r.json();if(!j.ok)throw new Error(j.msg||j.error||'upload failed');const info=j.file||{};
-   const M2=getM();if(info.driveId&&Object.values(M2).some(x=>x.driveId===info.driveId)){skip++;continue}
-   const k='MAT|'+(info.driveId||Date.now().toString(36));M2[k]={_k:k,name:f.name.replace(/\.[^.]+$/,''),cat:guessCat(f.name),desc:'',mime:info.mime||mime,size:f.size,driveId:info.driveId||'',signature:sig,type:(f.name.split('.').pop()||'').toUpperCase(),date:new Date().toISOString().slice(0,10),updatedAt:new Date().toISOString()};putM(M2);ok++}
-  catch(e){bad++;toast(f.name+'：'+e.message,'err')}}
- if(prog)prog.textContent=`✅ ${T3('新增','Added','បន្ថែម')} ${ok} · ${T3('已存在略過','Already there','មានរួច')} ${skip}${bad?' · ❌ '+bad:''}`;
- const fi=document.getElementById('mat-file');if(fi)fi.value='';renderMaterials();if(ok)toast(T3('已上傳','Uploaded','បានផ្ទុក')+' '+ok,'ok')};
+/* ── 上傳佇列（IndexedDB，可續傳） ── */
+const QDB='vrt_mat_q';let _db=null;
+function db(){if(_db)return _db;_db=new Promise((res,rej)=>{if(!window.indexedDB){rej(new Error('no IndexedDB'));return}const r=indexedDB.open(QDB,1);r.onupgradeneeded=()=>{r.result.createObjectStore('q',{keyPath:'sig'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});return _db}
+function qop(mode,fn){return db().then(d=>new Promise((res,rej)=>{const t=d.transaction('q',mode),s=t.objectStore('q');let out;const r=fn(s);if(r)r.onsuccess=()=>{out=r.result};t.oncomplete=()=>res(out);t.onerror=()=>rej(t.error)}))}
+const qAll=()=>qop('readonly',s=>s.getAll()).then(a=>(a||[]).sort((x,y)=>x.at-y.at)).catch(()=>[]);
+const qPut=it=>qop('readwrite',s=>s.put(it));
+const qDel=sig=>qop('readwrite',s=>s.delete(sig));
+let PUMP=false,QN={ok:0,skip:0,bad:0,cur:''};
+async function qStatus(){const p=document.getElementById('mat-prog');if(!p)return;const a=await qAll();
+ const left=a.length,failed=a.filter(x=>x.err).length;
+ let h='';if(PUMP&&QN.cur)h+='☁ '+T3('上傳中','Uploading','កំពុងផ្ទុក')+'：'+esc(QN.cur)+' · ';
+ if(left)h+=T3('佇列剩','Queue',`នៅសល់`)+' '+left+(failed?` · ❌ ${failed}`:'')+(PUMP?'':` <button class="btn btn-sm" onclick="event.stopPropagation();matPump(true)">▶ ${T3('繼續上傳','Resume','បន្ត')}</button> <button class="btn btn-sm btn-d" onclick="event.stopPropagation();matQclear()">✕ ${T3('清空佇列','Clear queue','សម្អាត')}</button>`);
+ else if(QN.ok||QN.skip||QN.bad)h+=`✅ ${T3('新增／更新','Added / updated','បន្ថែម')} ${QN.ok} · ${T3('已存在略過','Already there','មានរួច')} ${QN.skip}${QN.bad?' · ❌ '+QN.bad:''}`;
+ p.innerHTML=h}
+/* 手機選檔時 lastModified 常常是「現在」，所以比對用 檔名＋大小（同名同大小＝同一個檔） */
+function sigOf(f){return [f.name,f.size].join('|')}
+function sameSig(a,b){a=String(a||'').split('|');b=String(b||'').split('|');return a[0]===b[0]&&a[1]===b[1]}
+/* target：要換檔的那筆 key（內建 B|… 或自己上傳的）；沒有＝新增 */
+window.matFiles=async(files,target)=>{files=Array.from(files||[]);window._matRep=null;['mat-file','mat-rep'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});if(!files.length)return;
+ const M=getM(),Q=await qAll();let add=0,skip=0;
+ for(const f of files){const sig=sigOf(f);
+  if(!target&&(Object.values(M).some(x=>sameSig(x.signature,sig)&&!x.deleted&&!x.hidden)||Q.some(q=>sameSig(q.fileSig,sig)))){skip++;continue}
+  if(f.size>20*1048576){toast(f.name+'：'+T3('超過 20MB','over 20 MB','លើស 20MB'),'warn');continue}
+  try{await qPut({sig:target?sig+'#'+target:sig,fileSig:sig,name:f.name,size:f.size,lastModified:f.lastModified||0,type:f.type||'',blob:f,target:target||'',at:Date.now(),tries:0});add++}
+  catch(e){/* 沒有 IndexedDB（無痕）→ 直接傳，不續傳 */await upOne({sig,fileSig:sig,name:f.name,size:f.size,lastModified:f.lastModified||0,type:f.type||'',blob:f,target:target||''},true);}}
+ if(skip)toast(T3('已存在略過','Already there','មានរួច')+' '+skip,'warn');QN.skip+=skip;
+ if(add)toast(T3('已加入上傳佇列','Queued','បានដាក់ក្នុងជួរ')+' '+add+T3('（背景上傳，可繼續操作）',' (uploading in background)',''),'ok');
+ qStatus();matPump()};
+function readURL(b){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)})}
+async function upOne(it,noQ){const url=(getCfg().gasUrl||'').trim();if(!url)throw new Error('no GAS URL');
+ const mime=it.type||(/\.pdf$/i.test(it.name)?'application/pdf':/\.html?$/i.test(it.name)?'text/html':'application/octet-stream');
+ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'uploadAttachment',module:'training_material',recordId:'material',name:it.name,originalName:it.name,mime,size:it.size,lastModified:it.lastModified,signature:it.fileSig,dataUrl:await readURL(it.blob)})});
+ const j=await r.json();if(!j.ok)throw new Error(j.msg||j.error||'upload failed');const info=j.file||{};
+ const M=getM(),t=NOW(),base={mime:info.mime||mime,size:it.size,driveId:info.driveId||'',signature:it.fileSig,type:(it.name.split('.').pop()||'').toUpperCase(),updatedAt:t};
+ if(it.target){M[it.target]=Object.assign({},M[it.target]||{_k:it.target},base,{hidden:false,deleted:false,date:t.slice(0,10)});QN.ok++}
+ else if(info.driveId&&Object.values(M).some(x=>x.driveId===info.driveId&&!x.deleted)){QN.skip++}
+ else{const k='MAT|'+(info.driveId||Date.now().toString(36));M[k]=Object.assign({_k:k,name:it.name.replace(/\.[^.]+$/,''),cat:guessCat(it.name),desc:'',date:t.slice(0,10)},base);QN.ok++}
+ putM(M)}
+window.matPump=async manual=>{if(PUMP)return;if(!(getCfg().gasUrl||'').trim()){if(manual)toast(T3('沒有雲端網址（設定 → GAS URL）','No cloud URL (Settings → GAS URL)','គ្មាន URL'),'err');return}
+ if(navigator.onLine===false){if(manual)toast(T3('目前離線，連上網路後會自動繼續','Offline — will continue when online',''),'warn');return}
+ PUMP=true;try{let a=await qAll();if(!manual)a=a.filter(x=>(x.tries||0)<5);
+  for(const it of a){QN.cur=it.name;qStatus();
+   try{await upOne(it);await qDel(it.sig)}
+   catch(e){it.tries=(it.tries||0)+1;it.err=String(e.message||e);try{await qPut(it)}catch(_){ }QN.bad++;
+    if(/Failed to fetch|NetworkError|Load failed|no GAS/i.test(it.err))break;/* 斷網：停下，下次從這個檔繼續 */}
+   if(window.S&&S.tab==='materials')renderMaterials()}}
+ finally{PUMP=false;QN.cur='';qStatus();if(window.S&&S.tab==='materials')renderMaterials()}};
+window.matQclear=async()=>{if(!confirm(T3('清空還沒上傳的檔案？','Clear files not uploaded yet?','សម្អាត?')))return;const a=await qAll();for(const x of a)await qDel(x.sig);QN={ok:0,skip:0,bad:0,cur:''};qStatus()};
+window.addEventListener('online',()=>matPump());
+window.matReplace=k=>{window._matRep=k;document.getElementById('mat-rep').click()};
+/* ── 下載：記錄已下載的版本，不重複 ── */
+window.matDLmark=k=>{const x=find(k);if(!x)return;const d=getDL();d[k]=ver(x);try{localStorage.setItem(KDL,JSON.stringify(d))}catch(e){}setTimeout(()=>{if(S.tab==='materials')renderMaterials()},200)};
+let DLRUN=false;
+window.matDLall=async()=>{if(DLRUN)return;const d=getDL(),todo=allItems().filter(x=>!x.hidden&&dlUrl(x)&&d[x._k]!==ver(x));
+ if(!todo.length){toast(T3('全部都下載過了（有更新的才會再下載）','Everything is already downloaded (only updated files download again)',''),'ok');return}
+ if(!confirm(T3(`下載 ${todo.length} 個還沒下載的檔案？（下載過的同版本會略過）`,`Download ${todo.length} files not downloaded yet? (already-downloaded versions are skipped)`,'')))return;
+ DLRUN=true;let n=0;try{for(const x of todo){const a=document.createElement('a');a.href=dlUrl(x);a.download='';a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
+  const dd=getDL();dd[x._k]=ver(x);try{localStorage.setItem(KDL,JSON.stringify(dd))}catch(e){}n++;const p=document.getElementById('mat-prog');if(p)p.textContent='⬇ '+n+' / '+todo.length;await new Promise(r=>setTimeout(r,900))}}
+ finally{DLRUN=false;renderMaterials();toast('⬇ '+n,'ok')}};
+/* ── 編輯／刪除／隱藏／還原 ── */
+window.matEdit=k=>{const M=getM(),x=find(k);if(!x)return;const name=prompt(T3('名稱','Name','ឈ្មោះ'),nm(x));if(name===null)return;const cat=prompt(T3('分類：','Category: ','ប្រភេទ៖ ')+Object.keys(MCAT).map(c=>c+' '+T3(MCAT[c][0],MCAT[c][1],MCAT[c][2])).join('／'),x.cat);if(cat===null)return;const desc=prompt(T3('說明','Description','ពិពណ៌នា'),ds(x));if(desc===null)return;
+ const ch={cat:MCAT[cat.trim()]?cat.trim():x.cat,updatedAt:NOW()};
+ if(x._b){const b=BUILT.find(i=>i._k===k);if(name.trim()&&name.trim()!==T3(b.zh,b.en,b.kh))ch.name=name.trim();if(desc.trim()!==T3(b.desc[0],b.desc[1],b.desc[2]))ch.desc=desc.trim()}
+ else{ch.name=name.trim()||x.name;ch.desc=desc.trim()}
+ M[k]=Object.assign({_k:k},M[k]||{},ch);putM(M);renderMaterials();toast(T3('已儲存','Saved','បានរក្សាទុក'),'ok')};
+window.matDel=k=>{const M=getM(),x=find(k);if(!x||!confirm(T3('刪除「'+nm(x)+'」？（可在「已刪除／隱藏」恢復；雲端檔案保留）','Delete “'+nm(x)+'”? (can be restored under “Deleted / hidden”; the cloud file is kept)','លុប?')))return;
+ M[k]=Object.assign({_k:k},M[k]||{},{hidden:true,updatedAt:NOW()});putM(M);renderMaterials()};
+window.matUnhide=k=>{const M=getM();if(!M[k])return;M[k]=Object.assign({},M[k],{hidden:false,deleted:false,updatedAt:NOW()});putM(M);renderMaterials()};
+window.matReset=k=>{const M=getM();if(!M[k]||!/^B\|/.test(k)||!confirm(T3('還原成內建版本？','Reset to the built-in version?','ស្តារ?')))return;M[k]={_k:k,reset:true,updatedAt:NOW()};putM(M);renderMaterials()};
 window.matLink=()=>{const name=prompt(T3('名稱','Name','ឈ្មោះ'));if(!name)return;const url=(prompt(T3('網址（要大家不用登入就能開；Google Drive 私人檔不要放）','Link (must open without signing in; no private Google Drive files)','តំណ'),'https://')||'').trim();if(!/^https?:\/\/.+/.test(url))return;
  if(/drive\.google|docs\.google/.test(url)&&!confirm(T3('Google Drive／Docs 的連結大多要登入才能看。確定這個檔已設成「知道連結的人都能檢視」？','Google Drive / Docs links usually need sign-in. Is this file shared as “anyone with the link can view”?','')))return;
- const M=getM(),k='MAT|L'+Date.now().toString(36);M[k]={_k:k,name:name.trim(),url,cat:guessCat(name),desc:'',type:'LINK',date:new Date().toISOString().slice(0,10),updatedAt:new Date().toISOString()};putM(M);renderMaterials()};
-window.matEdit=k=>{const M=getM(),x=M[k];if(!x)return;const name=prompt(T3('名稱','Name','ឈ្មោះ'),x.name);if(name===null)return;const cat=prompt(T3('分類：','Category: ','ប្រភេទ៖ ')+Object.keys(MCAT).map(c=>c+' '+T3(MCAT[c][0],MCAT[c][1],MCAT[c][2])).join('／'),x.cat);if(cat===null)return;const desc=prompt(T3('說明','Description','ពិពណ៌នា'),x.desc||'');if(desc===null)return;
- M[k]=Object.assign({},x,{name:name.trim()||x.name,cat:MCAT[cat.trim()]?cat.trim():x.cat,desc:desc.trim(),updatedAt:new Date().toISOString()});putM(M);renderMaterials();toast(T3('已儲存','Saved','បានរក្សាទុក'),'ok')};
-window.matDel=k=>{const M=getM(),x=M[k];if(!x||!confirm(T3('從清單刪除「'+x.name+'」？（雲端檔案保留，可找回）','Remove “'+x.name+'” from the list? (the cloud file is kept)','លុប?')))return;delete M[k];putM(M);renderMaterials()};
-window.matExport=()=>{if(!window.XLSX){toast('XLSX ✗','err');return}const rows=allItems().map(({x,u})=>({Key:x._k,Name:u?x.name:x.zh,NameEN:u?'':x.en,Category:x.cat,Date:x.date||'',Type:x.type||'',Description:u?(x.desc||''):x.desc[0],DriveId:x.driveId||'',Link:x.url||'',Size:x.size||'',Builtin:u?'':'Y'}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Materials');XLSX.writeFile(wb,'VRT_Training_Materials.xlsx')};
+ const M=getM();if(Object.values(M).some(x=>x.url===url&&!x.hidden&&!x.deleted)){toast(T3('這個網址已經在清單裡','This link is already in the list',''),'warn');return}
+ const k='MAT|L'+Date.now().toString(36);M[k]={_k:k,name:name.trim(),url,cat:guessCat(name),desc:'',type:'LINK',date:NOW().slice(0,10),updatedAt:NOW()};putM(M);renderMaterials()};
+window.matExport=()=>{if(!window.XLSX){toast('XLSX ✗','err');return}const rows=allItems().map(x=>({Key:x._k,Name:nm(x),NameEN:x._b?x.en:'',Category:x.cat,Date:x.date||'',Type:x.type||'',Description:ds(x),File:x.file||'',DriveId:x.driveId||'',Link:x.url||'',Size:x.size||'',Builtin:x._b?'Y':'',Hidden:x.hidden?'Y':''}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Materials');XLSX.writeFile(wb,'VRT_Training_Materials.xlsx')};
+/* 匯入：同 Key 就更新（不重複）；內建列只更新名稱／分類／說明／隱藏 */
 window.matImport=async f=>{if(!f)return;try{let rows=[];if(/\.json$/i.test(f.name)){const d=JSON.parse(await f.text());rows=Array.isArray(d)?d:Object.values(d)}else{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''})}
- const M=getM();let n=0;rows.forEach(r=>{if(r.Builtin==='Y')return;const k=r._k||r.Key||('MAT|I'+Date.now().toString(36)+n);const url=r.url||r.Link||'';if(/drive\.google|docs\.google/.test(url)&&!(r.driveId||r.DriveId))return;const name=r.name||r.Name;if(!name)return;
-  M[k]=Object.assign({},M[k]||{},{_k:k,name,cat:MCAT[r.cat||r.Category]?(r.cat||r.Category):guessCat(name),desc:r.desc||r.Description||'',date:String(r.date||r.Date||''),type:r.type||r.Type||'',driveId:r.driveId||r.DriveId||'',url,mime:r.mime||'',updatedAt:new Date().toISOString()});n++});
- putM(M);renderMaterials();toast(T3('匯入','Imported','នាំចូល')+' '+n,'ok')}catch(e){toast(e.message,'err')}document.getElementById('mat-imp').value=''};
+ const M=getM();let n=0,u=0;rows.forEach(r=>{const k=String(r._k||r.Key||'').trim();const name=String(r.name||r.Name||'').trim();const hid=String(r.Hidden||r.hidden||'').toUpperCase()==='Y'||r.hidden===true;
+  if(/^B\|/.test(k)){const b=BUILT.find(i=>i._k===k);if(!b)return;const ch={};if(name&&name!==b.zh&&name!==b.en)ch.name=name;const ds2=String(r.desc||r.Description||'');if(ds2&&ds2!==b.desc[0]&&ds2!==b.desc[1])ch.desc=ds2;const c=r.cat||r.Category;if(MCAT[c]&&c!==b.cat)ch.cat=c;if(hid)ch.hidden=true;if(!Object.keys(ch).length&&!M[k])return;M[k]=Object.assign({_k:k},M[k]||{},ch,{hidden:hid,updatedAt:NOW()});u++;return}
+  const url=r.url||r.Link||'';if(/drive\.google|docs\.google/.test(url)&&!(r.driveId||r.DriveId))return;if(!name)return;
+  const dup=Object.values(M).find(x=>!/^B\|/.test(x._k)&&((r.driveId||r.DriveId)&&x.driveId===(r.driveId||r.DriveId)||url&&x.url===url));
+  const kk=k||(dup&&dup._k)||('MAT|I'+Date.now().toString(36)+n);if(M[kk])u++;else n++;
+  M[kk]=Object.assign({},M[kk]||{},{_k:kk,name,cat:MCAT[r.cat||r.Category]?(r.cat||r.Category):guessCat(name),desc:r.desc||r.Description||'',date:String(r.date||r.Date||''),type:r.type||r.Type||'',driveId:r.driveId||r.DriveId||'',url,mime:r.mime||'',hidden:hid,updatedAt:NOW()})});
+ putM(M);renderMaterials();toast(T3('匯入','Imported','នាំចូល')+` +${n} · ${T3('更新','updated','កែ')} ${u}`,'ok')}catch(e){toast(e.message,'err')}document.getElementById('mat-imp').value=''};
 getM();
 if(window.ACAuto&&window.ACTS){try{ACAuto.init({keys:[K],by:'training_mat',badge:false,onPull:function(){if(S.tab==='materials')renderMaterials()}})}catch(e){console.warn('[mat] autosync',e)}}
 if((location.hash||'')==='#materials'){setTimeout(()=>{try{goTab('materials')}catch(e){}},300)}
+/* 上次沒傳完的：頁面打開 3 秒後自動繼續 */
+setTimeout(()=>{qAll().then(a=>{if(a.length)matPump()})},3000);
 })();
 </script>
 <script src="https://saintdou-weng.github.io/ac-hra-portal/shared/row-keynote.js?v=33" defer></script>
