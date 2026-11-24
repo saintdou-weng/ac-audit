@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VRT 培訓材料 Viewer</title>
+<!--
+  VRT 培訓材料檢視器 view.html（2026-11-24，Paul）
+  Paul：給群組用，不能點了要登入 Gmail／Drive；能直接點開看的才放。手機上 PDF 用 iframe 會變成下載，所以用 pdf.js 直接畫在頁面上。
+  用法：view.html?f=xxx.pdf&t=標題  （同資料夾的 PDF／圖片）
+        view.html?d=<Drive 檔案代號>&m=<mime>&t=標題  （智慧匯入上傳的檔，已設「知道連結的人可檢視」，用 Drive 預覽，不用登入）
+-->
+<style>
+:root{--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;--bg:#eef2f5}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC","Noto Sans Khmer",sans-serif}
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1f4d3a;color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.bar b{flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar a,.bar button{flex:none;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;border-radius:9px;padding:7px 11px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}
+#st{font-size:12px;color:#cfe;flex:none}
+main{max-width:1100px;margin:0 auto;padding:10px}
+canvas,img.full{display:block;width:100%;height:auto;background:#fff;margin:0 auto 10px;border-radius:6px;box-shadow:0 2px 10px rgba(15,23,42,.12)}
+iframe{display:block;width:100%;height:calc(100vh - 56px);border:0;background:#fff}
+.msg{padding:40px 16px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="bar"><button onclick="goBack()">←</button><b id="ttl">…</b><span id="st"></span><a id="dl" href="#" download>⬇</a></div>
+<main id="box"><div class="msg">…</div></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+const P=new URLSearchParams(location.search),f=P.get('f')||'',d=P.get('d')||'',m=(P.get('m')||'').toLowerCase(),t=P.get('t')||f.split('/').pop()||'';
+const lang=(P.get('l')||localStorage.getItem('ac_hra_lang')||'zh');const L=(zh,en,km)=>lang==='zh'?zh:(lang==='kh'||lang==='km')?(km||en):en;
+document.getElementById('ttl').textContent=t;document.title=t||document.title;
+function goBack(){if(window.parent!==window){try{window.parent.postMessage({vrtViewer:'close'},'*')}catch(e){}return}if(history.length>1)history.back();else window.close()}
+const box=document.getElementById('box'),st=document.getElementById('st'),dl=document.getElementById('dl');
+const safeF=/^[\w\-.%()]+\.(pdf|png|jpe?g|webp|gif)$/i.test(f)?f:'';/* 只開這個資料夾裡的檔，不開外部網址 */
+if(d&&/^[\w-]{10,}$/.test(d)){
+  dl.href='https://drive.google.com/uc?export=download&id='+d;
+  if(/^image\//.test(m)){box.innerHTML='<img class="full" alt="" src="https://lh3.googleusercontent.com/d/'+d+'">'}
+  else{box.style.padding='0';box.style.maxWidth='none';box.innerHTML='<iframe src="https://drive.google.com/file/d/'+d+'/preview" allow="autoplay"></iframe>'}
+}else if(safeF&&/\.pdf$/i.test(safeF)){
+  dl.href=safeF;
+  if(!window.pdfjsLib){box.innerHTML='<iframe src="'+safeF+'"></iframe>'}
+  else{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    pdfjsLib.getDocument(safeF).promise.then(async pdf=>{box.innerHTML='';const W=Math.min(box.clientWidth||900,1100),dpr=Math.min(2,window.devicePixelRatio||1);
+      for(let i=1;i<=pdf.numPages;i++){st.textContent=i+' / '+pdf.numPages;const pg=await pdf.getPage(i),v0=pg.getViewport({scale:1}),sc=W/v0.width*dpr,vp=pg.getViewport({scale:sc});
+        const c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;box.appendChild(c);await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise}
+      st.textContent=pdf.numPages+' '+L('頁','pages','ទំព័រ')}).catch(e=>{box.innerHTML='<div class="msg">'+L('打不開這個檔','Cannot open this file','មិនអាចបើក')+'<br><small>'+String(e.message||e)+'</small></div>'})}
+}else if(safeF){dl.href=safeF;box.innerHTML='<img class="full" alt="" src="'+safeF+'">'}
+else{box.innerHTML='<div class="msg">'+L('沒有指定檔案','No file given','គ្មានឯកសារ')+'</div>';dl.style.display='none'}
+</script>
+</body>
+</html>
