@@ -18,3 +18,14 @@ Plan: import 2025 Aug–Dec production rows from full-year xlsx; attach PDFs as 
 - Fixed: domain localStorage FULL (5.24M chars) → prod page now stores vrtp_* in IndexedDB 'vrtp_store' via Storage.prototype shim; save() blocked until VRTP_READY; ACAuto init after READY. VY() moved into main script (init renderPills was throwing).
 - HR page still on localStorage (vrt3_*) + GAS sheet; works because it reloads from GAS. Consider same shim.
 - Next: attach PDFs as evidence, read sign-in sheets → 受訓員工, PSJHR 培訓 tab, keynote continuous scroll.
+
+## 23:3x update
+- Granted folders now: C:\Users\psjwe\Downloads, C:\all, C:\VRT.
+  - C:\all\close drop\HR\Others\<year>\ : HR training schedules 2020–2025 ("VRT TRAINING SCHEDULE BY PAUL <year>.xlsx") + monthly training PDFs (photos/sign-in).
+  - C:\all\close drop\Production\Others\2025\ : production training PDFs (per course) + report xlsx versions.
+  - C:\all\VRT26\2603\HR03\ (2026 monthly folders), C:\all\vrt new 2026\, C:\all\view by AI\ : HR TRAINING SCHEDULE 2026 copies.
+  - C:\VRT\outlook 2026\*.pst : Outlook archives (2026 mail; production training Mar–Nov 2026 likely here). Not parsed yet (need pst reader, e.g. pip libpff/readpst).
+- Imported HR history 2022-05..2025-03 (+132; HR now 30 months). HR 2025 Apr–Dec not found yet (not in Gmail as xlsx).
+- Cambodia law page: version/update history (lawVersionBox), Khmer mode (ខ្មែរ button; textKH/summaryKH/nameKH fields), IndexedDB store 'law_store', API lawUpsert/lawAddUpdate/lawMarkChecked. Seeded: labor updates (2026 MW $210 Prakas 214/25; Apr-2026 +$2.50 allowance; 2027 MW $212 Prakas 226/26), Investment Law 1994 as superseded history.
+- Scheduled task trig_01AXoWtri1waZRNjxvowWJie "柬埔寨法律月度自動更新（每月 3 日）" 13:17 Phnom Penh, bound to laptop, auto approval, push notify.
+- Still TODO: per-law/per-item incremental sync (ACAuto uploads whole key when changed); sign-in sheet → 受訓員工; PSJHR 培訓 tab; keynote continuous scroll; attach PDFs as evidence; HR page IDB shim (vrt3_*).
