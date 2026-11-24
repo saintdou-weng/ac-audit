@@ -891,6 +891,7 @@ body {
     <button class="lang-btn active" onclick="setLang('cn')">中文</button>
     <button class="lang-btn" onclick="setLang('en')">English</button>
     <button class="lang-btn" onclick="setLang('bi')">雙語</button>
+    <button class="lang-btn" onclick="setLang('kh')">ខ្មែរ</button>
   </div>
 
   <div id="sidebar-search">
@@ -1071,6 +1072,17 @@ body {
   </div>
 </div>
 
+<script>
+/* 2026-11-24：網域 localStorage 已滿 → 法律資料改存 IndexedDB（頁面照常用 localStorage 讀寫，這裡攔截轉存） */
+(function(){var RX=/^(cambodia_laws_v1|ac_sync_base_cambodia_laws_v1)$/,M=new Map(),P=Storage.prototype,gi=P.getItem,si=P.setItem,ri=P.removeItem;
+ var dbp=new Promise(function(res){try{var q=indexedDB.open('law_store',1);q.onupgradeneeded=function(){q.result.createObjectStore('kv')};q.onsuccess=function(){res(q.result)};q.onerror=function(){res(null)}}catch(e){res(null)}});
+ function put(k,v){dbp.then(function(d){if(!d)return;try{var os=d.transaction('kv','readwrite').objectStore('kv');v===null?os.delete(k):os.put(v,k)}catch(e){}})}
+ P.getItem=function(k){if(this===localStorage&&RX.test(k)){if(M.has(k))return M.get(k);var v=gi.call(this,k);if(v!==null){M.set(k,v);put(k,v);try{ri.call(this,k)}catch(e){}}return v}return gi.call(this,k)};
+ P.setItem=function(k,v){if(this===localStorage&&RX.test(k)){v=String(v);M.set(k,v);put(k,v);try{ri.call(this,k)}catch(e){}return}return si.call(this,k,v)};
+ P.removeItem=function(k){if(this===localStorage&&RX.test(k)){M.delete(k);put(k,null)}return ri.call(this,k)};
+ window.LAW_READY=dbp.then(function(d){return new Promise(function(res){if(!d)return res();try{var rq=d.transaction('kv').objectStore('kv').openCursor();rq.onsuccess=function(){var c=rq.result;if(c){if(!M.has(c.key))M.set(c.key,c.value);c.continue()}else res()};rq.onerror=function(){res()}}catch(e){res()}})}).then(function(){window.__LAW_OK=true});
+})();
+</script>
 <script>
 // ═══════════════════════════════════════════════════════
 // DATA STORE
@@ -1366,6 +1378,7 @@ function loadData() {
 }
 
 function saveData(data) {
+  if(window.LAW_READY&&!window.__LAW_OK)return;
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
 }
 
@@ -1522,7 +1535,40 @@ function saveData(data) {
   }
 })();
 
+
+/* ══ 2026-11-24：版本／更新記錄／高棉文 + 自動更新 API（每月排程用 lawUpsert／lawAddUpdate 寫入） ══
+   law 欄位：status('current'|'superseded') supersededBy supersedes nameKH summaryKH effective lastChecked
+             sources:[{title,url,lang}]  updates:[{id,date,kind,titleCN,titleEN,titleKH,summaryCN,summaryEN,url,isNew}]
+   item 欄位：textKH */
+function lawVersionBox(law){
+  const ups=(law.updates||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const src=law.sources||[]; const old=DB.find(l=>l.id===law.supersedes), neu=DB.find(l=>l.id===law.supersededBy);
+  if(!ups.length&&!src.length&&!old&&!neu&&!law.nameKH)return '';
+  const kd={law:'📗 新法',amend:'✏️ 修正',prakas:'📄 命令 Prakas',subdecree:'📑 次法令',notice:'📢 公告',minwage:'💵 最低工資',holiday:'📅 假日'};
+  return `<div class="law-summary-box" style="border-left:4px solid ${law.status==='superseded'?'#dc2626':'#16a34a'}">
+    <div class="section-title">📜 版本與更新記錄 / Versions & updates</div>
+    ${law.nameKH?`<div style="font-size:14px;margin-bottom:6px">ខ្មែរ：<b>${law.nameKH}</b></div>`:''}
+    ${neu?`<div style="padding:8px 10px;background:#fef2f2;border-radius:8px;margin-bottom:8px">🕰 這是歷史版本，已被 <a href="#" onclick="selectLaw('${neu.id}');return false"><b>${neu.nameCN}（${neu.year}）</b></a> 取代，保留作參考比較。</div>`:''}
+    ${old?`<div style="padding:8px 10px;background:#f0fdf4;border-radius:8px;margin-bottom:8px">📚 取代舊版：<a href="#" onclick="selectLaw('${old.id}');return false"><b>${old.nameCN}（${old.year}）</b></a>（舊版保留，可點開比較）</div>`:''}
+    ${ups.length?`<div style="display:flex;flex-direction:column;gap:6px">${ups.map(u=>`<div style="padding:8px 10px;border:1px solid var(--border,#e2e8f0);border-radius:8px"><div style="font-size:12px;color:var(--text-light)">${u.date||''} · ${kd[u.kind]||u.kind||''}${u.isNew?' <b style="color:#f59e0b">新</b>':''}</div><div style="font-weight:600">${t(u.titleCN,u.titleEN,u.titleKH)}</div>${u.summaryCN||u.summaryEN?`<div style="font-size:13px;margin-top:3px">${t(u.summaryCN,u.summaryEN,u.summaryKH)}</div>`:''}${u.url?`<div style="font-size:12px;margin-top:3px"><a href="${u.url}" target="_blank" rel="noopener">🔗 原文 / Source</a></div>`:''}</div>`).join('')}</div>`:''}
+    ${src.length?`<div style="margin-top:8px;font-size:12px">📎 原文：${src.map(x=>`<a href="${x.url}" target="_blank" rel="noopener">${x.title||x.url}${x.lang?' ['+x.lang+']':''}</a>`).join('　')}</div>`:''}
+  </div>`;
+}
+window.lawUpsert=function(rec){ /* 新法：rec 是完整 law；若 rec.supersedes 指向舊法，舊法標成 superseded 但保留 */
+  if(!rec||!rec.id)return 'no id'; const i=DB.findIndex(l=>l.id===rec.id);
+  rec.chapters=rec.chapters||[]; rec.color=rec.color||'#0f766e'; rec.status=rec.status||'current';
+  if(i>=0)DB[i]=Object.assign({},DB[i],rec,{chapters:rec.chapters.length?rec.chapters:DB[i].chapters}); else DB.push(rec);
+  if(rec.supersedes){const o=DB.find(l=>l.id===rec.supersedes); if(o){o.status='superseded'; o.supersededBy=rec.id}}
+  saveData(DB); refreshAll(); return i>=0?'updated':'added' };
+window.lawAddUpdate=function(lawId,u){ const law=DB.find(l=>l.id===lawId); if(!law)return 'no law';
+  law.updates=law.updates||[]; u.id=u.id||('u'+String(u.date||'').replace(/-/g,'')+'_'+law.updates.length);
+  if(law.updates.some(x=>x.id===u.id||(x.url&&x.url===u.url)))return 'exists';
+  law.updates.forEach(x=>x.isNew=false); u.isNew=true; law.updates.push(u); law.lastChecked=u.checked||law.lastChecked;
+  saveData(DB); refreshAll(); return 'added' };
+window.lawMarkChecked=function(d){ DB.forEach(l=>{ if(l.status!=='superseded')l.lastChecked=d }); saveData(DB); refreshAll(); return DB.length };
+
 let DB = loadData();
+if(window.LAW_READY)LAW_READY.then(function(){DB=loadData();try{refreshAll()}catch(e){}});
 
 // ═══════════════════════════════════════════════════════
 // LANG
@@ -1530,12 +1576,13 @@ let DB = loadData();
 function setLang(l) {
   lang = l;
   document.querySelectorAll('.lang-btn').forEach((b,i) => {
-    b.classList.toggle('active', ['cn','en','bi'][i] === l);
+    b.classList.toggle('active', ['cn','en','bi','kh'][i] === l);
   });
   refreshAll();
 }
 
-function t(cn, en) {
+function t(cn, en, kh) {
+  if (lang === 'kh') return kh ? kh : ((en || cn || '') + '<br><span style="color:var(--text-light);font-size:0.8em">（尚無高棉文 / Khmer text not yet added）</span>');
   if (lang === 'cn') return cn || '';
   if (lang === 'en') return en || '';
   return (cn || '') + (en ? `<br><span style="color:var(--text-light);font-size:0.88em">${en}</span>` : '');
@@ -1547,6 +1594,7 @@ function t(cn, en) {
 function renderSidebar(data) {
   const list = document.getElementById('law-list');
   list.innerHTML = '';
+  data = data.slice().sort((a,b)=>(a.status==='superseded')-(b.status==='superseded'));
   data.forEach(law => {
     const active = law.id === currentLawId;
     const div = document.createElement('div');
@@ -1555,7 +1603,7 @@ function renderSidebar(data) {
       <div class="law-item ${active ? 'active' : ''}" onclick="selectLaw('${law.id}')">
         <div class="law-dot" style="background:${law.color}"></div>
         <div class="law-name">
-          <div class="law-name-cn">${law.nameCN}</div>
+          <div class="law-name-cn" style="${law.status==='superseded'?'opacity:.55':''}">${law.status==='superseded'?'🕰 ':''}${law.nameCN}${(law.updates||[]).some(u=>u.isNew)?' <span style="color:#f59e0b">●新</span>':''}</div>
           <div class="law-name-en">${law.nameEN}</div>
         </div>
         <div class="law-badge">${law.chapters.length}章</div>
@@ -1627,6 +1675,8 @@ function showLawOverview(id) {
       <div class="law-meta">
         <div class="law-meta-item">生效年份 <strong>${law.year}</strong></div>
         ${law.amended ? `<div class="law-meta-item">修訂 <strong>${law.amended}</strong></div>` : ''}
+        ${law.status==='superseded'?`<div class="law-meta-item" style="background:#7f1d1d">🕰 <strong>已被取代（歷史版本）</strong></div>`:`<div class="law-meta-item" style="background:#14532d">✅ <strong>現行有效</strong></div>`}
+        ${law.lastChecked?`<div class="law-meta-item">最後查核 <strong>${law.lastChecked}</strong></div>`:''}
         <div class="law-meta-item">章節 <strong>${law.chapters.length}</strong></div>
         <div class="law-meta-item">條文 <strong>${articles}</strong></div>
         <div class="law-meta-item">⚠️ 重要提醒 <strong>${highlights}</strong></div>
@@ -1639,10 +1689,11 @@ function showLawOverview(id) {
       </div>
     </div>
 
+    ${lawVersionBox(law)}
     ${law.summaryCN ? `
     <div class="law-summary-box">
       <div class="section-title">📋 法律摘要</div>
-      <div class="summary-text">${t(law.summaryCN, law.summaryEN)}</div>
+      <div class="summary-text">${t(law.summaryCN, law.summaryEN, law.summaryKH)}</div>
       ${law.scope ? `<div style="margin-top:10px;font-size:12px;color:var(--text-light)">📌 適用範圍：${law.scope}</div>` : ''}
     </div>` : ''}
 
@@ -1684,7 +1735,7 @@ function showChapterView(lawId, chId) {
     if (item.type === 'article') return `
       <div class="article-item">
         ${item.num ? `<div class="article-num">${item.num}</div>` : ''}
-        <div class="article-text">${t(item.textCN, item.textEN)}</div>
+        <div class="article-text">${t(item.textCN, item.textEN, item.textKH)}</div>
         <div class="actions-row">
           <button class="article-edit-btn" onclick="openEditArticle('${lawId}','${chId}','${item.id}')">✏️ 編輯</button>
           <button class="article-edit-btn del" onclick="deleteArticle('${lawId}','${chId}','${item.id}')">🗑 刪除</button>
@@ -1693,7 +1744,7 @@ function showChapterView(lawId, chId) {
     if (item.type === 'highlight') return `
       <div class="highlight-box">
         <div class="highlight-label">⚠️ 重要提醒 / Key Point</div>
-        <div class="highlight-text">${t(item.textCN, item.textEN)}</div>
+        <div class="highlight-text">${t(item.textCN, item.textEN, item.textKH)}</div>
         <div class="actions-row">
           <button class="article-edit-btn" onclick="openEditArticle('${lawId}','${chId}','${item.id}')">✏️ 編輯</button>
           <button class="article-edit-btn del" onclick="deleteArticle('${lawId}','${chId}','${item.id}')">🗑 刪除</button>
@@ -1702,7 +1753,7 @@ function showChapterView(lawId, chId) {
     if (item.type === 'example') return `
       <div class="example-box">
         <div class="example-label">💡 範例說明 / Example</div>
-        <div class="example-text">${t(item.textCN, item.textEN)}</div>
+        <div class="example-text">${t(item.textCN, item.textEN, item.textKH)}</div>
         <div class="actions-row">
           <button class="article-edit-btn" onclick="openEditArticle('${lawId}','${chId}','${item.id}')">✏️ 編輯</button>
           <button class="article-edit-btn del" onclick="deleteArticle('${lawId}','${chId}','${item.id}')">🗑 刪除</button>
@@ -1728,7 +1779,7 @@ function showChapterView(lawId, chId) {
     ${ch.summaryCN ? `
     <div class="content-block">
       <div class="block-title"><span class="block-icon">📋</span> 章節摘要 Chapter Summary</div>
-      <div class="summary-text">${t(ch.summaryCN, ch.summaryEN)}</div>
+      <div class="summary-text">${t(ch.summaryCN, ch.summaryEN, ch.summaryKH)}</div>
     </div>` : ''}
 
     <div class="content-block">
@@ -2117,7 +2168,7 @@ document.getElementById('compare-view').style.display = 'none';
 <script src="https://saintdou-weng.github.io/ac-admin/shared/swipe-tabs.js" defer></script>
 <script src="assets/ac_tool_sync.js?v=5"></script>
 <script src="assets/ac_autosync.js?v=4"></script>
-<script>/* 自動雲端同步：Audit／Admin OS／PSJHR 開的都是這一頁、同一份資料 */if(window.ACAuto)ACAuto.init({keys:['cambodia_laws_v1'],by:'law'});</script>
+<script>/* 自動雲端同步：Audit／Admin OS／PSJHR 開的都是這一頁、同一份資料 */(window.LAW_READY||Promise.resolve()).then(function(){if(window.ACAuto)ACAuto.init({keys:['cambodia_laws_v1'],by:'law',onPull:function(){DB=loadData();try{refreshAll()}catch(e){}}})});</script>
 <!-- 2026-11-22 介面動效（外掛；拿掉這一行就恢復原樣）：主要按鈕懸停回饋／數字卡 3D 傾斜／頂列毛玻璃／回到頂部。淺色頁面沒有聚光燈；分頁、表格、清單裡的按鈕不套 -->
 <script src="assets/ux_motion.js?v=3" data-btn=".btn,.hbtn,.hd-action,.calc-btn,.topbar-btn,.tbtn,.eb,.ib,.ed-bar button" data-cards=".sum-card,.stat,.stat-card,a.kpi,.qcard" data-nav=".topbar,#header,.top,.app-header,.hdr" data-skip="table,.tabs,nav,.c-act,.status-row,.ed-tools,.ed-add,.ed-tbl,.seg,.period,.sidebar,.ed-menu" defer></script>
 </body>
