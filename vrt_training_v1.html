@@ -337,6 +337,7 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
   <button class="tb on" onclick="goTab('matrix')" id="tb-matrix">📋 <span data-i18n="tab.matrix">年度計劃</span></button>
   <button class="tb" onclick="goTab('monthly')" id="tb-monthly">📝 <span data-i18n="tab.monthly">月份記錄</span></button>
   <button class="tb" onclick="goTab('library')" id="tb-library">📚 <span data-i18n="tab.library">培訓庫</span></button>
+  <button class="tb" onclick="goTab('materials')" id="tb-materials">📘 <span data-i18n="tab.materials">培訓材料</span></button>
   <button class="tb" onclick="goTab('stats')" id="tb-stats">📊 <span data-i18n="tab.stats">統計概覽</span></button>
   <button class="tb" onclick="goTab('settings')" id="tb-settings">⚙️ <span data-i18n="tab.settings">設定</span></button>
 </div>
@@ -461,6 +462,9 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
 </div>
 
 <!-- ===== SETTINGS ===== -->
+<!-- 2026-11-24 培訓材料（入職手冊、消防／急救教材、廠規） -->
+<div class="pnl" id="tab-materials"></div>
+
 <div class="pnl" id="tab-settings">
 
   <!-- QUICK OPTIONS MANAGEMENT -->
@@ -787,6 +791,7 @@ const DICT={
   'tab.matrix':{zh:'年度計劃',en:'Annual Plan'},
   'tab.monthly':{zh:'月份記錄',en:'Monthly Records'},
   'tab.library':{zh:'培訓庫',en:'Training Library'},
+  'tab.materials':{zh:'培訓材料',en:'Materials',kh:'ឯកសារបណ្តុះបណ្តាល'},
   'tab.stats':{zh:'統計概覽',en:'Statistics'},
   'tab.settings':{zh:'設定',en:'Settings'},
   // SUBTABS
@@ -1287,6 +1292,7 @@ function renderActive(){
   else if(S.tab==='library') renderLibrary();
   else if(S.tab==='stats') renderStats();
   else if(S.tab==='settings') renderSettings();
+  else if(S.tab==='materials'&&window.renderMaterials) renderMaterials();
 }
 
 // =====================================================
@@ -2985,6 +2991,52 @@ if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
     if((tb!=='rbd'&&tb!=='mbd')||!b)return '';
     return '<div class="tk-sec" style="padding-bottom:12px"><button type="button" class="tk-btn" onclick="document.getElementById(\'kn-x\').click();'+E(b.getAttribute('onclick'))+'">✏ '+L('編輯／加照片','Edit / add photos')+'</button></div>';
   };
+})();
+</script>
+<script>
+/* ═══ 培訓材料 v1（2026-11-24，Paul）═══
+   Paul：入職培訓手冊或材料放進培訓這邊，加個「培訓材料」之類的分頁。
+   · 內建：新進員工培訓手冊 v3（中／英／柬，assets/materials/VRT_training_handbook_v3.html）、廠規 2027、
+     消防演習簡報／疏散計劃／疏散圖、急救訓練簡報（雲端 Google Drive，需 Paul 帳號開）。
+   · 消防演習紀錄放在 HRA Portal「職安衛／員工關係」（和急救員、安衛委員會、工傷同一組），這裡放連結。
+   · 可自己加材料（名稱＋連結＋分類），存本機＋HRA 雲端（tool training_mat），HRA Portal／Audit／Admin OS 開的是同一頁同一份。 */
+(function(){
+const DRV=id=>'https://drive.google.com/file/d/'+id+'/view';
+const K='vrt3_mat',TOOL='training_mat';
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const T3=(zh,en,kh)=>LANG==='zh'?zh:LANG==='kh'?(kh||en):en;
+const MCAT={orient:['入職培訓','Orientation','ការតម្រង់ទិស'],safety:['消防安全','Fire safety','សុវត្ថិភាពអគ្គិភ័យ'],health:['急救健康','First aid & health','សង្គ្រោះបឋម'],rules:['廠規制度','Rules & policies','បទបញ្ជា'],other:['其他','Other','ផ្សេងៗ']};
+const BUILT=[
+ {id:'b1',cat:'orient',ic:'📘',zh:'新進員工培訓手冊 v3（中／英／柬）',en:'New Employee Training Handbook v3 (CN / EN / KM)',kh:'សៀវភៅបណ្តុះបណ្តាលបុគ្គលិកថ្មី v3',desc:['8 章：到職與工時、薪資假別福利、廠規獎懲、6S、反恐保安、職安消防 PPE、宿舍食堂、申訴聯絡與表單。可列印／存 PDF。','8 chapters: joining & hours, pay / leave / welfare, rules & discipline, 6S, anti-terror & security, EHS / PPE / fire, dormitory & canteen, grievance & forms. Print / save as PDF.','៨ ជំពូក'],url:'assets/materials/VRT_training_handbook_v3.html',date:'2026-08',type:'HTML'},
+ {id:'b2',cat:'rules',ic:'📕',zh:'廠規手冊 2027',en:'Factory Rules 2027',kh:'បទបញ្ជាផ្ទៃក្នុង ២០២៧',desc:['和 VRT HR／Admin OS 同一份。','Same copy as VRT HR / Admin OS.',''],url:'VRT_Factory_Rules_2027.html',date:'2027',type:'HTML'},
+ {id:'b3',cat:'safety',ic:'🔥',zh:'消防演習訓練簡報 2025',en:'Fire drill training deck 2025',kh:'ឯកសារបណ្តុះបណ្តាលសមយុទ្ធអគ្គិភ័យ ២០២៥',desc:['火災原因、警鈴、逃生標示、緊急電話 117、集合點排隊點名。','Fire causes, alarm, exit signs, emergency number 117, line up and count at the assembly point.',''],url:DRV('1zltFn4hHgg7HDUQ8-__NVkMNqb4NkX5-'),date:'2025-07',type:'PPTX',cloud:1},
+ {id:'b4',cat:'safety',ic:'🗺️',zh:'消防演習與疏散計劃 2025',en:'Fire drill & evacuation plan 2025',kh:'ផែនការជម្លៀស ២០២៥',desc:['分工：警鈴、拍照、引導、關電、關門、點名、急救；A／B 棟各組的逃生出口。','Roles: alarm, photos, marshals, power off, doors, roll call, first aid; exits for each team in buildings A / B.',''],url:DRV('1X2iOB6EhXPybPtfCHP5-d65sbYlI5wTy'),date:'2025-07',type:'DOC',cloud:1},
+ {id:'b5',cat:'safety',ic:'🧭',zh:'A／B 棟疏散圖',en:'Building A-B evacuation maps',kh:'ផែនទីជម្លៀស អគារ A-B',desc:['','',''],url:DRV('1oA6Bj0AhP9BdXlsdsWuncIsrqME0WXVw'),date:'2024-12',type:'XLSX',cloud:1},
+ {id:'b6',cat:'safety',ic:'📸',zh:'消防演習實況（2024-12）',en:'Fire drill practice photos (2024-12)',kh:'រូបភាពសមយុទ្ធ',desc:['警察指導、1 分鐘內到集合點、各部門人數。','Police training, assembly point within 1 minute, headcount by department.',''],url:DRV('1QSid21Kt2em0F9UWLxOlmIJQ2sB6BQc1'),date:'2024-12',type:'PDF',cloud:1},
+ {id:'b7',cat:'health',ic:'⛑️',zh:'急救訓練（醫師）',en:'First aid training (doctor)',kh:'វគ្គសង្គ្រោះបឋម (វេជ្ជបណ្ឌិត)',desc:['','',''],url:DRV('1iSPiyZefMvmR934fuIaqfmx2Pn3nTv7g'),date:'2022-05',type:'PPTX',cloud:1},
+ {id:'b8',cat:'health',ic:'🩹',zh:'急救技術',en:'First aid techniques',kh:'បច្ចេកទេសសង្គ្រោះបឋម',desc:['','',''],url:DRV('1ybMkZhfltgnjlX0QKXhaQBaGXnbhO21S'),date:'2022-05',type:'PPTX',cloud:1},
+ {id:'b9',cat:'safety',ic:'🦺',zh:'消防演習紀錄（HRA 職安衛）',en:'Fire drill records (HRA Safety)',kh:'កំណត់ត្រាសមយុទ្ធ',desc:['2019 起每次演習的日期、各部門人數、疏散時間；急救員名冊、安衛委員會也在那裡。','Every drill since 2019 with headcount by department and evacuation time; first-aider roster and H&S committee are there too.',''],url:'../ac-hra-portal/ac_hra_safety_v1.html#drill',date:'',type:'HRA',link:1}
+];
+let MAT={items:[],at:''},MF='All';
+function loadM(){try{const v=JSON.parse(localStorage.getItem(K)||'null');if(v&&Array.isArray(v.items))MAT=v}catch(e){}}
+function saveM(){MAT.at=new Date().toISOString();try{localStorage.setItem(K,JSON.stringify(MAT))}catch(e){}pushM()}
+function hraUrl(){return (localStorage.getItem('vrt_att_cloud_v1_url')||localStorage.getItem('ac_hra_gas_url')||'').trim()}
+let _ld=null;function ensureSync(){if(window.HRASmartSync)return Promise.resolve(true);if(_ld)return _ld;_ld=new Promise(res=>{const base='https://saintdou-weng.github.io/ac-hra-portal/shared/';const a=document.createElement('script');a.src=base+'cloud-guard.js?v=2';a.onload=a.onerror=()=>{const b=document.createElement('script');b.src=base+'hra-smart-sync.js?v=49';b.onload=()=>res(!!window.HRASmartSync);b.onerror=()=>res(false);document.head.appendChild(b)};document.head.appendChild(a)});return _ld}
+async function pushM(){const url=hraUrl();if(!url||!(await ensureSync()))return;try{await HRASmartSync.push({url,tool:TOOL,records:MAT.items.map(x=>Object.assign({_kind:'mat'},x)),recordCount:MAT.items.length,summary:{items:MAT.items.length},allowDeletes:false,autoConfirmConflicts:true})}catch(e){console.warn('[mat] push',e)}}
+async function pullM(){const url=hraUrl();if(!url||!(await ensureSync()))return;try{const r=await HRASmartSync.pullReliable({url,tool:TOOL,localRecords:MAT.items.map(x=>Object.assign({_kind:'mat'},x))});if(r&&r.records&&r.records.length){const m=new Map(MAT.items.map(x=>[x._k,x]));r.records.forEach(x=>{if(!x||!x._k)return;const c=m.get(x._k);if(!c||String(x.updatedAt||'')>=String(c.updatedAt||''))m.set(x._k,Object.assign({},x))});MAT.items=[...m.values()];try{localStorage.setItem(K,JSON.stringify(MAT))}catch(e){}if(S.tab==='materials')renderMaterials()}}catch(e){console.warn('[mat] pull',e)}}
+function card(m,user){const nm=user?m.name:T3(m.zh,m.en,m.kh),d=user?(m.desc||''):T3(m.desc[0],m.desc[1],m.desc[2]);const href=m.url||'#';
+ return `<div class="lc"><div class="lc-hdr"><span class="lc-num" style="font-size:18px;background:transparent">${m.ic||'📄'}</span><div class="lc-ttl"><div class="lc-zh">${esc(nm)}</div><div class="lc-en">${esc(T3(MCAT[m.cat]?.[0]||'',MCAT[m.cat]?.[1]||'',MCAT[m.cat]?.[2]||''))}${m.date?' · '+esc(m.date):''}${m.type?' · '+esc(m.type):''}</div></div>${m.cloud?`<span class="cb" title="Google Drive">☁️ Drive</span>`:''}</div>${d?`<div class="lc-outline">${esc(d)}</div>`:''}<div class="lc-ft"><span class="type-i">${m.cloud?T3('雲端（需 Paul 帳號）','Cloud (Paul’s account)','ពពក'):m.link?T3('平台頁面','Platform page','ទំព័រ'):T3('直接開','Opens here','បើក')}</span><div style="display:flex;gap:4px"><a class="btn btn-sm btn-p" href="${esc(href)}" target="_blank" rel="noopener">${T3('打開','Open','បើក')} ↗</a>${user?`<button class="btn btn-sm btn-d" onclick="matDel('${esc(m._k)}')">🗑</button>`:''}</div></div></div>`}
+window.renderMaterials=function(){const box=document.getElementById('tab-materials');if(!box)return;const user=MAT.items.filter(x=>!x.deleted);const all=BUILT.map(m=>({m,u:0})).concat(user.map(m=>({m,u:1}))).filter(x=>MF==='All'||x.m.cat===MF);
+ box.innerHTML=`<div class="tbr"><div class="flt"><button class="fb${MF==='All'?' on':''}" onclick="matF('All')">${T3('全部','All','ទាំងអស់')}</button>${Object.keys(MCAT).map(k=>`<button class="fb${MF===k?' on':''}" onclick="matF('${k}')">${esc(T3(MCAT[k][0],MCAT[k][1],MCAT[k][2]))}</button>`).join('')}</div><div class="tbr-r"><button class="btn btn-p" onclick="matAdd()">＋ ${T3('新增材料（連結）','Add material (link)','បន្ថែមឯកសារ')}</button></div></div>
+ <div style="font-size:12px;color:var(--txt2);margin:2px 0 10px">${T3('新人入職先看「新進員工培訓手冊」；消防演習前 2 週要交疏散計劃（Paul 2025-12 規定）。Drive 的檔案用 Paul 的帳號才打得開。','New hires start with the training handbook; the evacuation plan is due 2 weeks before each fire drill (Paul, 2025-12). Drive files open with Paul’s account.','')}</div>
+ <div class="lib-grid">${all.map(x=>card(x.m,x.u)).join('')||`<div style="text-align:center;padding:30px;color:var(--muted);grid-column:1/-1">—</div>`}</div>`};
+window.matF=c=>{MF=c;renderMaterials()};
+window.matAdd=()=>{const name=prompt(T3('材料名稱','Material name','ឈ្មោះ'));if(!name)return;const url=prompt(T3('連結（Google Drive、網頁…）','Link (Google Drive, web page…)','តំណ'),'https://');if(!url||url==='https://')return;const cat=(prompt(T3('分類：orient 入職／safety 消防／health 急救／rules 廠規／other 其他','Category: orient / safety / health / rules / other','ប្រភេទ'),'orient')||'other').trim();const desc=prompt(T3('說明（可空白）','Description (optional)','ពិពណ៌នា'),'')||'';
+ MAT.items.push({_k:'MAT|'+Date.now().toString(36),name:name.trim(),url:url.trim(),cat:MCAT[cat]?cat:'other',desc:desc.trim(),ic:'📄',date:new Date().toISOString().slice(0,10),updatedAt:new Date().toISOString()});saveM();renderMaterials();toast(T3('已新增','Added','បានបន្ថែម'),'ok')};
+window.matDel=k=>{const x=MAT.items.find(i=>i._k===k);if(!x||!confirm(T3('刪除這個材料連結？','Delete this material link?','លុប?')))return;x.deleted=true;x.updatedAt=new Date().toISOString();saveM();renderMaterials()};
+loadM();
+setTimeout(pullM,1500);
+if((location.hash||'')==='#materials'){setTimeout(()=>{try{goTab('materials')}catch(e){}},300)}
 })();
 </script>
 <script src="https://saintdou-weng.github.io/ac-hra-portal/shared/row-keynote.js?v=33" defer></script>
