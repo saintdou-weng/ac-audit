@@ -3033,6 +3033,7 @@ function VY(){return window.__VY||CURRENT_YEAR}
 (function(){
  const AP='vrtp_archive_';
  const L2=(z,e)=>LANG==='zh'?z:e;
+ function durH(x){const t=String(x||'').toLowerCase().trim();const n=parseFloat(t)||0;if(/mn|min|分/.test(t))return n/60;if(/h|小時|hr/.test(t)&&!/^[\d.]+$/.test(t)){const m=t.match(/([\d.]+)\s*(?:h|hr|小時)\s*([\d.]+)?/);return m?(+m[1])+((+m[2]||0)/60):n}return n>8?n/60:n}
  function arch(y){try{const a=localStorage.getItem(AP+y);return a?JSON.parse(a):null}catch(e){return null}}
  window.ycYears=function(){const s=new Set([CURRENT_YEAR,CURRENT_YEAR-1,CURRENT_YEAR-2]);Object.keys(S.records||{}).forEach(k=>{const y=+k.slice(0,4);if(y>2000)s.add(y)});
   try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(AP)){const y=+k.slice(AP.length);if(y>2000)s.add(y)}}}catch(e){}
@@ -3062,12 +3063,12 @@ function VY(){return window.__VY||CURRENT_YEAR}
   if(!S.yc.ys)S.yc.ys=all.filter(y=>y<=CURRENT_YEAR).slice(0,3);if(!S.yc.m1){S.yc.m1=1;S.yc.m2=12}
   const ys=S.yc.ys.slice().sort((a,b)=>b-a),m1=S.yc.m1,m2=S.yc.m2,ML=monthsS(),MS=[];for(let m=m1;m<=m2;m++)MS.push(m);
   const st={};ys.forEach(y=>{let ses=0,att=0,pres=0,hrs=0,mh=0;const subj=new Set(),cat={},mon={s:[],a:[],h:[]};
-   MS.forEach(m=>{const R=recsOf(y,m);let a=0,h=0;R.forEach(r=>{const at=+r.attendees||0,ab=+r.absences||0,d=parseFloat(r.duration)||0;ses++;att+=at;pres+=Math.max(0,at-ab);hrs+=d;mh+=d*Math.max(0,at-ab);a+=Math.max(0,at-ab);h+=d*Math.max(0,at-ab);subj.add(String(r.subject||'').trim().toLowerCase());const c=catOf(r,y);cat[c]=(cat[c]||0)+1});mon.s.push(R.length);mon.a.push(a);mon.h.push(Math.round(h*10)/10)});
+   MS.forEach(m=>{const R=recsOf(y,m);let a=0,h=0;R.forEach(r=>{const at=+r.attendees||0,ab=+r.absences||0,d=durH(r.duration);ses++;att+=at;pres+=Math.max(0,at-ab);hrs+=d;mh+=d*Math.max(0,at-ab);a+=Math.max(0,at-ab);h+=d*Math.max(0,at-ab);subj.add(String(r.subject||'').trim().toLowerCase());const c=catOf(r,y);cat[c]=(cat[c]||0)+1});mon.s.push(R.length);mon.a.push(a);mon.h.push(Math.round(h*10)/10)});
    st[y]={ses,att,pres,hrs:Math.round(hrs*10)/10,mh:Math.round(mh*10)/10,rate:att?Math.round(pres/att*100):null,subj:subj.size,cat,mon}});
   const rng=m1===1&&m2===12?L2('全年','Full year'):ML[m1-1]+'–'+ML[m2-1];
   let h='<div class="ph"><h2>📈 '+L2('年度比對','Year comparison')+'</h2></div>';
   h+='<div class="yc-ctl" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 8px">'+L2('比較年份：','Years: ')+all.map(y=>'<label style="font-size:13px;margin-right:6px;display:inline-flex;align-items:center;gap:4px;width:auto"><input type="checkbox" style="width:auto;margin:0" '+(S.yc.ys.includes(y)?'checked':'')+' onchange="ycToggle('+y+',this.checked)"> '+y+'</label>').join('')+
-   ' <span style="margin-left:10px">'+L2('月份：','Months: ')+'</span><select style="width:auto;display:inline-block;padding:4px 8px" onchange="S.yc.m1=+this.value;if(S.yc.m2<S.yc.m1)S.yc.m2=S.yc.m1;renderYearCmp()">'+ML.map((x,i)=>'<option value="'+(i+1)+'"'+(i+1===m1?' selected':'')+'>'+x+'</option>').join('')+'</select> – <select onchange="S.yc.m2=+this.value;if(S.yc.m2<S.yc.m1)S.yc.m1=S.yc.m2;renderYearCmp()">'+ML.map((x,i)=>'<option value="'+(i+1)+'"'+(i+1===m2?' selected':'')+'>'+x+'</option>').join('')+'</select>'+
+   ' <span style="margin-left:10px">'+L2('月份：','Months: ')+'</span><select style="width:auto;display:inline-block;padding:4px 8px" onchange="S.yc.m1=+this.value;if(S.yc.m2<S.yc.m1)S.yc.m2=S.yc.m1;renderYearCmp()">'+ML.map((x,i)=>'<option value="'+(i+1)+'"'+(i+1===m1?' selected':'')+'>'+x+'</option>').join('')+'</select> – <select style="width:auto;display:inline-block;padding:4px 8px" onchange="S.yc.m2=+this.value;if(S.yc.m2<S.yc.m1)S.yc.m1=S.yc.m2;renderYearCmp()">'+ML.map((x,i)=>'<option value="'+(i+1)+'"'+(i+1===m2?' selected':'')+'>'+x+'</option>').join('')+'</select>'+
    ' <button class="btn btn-sm" onclick="S.yc.m1=1;S.yc.m2=12;renderYearCmp()">'+L2('全年','Full year')+'</button> <button class="btn btn-sm" onclick="const d=new Date();S.yc.m1=1;S.yc.m2=d.getMonth()+1;renderYearCmp()">'+L2('1 月到本月（同期比）','YTD')+'</button></div>';
   if(!ys.length)return el.innerHTML=h+'<p style="color:var(--muted);font-size:12px">'+L2('請勾選年份','Pick a year')+'</p>';
   const K=[['🗓',L2('培訓場次','Sessions'),'ses',''],['👥',L2('實到人次','Attended'),'pres',''],['⏱',L2('培訓人時','Man-hours'),'mh','h'],['✅',L2('出勤率','Attendance'),'rate','%'],['📚',L2('不同課程','Topics'),'subj','']];
