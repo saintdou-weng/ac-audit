@@ -1103,6 +1103,7 @@ const S={
 //  STORAGE
 // =====================================================
 function save(){
+  if(window.VRTP_READY&&!window.__VRTP_OK)return; /* IndexedDB 還沒讀完前不存，免得用預設資料蓋掉 */
   try{
     localStorage.setItem('vrtp_tr',JSON.stringify(S.trainings));
     localStorage.setItem('vrtp_rc',JSON.stringify(S.records));
@@ -1127,7 +1128,7 @@ function load(){
   }
 }
 
-try{ if(!localStorage.getItem('vrtp_tr')){ setTimeout(()=>{try{save()}catch(e){}},1500) } }catch(e){}
+(window.VRTP_READY||Promise.resolve()).then(()=>{try{ if(!localStorage.getItem('vrtp_tr')){ setTimeout(()=>{try{save()}catch(e){}},1500) } }catch(e){}});
 function applyAuditBridge(){
   try{
     const raw=localStorage.getItem('ac_prodtraining_bridge');
@@ -2807,7 +2808,7 @@ renderPills();
 // Update year input to suggest next year
 const _nyInp=document.getElementById('new-year-inp');
 if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
-if(window.VRTP_READY)VRTP_READY.then(function(){try{load();renderActive();updSyncBadge()}catch(e){}});
+if(window.VRTP_READY)VRTP_READY.then(function(){window.__VRTP_OK=true;try{load();autoMarkPastPending();applyAuditBridge();rebuildDataLists();renderActive();updSyncBadge()}catch(e){console.warn(e)}});
 </script>
 <script src="assets/ac_tool_sync.js?v=5"></script>
 <script src="assets/ac_autosync.js?v=4"></script>
