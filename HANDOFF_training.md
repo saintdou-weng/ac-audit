@@ -10,3 +10,11 @@ Sources found (computer NOT linked; use Gmail saintdou@gmail.com):
 - Production monthly reports 2025 Mar–Dec: subject "Monthly VRT Production-Quality Training Report for <Month>-2025" (Hao SreyNeang / Malen). Dec thread 19b7c6f746f1f9f6 has full-year xlsx "VRT Production-Quality Training Report 2025.xlsx" + "Training Record for December-2025.rar" (6 PDFs: cover, photo page, handwritten sign-in sheet with 工號/姓名/部門). Extracted to /home/claude/ptr2/.
 - HR: "HR training Report for Dec-2025" (19b9cacacbddedc0), "VRT Monthly Training on Feb/Mar-2025" (Phary), "Training Report" 19897694a140da6a, "FW: Training Reportfor July 2025".
 Plan: import 2025 Aug–Dec production rows from full-year xlsx; attach PDFs as evidence; read handwritten IDs from sign-in sheets, validate against PSJHR roster (ID+name), mark uncertain; then build 受訓員工 field + PSJHR training tab.
+
+## 22:5x update
+- Computer linked (Windows "pw", user psjwe). Granted: C:\Users\psjwe\Downloads. Other drive (ALL / VRT folders) NOT granted: D:\ request refused (letter unknown) → ask Paul to add that folder via desktop app "Add folder".
+- Downloads has training files under 08_EMAIL_郵件附件/admin_行政人事郵件/compliance/training audit/ (prod 2025/2026 xlsx, Training Record Dec-2025/Jan-2026/Feb-2026 .rar = PDFs with photos + handwritten sign-in sheets, HR Training Jan-2026 rar/pdf, Security, First Aid) and 01_Production_生產類/03_ProductionReports_生產計畫與報告/VRT HR TRAINING SCHEDULE 2026.xlsx (HR monthly Jan–Oct 2026), 02_ADMIN.../10. VRT HR Training October-2026.pptx.
+- Imported: production 2025-08..2026-02 (+37, now 83) via ACAuto; HR 2026-03..10 (+84, now 105) via syncToGAS + ACAuto. Converter /home/claude/tools/trconv.py.
+- Fixed: domain localStorage FULL (5.24M chars) → prod page now stores vrtp_* in IndexedDB 'vrtp_store' via Storage.prototype shim; save() blocked until VRTP_READY; ACAuto init after READY. VY() moved into main script (init renderPills was throwing).
+- HR page still on localStorage (vrt3_*) + GAS sheet; works because it reloads from GAS. Consider same shim.
+- Next: attach PDFs as evidence, read sign-in sheets → 受訓員工, PSJHR 培訓 tab, keynote continuous scroll.
