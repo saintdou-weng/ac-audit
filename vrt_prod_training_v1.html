@@ -3045,7 +3045,7 @@ function VY(){return window.__VY||CURRENT_YEAR}
  window.renderPills=renderPills=function(){
   let w=document.getElementById('vy-wrap');const mp=document.getElementById('mpills');
   if(!w&&mp){w=document.createElement('div');w.id='vy-wrap';w.style.cssText='display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13px';mp.parentNode.insertBefore(w,mp)}
-  if(w){const ys=ycYears();w.innerHTML='📅 '+L2('年份','Year')+' <select id="vy-sel" style="padding:4px 8px;border-radius:8px;border:1px solid var(--border);font-weight:700" onchange="window.__VY=+this.value;renderActive()">'+ys.map(y=>'<option value="'+y+'"'+(y==VY()?' selected':'')+'>'+y+(y==CURRENT_YEAR?L2('（今年計劃）',' (current)'):'')+'</option>').join('')+'</select>'+(VY()!=CURRENT_YEAR?'<span style="color:var(--sw);font-size:12px">'+L2('看的是 '+VY()+' 年的記錄（計劃比對用當年歸檔的計劃，沒有就用今年的）','Viewing '+VY()+' records')+'</span>':'')}
+  if(w){const ys=ycYears();w.innerHTML='📅 '+L2('年份','Year')+' <select id="vy-sel" style="width:auto;display:inline-block;padding:4px 8px;border-radius:8px;border:1px solid var(--border);font-weight:700" onchange="window.__VY=+this.value;renderActive()">'+ys.map(y=>'<option value="'+y+'"'+(y==VY()?' selected':'')+'>'+y+(y==CURRENT_YEAR?L2('（今年計劃）',' (current)'):'')+'</option>').join('')+'</select>'+(VY()!=CURRENT_YEAR?'<span style="color:var(--sw);font-size:12px">'+L2('看的是 '+VY()+' 年的記錄（計劃比對用當年歸檔的計劃，沒有就用今年的）','Viewing '+VY()+' records')+'</span>':'')}
   return _rp.apply(this,arguments)};
  /* 新分頁：📈 年度比對 */
  function bars(title,ys,series,labels,unit){/* series: {year:[values]} */
