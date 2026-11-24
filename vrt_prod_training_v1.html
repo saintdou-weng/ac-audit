@@ -781,6 +781,18 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
 <div id="load"><div class="spin"></div></div>
 
 <script>
+/* 2026-11-24：這個網域的 localStorage（5MB，所有平台共用）已滿，生產培訓的記錄存不進去、重新整理就不見。
+   vrtp_* 改存 IndexedDB（頁面照常用 localStorage 讀寫，這裡攔截轉存），也順便把舊的 vrtp_* 搬出 localStorage 騰空間。 */
+(function(){var RX=/^(vrtp_|ac_sync_base_vrtp_)/,M=new Map(),P=Storage.prototype,gi=P.getItem,si=P.setItem,ri=P.removeItem;
+ var dbp=new Promise(function(res){try{var q=indexedDB.open('vrtp_store',1);q.onupgradeneeded=function(){q.result.createObjectStore('kv')};q.onsuccess=function(){res(q.result)};q.onerror=function(){res(null)}}catch(e){res(null)}});
+ function put(k,v){dbp.then(function(d){if(!d)return;try{var os=d.transaction('kv','readwrite').objectStore('kv');v===null?os.delete(k):os.put(v,k)}catch(e){}})}
+ P.getItem=function(k){if(this===localStorage&&RX.test(k)){if(M.has(k))return M.get(k);var v=gi.call(this,k);if(v!==null){M.set(k,v);put(k,v);try{ri.call(this,k)}catch(e){}}return v}return gi.call(this,k)};
+ P.setItem=function(k,v){if(this===localStorage&&RX.test(k)){v=String(v);M.set(k,v);put(k,v);try{ri.call(this,k)}catch(e){}return}return si.call(this,k,v)};
+ P.removeItem=function(k){if(this===localStorage&&RX.test(k)){M.delete(k);put(k,null)}return ri.call(this,k)};
+ window.VRTP_READY=dbp.then(function(d){return new Promise(function(res){if(!d)return res();try{var rq=d.transaction('kv').objectStore('kv').openCursor();rq.onsuccess=function(){var c=rq.result;if(c){if(!M.has(c.key))M.set(c.key,c.value);c.continue()}else res()};rq.onerror=function(){res()}}catch(e){res()}})});
+})();
+</script>
+<script>
 // =====================================================
 //  LANGUAGE + i18n
 // =====================================================
@@ -2795,6 +2807,7 @@ renderPills();
 // Update year input to suggest next year
 const _nyInp=document.getElementById('new-year-inp');
 if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
+if(window.VRTP_READY)VRTP_READY.then(function(){try{load();renderActive();updSyncBadge()}catch(e){}});
 </script>
 <script src="assets/ac_tool_sync.js?v=5"></script>
 <script src="assets/ac_autosync.js?v=4"></script>
@@ -3022,7 +3035,7 @@ window.matImport=async f=>{if(!f)return;try{let rows=[];if(/\.json$/i.test(f.nam
   M[kk]=Object.assign({},M[kk]||{},{_k:kk,name,cat:MCAT[r.cat||r.Category]?(r.cat||r.Category):guessCat(name),desc:r.desc||r.Description||'',date:String(r.date||r.Date||''),type:r.type||r.Type||'',driveId:r.driveId||r.DriveId||'',url,mime:r.mime||'',hidden:hid,updatedAt:NOW()})});
  putM(M);renderMaterials();toast(T3('匯入','Imported','នាំចូល')+` +${n} · ${T3('更新','updated','កែ')} ${u}`,'ok')}catch(e){toast(e.message,'err')}document.getElementById('mat-imp').value=''};
 getM();
-if(window.ACAuto&&window.ACTS){try{ACAuto.init({keys:['vrtp_tr','vrtp_rc','vrtp_lb','vrtp_opts',K],by:'prod_training',badge:false,onPull:function(){try{load()}catch(e){} try{renderActive()}catch(e){} if(S.tab==='materials')renderMaterials()}})}catch(e){console.warn('[mat] autosync',e)}}
+(window.VRTP_READY||Promise.resolve()).then(function(){if(window.ACAuto&&window.ACTS){try{ACAuto.init({keys:['vrtp_tr','vrtp_rc','vrtp_lb','vrtp_opts',K],by:'prod_training',badge:false,onPull:function(){try{load()}catch(e){} try{renderActive()}catch(e){} if(S.tab==='materials')renderMaterials()}})}catch(e){console.warn('[mat] autosync',e)}}});
 if((location.hash||'')==='#materials'){setTimeout(()=>{try{goTab('materials')}catch(e){}},300)}
 /* 上次沒傳完的：頁面打開 3 秒後自動繼續 */
 setTimeout(()=>{qAll().then(a=>{if(a.length)matPump()})},3000);
