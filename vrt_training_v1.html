@@ -1044,6 +1044,7 @@ const STATUS_S_EN=['','P','✓','D','✕'];
 const STATUS_KH=['—','ផែនការ','បានធ្វើ','លើករំពឹ','បោះបង'];
 const STATUS_S_KH=['','P','✓','L','✕'];
 
+function VY(){return window.__VY||CURRENT_YEAR}
 function months(){return LANG==='zh'?MONTHS_ZH:LANG==='en'?MONTHS_EN:MONTHS_KH;}
 function monthsS(){return MONTHS_EN;}
 function catN(c){return LANG==='kh'?(CAT_KH[c]||c):LANG==='en'?c:(CAT_ZH[c]||c);}   /* 英文模式顯示英文分類 */
@@ -3159,7 +3160,6 @@ setTimeout(()=>{qAll().then(a=>{if(a.length)matPump()})},3000);
 })();
 
 /* ══ 年／月篩選 + 跨年度比對（2026-11-24，Paul：可篩選去年、前年，比對培訓成果圖表） ══ */
-function VY(){return window.__VY||CURRENT_YEAR}
 (function(){
  const AP='vrt3_archive_';
  const L2=(z,e)=>LANG==='zh'?z:e;
