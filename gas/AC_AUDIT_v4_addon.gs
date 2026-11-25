@@ -67,7 +67,7 @@ function v4TrainingDiff_(old, data) {
     var o = {}, added = [], n = (newRec[m] || []); (oldRec[m] || []).forEach(function (r) { o[sig(r)] = 1; });
     n.forEach(function (r) { if (!o[sig(r)]) added.push(r); });
     var removed = (oldRec[m] || []).length + added.length - n.length;
-    if (added.length) entries.push({ mod: 'training', icon: '🎓', text: '培訓記錄 ' + m + ' 新增 ' + added.length + ' 場' + (added.length <= 3 ? '：' + added.map(function (r) { return String(r.date).slice(5) + ' ' + String(r.subject).slice(0, 24) + '（' + (r.attendees || 0) + ' 人）'; }).join('、') : '') });
+    if (added.length) entries.push({ mod: 'training', icon: '🎓', tr: { m: m, n: added.length, att: added.reduce(function (t, r) { return t + (Number(r.attendees) || 0); }, 0) }, text: '培訓記錄 ' + m + ' 新增 ' + added.length + ' 場' + (added.length <= 3 ? '：' + added.map(function (r) { return String(r.date).slice(5) + ' ' + String(r.subject).slice(0, 24) + '（' + (r.attendees || 0) + ' 人）'; }).join('、') : '') });
     if (removed > 0) entries.push({ mod: 'training', icon: '🎓', text: '培訓記錄 ' + m + ' 移除 ' + removed + ' 場（重複或更正）' });
   });
   var oldT = {}, cells = 0, names = {}; (old.trainings || []).forEach(function (t) { oldT[t.id] = t; });
@@ -159,13 +159,39 @@ function v4FlushPending_() {
   var props = PropertiesService.getScriptProperties(), pend = [];
   try { pend = JSON.parse(props.getProperty('V4_PENDING') || '[]'); } catch (e) { pend = []; }
   if (!pend.length) return false;
-  var lines = pend.slice(-10).map(function (e) { return (e.icon || '•') + ' ' + ACR.esc(e.text); });
-  var msg = '🔔 <b>AC Audit 資料更新 Data updated</b>\n' + lines.join('\n') + (pend.length > 10 ? '\n… 另 ' + (pend.length - 10) + ' 筆' : '') + '\n🕐 ' + v4Fmt_(new Date(), 'MM-dd HH:mm') + '　報告已照新資料重算';
+  var msg = v4PendingCard_(pend);
   var r = sendMessage_(CFG('GROUP_CHAT_ID'), msg, v4Keyboard_());
   if (r && r.ok) { props.setProperty('V4_PENDING', '[]'); return true; }
   return false;
 }
-
+/* 2026-11-25 Paul：資料更新通知要像 GASCheck 那樣有圖表和顏色輔助 —— 先總數，再每月一條色塊長條（場數＋人次），其他模組按類別各一行 */
+function v4PendingCard_(pend) {
+  var L = ['🔔 <b>AC Audit 資料更新 Data updated</b>｜' + v4Fmt_(new Date(), 'MM-dd HH:mm')];
+  var tr = pend.filter(function (e) { return e.tr && e.tr.n; }), rest = pend.filter(function (e) { return !(e.tr && e.tr.n); });
+  /* 舊格式（沒有 tr 欄位）的培訓訊息也解析進來 */
+  rest = rest.filter(function (e) { var m = String(e.text || '').match(/^培訓記錄 (\d{4}-\d{2}) 新增 (\d+) 場/); if (!m) return true; var att = 0; String(e.text).replace(/（(\d+) 人）/g, function (_, x) { att += Number(x); }); tr.push({ tr: { m: m[1], n: Number(m[2]), att: att } }); return false; });
+  if (tr.length) {
+    var by = {}; tr.forEach(function (e) { var k = e.tr.m; if (!by[k]) by[k] = { n: 0, att: 0 }; by[k].n += e.tr.n; by[k].att += e.tr.att || 0; });
+    var ms = Object.keys(by).sort(), N = 0, A = 0, yr = {}, mx = 0;
+    ms.forEach(function (k) { N += by[k].n; A += by[k].att; var y = k.slice(0, 4); yr[y] = (yr[y] || 0) + by[k].n; if (by[k].n > mx) mx = by[k].n; });
+    L.push('', '🎓 <b>培訓記錄 Training</b>　<b>＋' + N + '</b> 場 sessions' + (A && ms.every(function (k) { return by[k].att > 0; }) ? ' · ' + A + ' 人次' : '') + ' · ' + ms.length + ' 個月');
+    L.push('📅 ' + Object.keys(yr).sort().map(function (y) { return y + ' <b>＋' + yr[y] + '</b>'; }).join('｜'));
+    var dot = function (n) { return n >= 10 ? '🟩' : n >= 4 ? '🟨' : '🟧'; };
+    var pad = function (v, w) { v = String(v); while (v.length < w) v = ' ' + v; return v; };
+    var bar = function (n) { var w = Math.max(1, Math.round(n / (mx || 1) * 10)), o = ''; for (var i = 0; i < 10; i++) o += i < w ? '█' : '·'; return o; };
+    var show = ms.length > 18 ? ms.slice(-18) : ms;
+    if (ms.length > 18) L.push('<i>（只列最近 18 個月，其餘見上面年度合計）</i>');
+    show.forEach(function (k) { L.push(dot(by[k].n) + '<code> ' + k + ' ' + bar(by[k].n) + pad(by[k].n, 3) + '場' + (by[k].att ? pad(by[k].att, 4) + '人' : '') + '</code>'); });
+    L.push('<i>🟩 ≥10 場　🟨 4–9 場　🟧 1–3 場</i>');
+  }
+  if (rest.length) {
+    var g = {}, ord = []; rest.forEach(function (e) { var k = e.mod || e.icon || '•'; if (!g[k]) { g[k] = []; ord.push(k); } g[k].push(e); });
+    L.push('', '🗂 <b>其他更新 Other</b>');
+    ord.forEach(function (k) { g[k].slice(-4).forEach(function (e) { L.push((e.icon || '•') + ' ' + ACR.esc(String(e.text).slice(0, 90))); }); if (g[k].length > 4) L.push('　… 另 ' + (g[k].length - 4) + ' 筆'); });
+  }
+  L.push('', '✅ 報告已照新資料重算 Reports recalculated');
+  return L.join('\n');
+}
 // ── 調整資料（網頁與 bot 共用）──
 function v4FindRec_(db, id) {
   var keys = AUDIT_MODULE_KEYS, i, j;
