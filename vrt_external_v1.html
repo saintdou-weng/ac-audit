@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>外部培訓・政府查驗 · AC Audit</title>
+<style>
+:root{--bg:#f3f6fa;--card:#fff;--line:#e2e8f0;--ink:#0f172a;--mut:#64748b;--teal:#0f766e;--red:#dc2626;--amb:#d97706;--grn:#16a34a;--blu:#2563eb;--pur:#7c3aed}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Noto Sans TC","Noto Sans Khmer",sans-serif}
+.top{position:sticky;top:0;z-index:20;background:#0f2a3d;color:#fff;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.top a{color:#cde;text-decoration:none;font-size:13px}.top h1{font-size:16px;margin:0;font-weight:800}.top .sp{flex:1}
+.lang button{background:transparent;border:1px solid #567;color:#fff;border-radius:7px;padding:3px 8px;font-size:12px;cursor:pointer}.lang button.on{background:#fff;color:#0f2a3d}
+.wrap{max-width:1200px;margin:0 auto;padding:12px 16px}
+.bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.seg button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer;margin:2px}.seg button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.btn{border:1px solid #cbd5e1;background:#fff;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;white-space:nowrap}.btn.p{background:var(--teal);border-color:var(--teal);color:#fff}.btn.sm{padding:3px 8px;font-size:12px}.btn.d{color:var(--red);border-color:#fecaca}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:12px}
+.k{background:#fff;border:1px solid var(--line);border-left:6px solid var(--teal);border-radius:14px;padding:12px 14px;cursor:pointer;transition:background .15s}.k:hover,.k:active{background:#f0fdfa}
+.k h3{margin:0;font-size:14px}.k .big{font-size:24px;font-weight:900}.k .sub{font-size:12px;color:var(--mut)}
+.sect{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden}.sect h2{margin:0;padding:11px 14px;font-size:15px;border-bottom:1px solid var(--line)}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}th,td{padding:7px 9px;border-bottom:1px solid #f1f5f9;text-align:left;vertical-align:top;font-size:13px}th{background:#f8fafc;color:#475569;font-size:12px;white-space:nowrap}
+tbody tr{cursor:pointer}tbody tr:hover{background:#f8fafc}
+.mut{color:var(--mut);font-size:12px}.pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;margin-left:4px}
+.t-out{background:#dbeafe;color:#1e40af}.t-in{background:#ede9fe;color:#5b21b6}.t-gov{background:#fef3c7;color:#92400e}
+.hint{background:#eefafb;border:1px solid #b8dde3;color:#285d69;border-radius:10px;padding:9px 12px;font-size:12.5px;margin:8px 14px}
+.row{display:grid;grid-template-columns:150px 1fr auto;gap:8px;align-items:center;margin:4px 0;cursor:pointer}.row .b{height:14px;border-radius:7px;background:var(--blu)}
+#mask{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:9999;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:14px}#mask.on{display:flex}
+#dlg{background:#fff;border-radius:14px;width:min(760px,100%);padding:16px}#dlg label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#475569;margin-bottom:8px}#dlg input,#dlg select,#dlg textarea{border:1px solid #cbd5e1;border-radius:8px;padding:7px 9px;font-size:14px;color:var(--ink);font-family:inherit}#dlg .g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ph{display:flex;gap:8px;flex-wrap:wrap}.ph img{width:96px;height:96px;object-fit:cover;border-radius:10px;cursor:zoom-in}.ph span{position:relative}.ph .x{position:absolute;top:-6px;right:-6px;border:0;border-radius:50%;width:22px;height:22px;background:#b91c1c;color:#fff;font-weight:800;cursor:pointer}
+.dash{border-top:2px dashed #cbd5e1;margin:12px 0}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#0f172a;color:#fff;padding:9px 14px;border-radius:10px;font-size:13px;display:none;z-index:99999}
+#zoom{position:fixed;inset:0;z-index:100000;background:rgba(15,23,42,.9);display:none;place-items:center;cursor:zoom-out}#zoom img{max-width:94vw;max-height:92vh;border-radius:12px}
+@media(max-width:640px){th,td{font-size:12px;padding:6px}.top h1{font-size:14px}#dlg .g{grid-template-columns:1fr 1fr}.row{grid-template-columns:110px 1fr auto}}
+</style></head><body>
+<div class="top"><a id="back" href="ac_audit_platform_v1.html">← AC Audit</a><h1>🤝 <span id="ttl"></span></h1><span class="sp"></span><span class="mut" id="sync" style="color:#9fb"></span><div class="lang"><button data-l="zh">中</button><button data-l="en">EN</button><button data-l="km">ខ្មែរ</button></div></div>
+<div class="wrap" id="app"></div>
+<div id="mask"><div id="dlg"></div></div><div id="toast"></div><div id="zoom"><img alt=""></div>
+<input type="file" id="pk" hidden multiple>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="assets/ac_tool_sync.js?v=5"></script>
+<script src="assets/ac_autosync.js?v=4"></script>
+<script>
+/* 外部培訓・政府查驗 v1（2026-11-27，Paul）
+   Paul：培訓要有「外部培訓」——例如去 TAFTAC 上課、顧問到廠上課；通常只有照片、出差報告、人數或通知。
+         政府來查驗也要能登記時間與人數，或直接用通知的 PDF 當紀錄。放哪裡由 AI 決定。
+   決定：外部培訓不掛在人資或生產任何一邊（兩邊都會去上課），自己一頁，每筆標「部門」；人資培訓頁、生產培訓頁、Audit 首頁都連到這裡。
+         政府查驗和外部培訓是同一種紀錄（日期、單位、人數、通知／照片），放同一頁的另一個分類，驗廠時一起調得出來。
+   資料：鍵 vrt_ext_events_v1（IndexedDB，ACAuto 與 Audit 雲端 tools 同步，不改 GAS）。照片壓縮後內嵌；PDF／Word 走 uploadAttachment 上傳。
+   刪除用墓碑，別台不會復活。 */
+(function(){
+const KEY='vrt_ext_events_v1';
+let LANG='zh';try{LANG=localStorage.getItem('vrt_lang')||localStorage.getItem('ac_audit_lang')||'zh'}catch(e){}if(!['zh','en','km'].includes(LANG))LANG='zh';
+const T=(zh,en,km)=>LANG==='zh'?zh:LANG==='km'?(km||en):en;
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const NOW=()=>new Date().toISOString(),$=id=>document.getElementById(id);
+const TYPES=[['out','🚌',['外出受訓','Off-site training','បណ្តុះបណ្តាលខាងក្រៅ'],'t-out'],['in','👩‍🏫',['外聘到廠上課','Trainer on site','គ្រូមកបង្រៀននៅរោងចក្រ'],'t-in'],['gov','🏛',['政府查驗／來訪','Government inspection / visit','អធិការកិច្ចរដ្ឋ'],'t-gov']];
+const tOf=k=>TYPES.find(t=>t[0]===k)||TYPES[0],tN=k=>{const t=tOf(k);return t[1]+' '+T(...t[2])};
+const DEPTS=[['hr','人資','HR','ធនធានមនុស្ស'],['prod','生產','Production','ផលិតកម្ម'],['qc','品管','QC','QC'],['ga','總務／保安','GA & Security','រដ្ឋបាល'],['me','工務','Maintenance','ជួសជុល'],['comp','合規','Compliance','អនុលោមភាព'],['acc','會計／船務','Accounting / Shipping','គណនេយ្យ'],['all','全廠','Whole factory','រោងចក្រទាំងមូល']];
+const dN=k=>{const d=DEPTS.find(x=>x[0]===k);return d?T(d[1],d[2],d[3]):(k||'')};
+const ORGS=['TAFTAC','勞動部 MLVT','NSSF','消防 Fire Police','環境部 MoE','工業部 MISTI','衛生 Health','海關 Customs','稅務 GDT','顧問 Consultant','客戶 Customer','Better Factories Cambodia'];
+let DB={recs:{}},F={type:'',unit:'all',per:'',dept:'',org:'',q:''};
+const live=()=>Object.values(DB.recs||{}).filter(r=>r&&r.id&&!r.deleted);
+function persist(){DB.updatedAt=NOW();if(window.ACAuto)ACAuto.set(KEY,DB).catch(()=>toast(T('這台裝置存不進去','Could not store on this device')))}
+function toast(s){const e=$('toast');e.textContent=s;e.style.display='block';clearTimeout(toast._t);toast._t=setTimeout(()=>e.style.display='none',2600)}
+const money=n=>'$'+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2});
+function list(){let L=live();if(F.type==='train')L=L.filter(r=>r.type!=='gov');else if(F.type)L=L.filter(r=>r.type===F.type);
+ if(F.unit!=='all'&&F.per)L=L.filter(r=>String(r.date||'').startsWith(F.per));if(F.dept)L=L.filter(r=>r.dept===F.dept);if(F.org)L=L.filter(r=>(r.org||'')===F.org);
+ if(F.q){const q=F.q.toLowerCase();L=L.filter(r=>[r.org,r.topic,r.names,r.place,r.note,r.result].join(' ').toLowerCase().includes(q))}
+ return L.sort((a,b)=>String(b.date).localeCompare(String(a.date)))}
+function render(){const ALL=live(),L=list(),yrs=[...new Set(ALL.map(r=>String(r.date||'').slice(0,4)).filter(Boolean))].sort().reverse();if(!yrs.length)yrs.push(String(new Date().getFullYear()));
+ $('ttl').textContent=T('外部培訓・政府查驗','External training · Government inspections','បណ្តុះបណ្តាលខាងក្រៅ · អធិការកិច្ច');
+ const ppl=L.reduce((s,r)=>s+(+r.people||0),0),cost=L.reduce((s,r)=>s+(+r.cost||0),0),tr=L.filter(r=>r.type!=='gov'),gv=L.filter(r=>r.type==='gov'),nof=L.filter(r=>!(r.files||[]).length&&!(r.photos||[]).length).length;
+ let h=`<div class="bar"><div class="seg">${[['',T('全部','All','ទាំងអស់')],['train','🎓 '+T('外部培訓','External training','បណ្តុះបណ្តាលខាងក្រៅ')],['gov','🏛 '+T('政府查驗','Government','អធិការកិច្ច')]].map(u=>`<button class="${F.type===u[0]?'on':''}" onclick="EX.f('type','${u[0]}')">${u[1]}</button>`).join('')}</div>
+ <div class="seg">${[['all',T('全部','All','ទាំងអស់')],['y',T('年','Year','ឆ្នាំ')],['m',T('月','Month','ខែ')],['d',T('日','Day','ថ្ងៃ')]].map(u=>`<button class="${F.unit===u[0]?'on':''}" onclick="EX.unit('${u[0]}')">${u[1]}</button>`).join('')}</div>
+ ${F.unit==='y'?`<div class="seg">${yrs.map(y=>`<button class="${F.per===y?'on':''}" onclick="EX.f('per','${y}')">${y}</button>`).join('')}</div>`:F.unit==='m'?`<input type="month" class="btn" value="${esc(F.per)}" onchange="EX.f('per',this.value)">`:F.unit==='d'?`<input type="date" class="btn" value="${esc(F.per)}" onchange="EX.f('per',this.value)">`:''}</div>
+ <div class="bar"><button class="btn p" onclick="EX.edit('')">＋ ${T('新增一筆','Add record','បន្ថែម')}</button><button class="btn" onclick="EX.quick()">📄 ${T('用通知 PDF／照片直接建一筆','Create from a notice PDF / photos','បង្កើតពី PDF / រូបថត')}</button><select class="btn" onchange="EX.f('dept',this.value)"><option value="">${T('全部部門','All departments','គ្រប់ផ្នែក')}</option>${DEPTS.map(d=>`<option value="${d[0]}" ${F.dept===d[0]?'selected':''}>${esc(dN(d[0]))}</option>`).join('')}</select><input class="btn" id="q" style="min-width:150px;cursor:text" placeholder="🔍 ${T('搜尋單位／主題／姓名','Search organiser / topic / name','ស្វែងរក')}" value="${esc(F.q)}"><button class="btn" onclick="EX.xls()">⬇ Excel</button><button class="btn" onclick="EX.imp()">⬆ ${T('匯入 Excel','Import Excel','នាំចូល Excel')}</button>${F.org?`<button class="btn d" onclick="EX.f('org','')">✕ ${esc(F.org)}</button>`:''}</div>`;
+ h+=`<div class="cards">
+ <div class="k" onclick="EX.f('type','')"><h3>📋 ${T('紀錄','Records','កំណត់ត្រា')}</h3><div class="big">${L.length}</div><div class="sub">${F.unit==='all'?T('全部期間','All periods','គ្រប់ពេល'):esc(F.per)}</div></div>
+ <div class="k" style="border-left-color:var(--blu)" onclick="EX.f('type','train')"><h3>🎓 ${T('外部培訓','External training','បណ្តុះបណ្តាលខាងក្រៅ')}</h3><div class="big">${tr.length}</div><div class="sub">🚌 ${tr.filter(r=>r.type==='out').length} · 👩‍🏫 ${tr.filter(r=>r.type==='in').length} · ${tr.reduce((s,r)=>s+(+r.people||0),0)} ${T('人次','attendances','នាក់')}</div></div>
+ <div class="k" style="border-left-color:var(--amb)" onclick="EX.f('type','gov')"><h3>🏛 ${T('政府查驗／來訪','Government visits','អធិការកិច្ច')}</h3><div class="big">${gv.length}</div><div class="sub">${[...new Set(gv.map(r=>r.org).filter(Boolean))].slice(0,3).map(esc).join('、')||'—'}</div></div>
+ <div class="k" style="border-left-color:var(--pur)"><h3>👥 ${T('參加／陪同人次','People (attendances)','ចំនួននាក់')}</h3><div class="big">${ppl}</div><div class="sub">${T('各筆人數相加','sum of headcounts','សរុប')}</div></div>
+ <div class="k" style="border-left-color:var(--grn)"><h3>💵 ${T('費用','Cost','ចំណាយ')}</h3><div class="big">${money(cost)}</div><div class="sub">${nof?`${nof} ${T('筆還沒有附件或照片','without files or photos','គ្មានឯកសារ')}`:T('每筆都有附件或照片','all have files or photos','មានឯកសារទាំងអស់')}</div></div></div>`;
+ const by={};L.forEach(r=>{const k=r.org||T('未填','blank');(by[k]=by[k]||{n:0,p:0}).n++;by[k].p+=+r.people||0});const ks=Object.keys(by).sort((a,b)=>by[b].n-by[a].n),mx=Math.max(1,...ks.map(k=>by[k].n));
+ if(ks.length)h+=`<div class="sect"><h2>🏷 ${T('依主辦／來訪單位（點一下只看那個單位）','By organiser / agency (tap to filter)','តាមស្ថាប័ន')}</h2><div style="padding:10px 14px">${ks.map(k=>`<div class="row" onclick="EX.f('org','${esc(k).replace(/'/g,"\\'")}')"><b>${esc(k)}</b><div><div class="b" style="width:${Math.max(3,by[k].n/mx*100)}%"></div></div><span class="mut">${by[k].n} ${T('筆','rec')} · ${by[k].p} ${T('人','ppl')}</span></div>`).join('')}</div></div>`;
+ h+=`<div class="sect"><h2>📚 ${T('紀錄清單','Records','បញ្ជី')} <span class="mut">${T('點任一列看照片、附件與相關紀錄','Tap a row for photos, files and related records','ចុចដើម្បីមើលលម្អិត')}</span></h2><div class="tw"><table><thead><tr><th>${T('日期','Date','កាលបរិច្ឆេទ')}</th><th>${T('類型','Type','ប្រភេទ')}</th><th>${T('主辦／來訪單位','Organiser / agency','ស្ថាប័ន')}</th><th>${T('主題／事由','Topic / purpose','ប្រធានបទ')}</th><th>${T('部門','Dept','ផ្នែក')}</th><th>${T('人數','People','នាក់')}</th><th>📎</th></tr></thead><tbody>${L.map(r=>`<tr onclick="EX.open('${r.id}')"><td style="white-space:nowrap"><b>${esc(r.date||'')}</b>${r.end&&r.end!==r.date?`<div class="mut">→ ${esc(r.end)}</div>`:''}${r.time?`<div class="mut">${esc(r.time)}</div>`:''}</td><td><span class="pill ${tOf(r.type)[3]}" style="margin:0">${tN(r.type)}</span></td><td>${esc(r.org||'')}<div class="mut">${esc(r.place||'')}</div></td><td>${esc(r.topic||'')}${r.result?`<div class="mut">🏁 ${esc(String(r.result).slice(0,70))}</div>`:''}</td><td>${esc(dN(r.dept))}</td><td>${r.people||'—'}</td><td style="white-space:nowrap">${(r.photos||[]).length?'📷'+r.photos.length:''} ${(r.files||[]).length?'📄'+r.files.length:''}</td></tr>`).join('')||`<tr><td colspan="7" class="mut" style="cursor:default">${T('這個期間還沒有紀錄。按「＋ 新增一筆」，或把通知 PDF／照片直接丟進來建一筆。','No records in this period. Tap “Add record”, or create one straight from a notice PDF or photos.','មិនទាន់មានកំណត់ត្រា')}</td></tr>`}</tbody></table></div><div class="hint">${T('外部培訓：去 TAFTAC 等單位上課選「外出受訓」，顧問或講師到廠上課選「外聘到廠上課」；有照片、出差報告、通知或人數就可以登記。政府查驗：登記日期時間、單位、來幾個人、陪同的人，通知 PDF 直接當紀錄。人資培訓頁和生產培訓頁都連到這一頁。','External training: “Off-site” for courses at TAFTAC etc., “Trainer on site” for consultants teaching at the factory; photos, a trip report, a notice or a headcount is enough. Government inspections: record date/time, agency, visitors and escorts; the notice PDF itself can be the record.','កត់ត្រាការបណ្តុះបណ្តាលខាងក្រៅ និងអធិការកិច្ចរដ្ឋ')}</div></div>`;
+ $('app').innerHTML=h;document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG));document.documentElement.lang=LANG==='zh'?'zh-TW':LANG;
+ const q=$('q');let tq=null;q.oninput=()=>{clearTimeout(tq);tq=setTimeout(()=>{F.q=q.value;render();const n=$('q');n.focus();n.setSelectionRange(F.q.length,F.q.length)},300)}}
+/* 明細卡 */
+function card(id){const r=DB.recs[id];if(!r||r.deleted)return;const L=list(),i=L.findIndex(x=>x.id===id),pv=L.length>1?L[(i-1+L.length)%L.length]:null,nx=L.length>1?L[(i+1)%L.length]:null,ALL=live();
+ const sameO=ALL.filter(x=>x.id!==id&&r.org&&x.org===r.org).sort((a,b)=>String(b.date).localeCompare(String(a.date))),sameM=ALL.filter(x=>x.id!==id&&String(x.date).slice(0,7)===String(r.date).slice(0,7)&&!sameO.includes(x)),sameD=ALL.filter(x=>x.id!==id&&r.dept&&x.dept===r.dept&&!sameO.includes(x)&&!sameM.includes(x)).slice(0,8);
+ const lk=x=>`<button class="btn sm" style="margin:2px" onclick="EX.open('${x.id}')">${tOf(x.type)[1]} ${esc(x.date)} · ${esc(x.org||'')} ${esc(String(x.topic||'').slice(0,18))}</button>`;
+ const kv=(l,v)=>v?`<div><div class="mut">${l}</div><div>${esc(v)}</div></div>`:'';
+ $('dlg').innerHTML=`<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><span class="pill ${tOf(r.type)[3]}" style="margin:0">${tN(r.type)}</span> <b style="font-size:16px">${esc(r.date||'')}</b></div><div style="white-space:nowrap">${pv?`<button class="btn sm" onclick="EX.open('${pv.id}')">▲</button> <button class="btn sm" onclick="EX.open('${nx.id}')">▼</button> `:''}<button class="btn sm" onclick="EX.edit('${id}')">✏</button> <button class="btn sm" onclick="EX.close()">✕</button></div></div>
+ <h3 style="margin:10px 0 2px">${esc(r.topic||T('（沒填主題）','(no topic)'))}</h3><div class="mut">${esc(r.org||'')}${r.place?' · 📍'+esc(r.place):''}</div>
+ <div class="cards" style="margin-top:10px"><div class="k" style="cursor:default"><h3>📅 ${T('日期／時間','Date / time','កាលបរិច្ឆេទ')}</h3><div class="big" style="font-size:17px">${esc(r.date||'')}${r.end&&r.end!==r.date?' → '+esc(r.end):''}</div><div class="sub">${esc(r.time||'')}</div></div><div class="k" style="cursor:default;border-left-color:var(--pur)"><h3>👥 ${T('人數','People','នាក់')}</h3><div class="big" style="font-size:17px">${r.people||'—'}</div><div class="sub">${esc(dN(r.dept))}</div></div><div class="k" style="cursor:default;border-left-color:var(--grn)"><h3>💵 ${T('費用','Cost','ចំណាយ')}</h3><div class="big" style="font-size:17px">${r.cost?money(r.cost):'—'}</div><div class="sub">${esc(r.costNote||'')}</div></div></div>
+ <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">${kv(r.type==='gov'?T('來訪人員／陪同人員','Visitors / escorts','ភ្ញៀវ / អ្នកអម'):T('參加人員','Attendees','អ្នកចូលរួម'),r.names)}${kv(T('結果／重點','Result / key points','លទ្ធផល'),r.result)}${kv(T('備註（出差報告重點、後續要做的事）','Notes (trip report, follow-up)','កំណត់ចំណាំ'),r.note)}</div>
+ ${(r.photos||[]).length?`<h4 style="margin:12px 0 4px">📷 ${T('照片（點開放大）','Photos (tap to enlarge)','រូបថត')}</h4><div class="ph">${r.photos.map(p=>`<img src="${p}" onclick="EX.zoom(this.src)" alt="">`).join('')}</div>`:''}
+ ${(r.files||[]).length?`<h4 style="margin:12px 0 4px">📄 ${T('附件（通知、出差報告、簽到表）','Files (notice, trip report, sign-in sheet)','ឯកសារ')}</h4>${r.files.map(f=>`<div><a href="${esc(f.url)}" target="_blank" rel="noopener">📎 ${esc(f.name)}</a> <span class="mut">${esc(f.at||'')}</span></div>`).join('')}`:''}
+ ${!(r.photos||[]).length&&!(r.files||[]).length?`<div class="hint" style="margin:10px 0">${T('這筆還沒有照片或附件，按 ✏ 可以補。','No photos or files yet — tap ✏ to add.','មិនទាន់មានឯកសារ')}</div>`:''}
+ ${sameO.length?`<div class="dash"></div><h4 style="margin:0 0 4px">🔗 ${esc(r.org)} ${T('的其他紀錄','— other records','— កំណត់ត្រាផ្សេង')}</h4>${sameO.slice(0,12).map(lk).join('')}`:''}
+ ${sameM.length?`<div class="dash"></div><h4 style="margin:0 0 4px">🔗 ${esc(String(r.date).slice(0,7))} ${T('同月其他紀錄','— same month','— ខែដូចគ្នា')}</h4>${sameM.slice(0,12).map(lk).join('')}`:''}
+ ${sameD.length?`<div class="dash"></div><h4 style="margin:0 0 4px">🔗 ${esc(dN(r.dept))} ${T('的其他紀錄','— same department','— ផ្នែកដូចគ្នា')}</h4>${sameD.map(lk).join('')}`:''}
+ <div class="dash"></div><div><a class="btn sm" href="vrt_training_v1.html">🎓 ${T('人資培訓計劃','HR training plan','ផែនការបណ្តុះបណ្តាល HR')}</a> <a class="btn sm" href="vrt_prod_training_v1.html">🏭 ${T('生產／驗廠培訓','Production / audit training','បណ្តុះបណ្តាលផលិតកម្ម')}</a> <a class="btn sm" href="audit_nc_compare_v1.html?view=sum">📊 ${T('稽核總表','Audit summary','សង្ខេបសវនកម្ម')}</a></div>`;
+ $('mask').classList.add('on');$('mask').scrollTo(0,0)}
+/* 新增／編輯 */
+let ED=null;
+function shrink(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{let w=im.width,h=im.height,m=900;if(w>m||h>m){const k=m/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);let q=.72,u=c.toDataURL('image/jpeg',q);while(u.length>230000&&q>.35){q-=.1;u=c.toDataURL('image/jpeg',q)}res(u)};im.src=fr.result};fr.readAsDataURL(file)})}
+const readURL=f=>new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=rej;fr.readAsDataURL(f)});
+async function addFiles(fs){for(const f of fs){if(/^image\//.test(f.type)){if(ED.photos.length>=8){toast(T('照片最多 8 張','Up to 8 photos'));continue}try{ED.photos.push(await shrink(f))}catch(e){toast('⚠ '+f.name)}}
+  else{if(!window.ACAuto){toast('⚠ offline');continue}toast('☁ '+T('上傳中…','Uploading…')+' '+f.name);try{const u=await readURL(f),j=await ACAuto.post({action:'uploadAttachment',module:'external_events',recordId:ED.id,name:f.name,originalName:f.name,mime:f.type||'application/octet-stream',size:f.size,lastModified:f.lastModified||0,signature:[f.name,f.size,f.lastModified||0].join('|'),dataUrl:u});if(!j||!j.ok)throw new Error((j&&(j.msg||j.error))||'upload failed');const x=j.file||{};ED.files.push({name:f.name,url:x.url||x.webViewUrl||x.viewUrl||x.webViewLink||(x.driveId?'https://drive.google.com/file/d/'+x.driveId+'/view':''),driveId:x.driveId||'',size:f.size,at:NOW().slice(0,10)});toast('📎 '+f.name)}catch(e){toast('⚠ '+T('上傳失敗：','Upload failed: ')+(e.message||e))}}}
+ drawAtt()}
+function drawAtt(){const b=$('att');if(!b)return;b.innerHTML=`<div class="ph">${ED.photos.map((p,i)=>`<span><img src="${p}" onclick="EX.zoom(this.src)" alt=""><button type="button" class="x" onclick="EX.rmP(${i})">×</button></span>`).join('')}</div>${ED.files.map((f,i)=>`<div>📎 <a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a> <button type="button" class="btn sm d" onclick="EX.rmF(${i})">✕</button></div>`).join('')}<button type="button" class="btn" style="margin-top:6px" onclick="EX.pick()">📷📄 ${T('加照片／通知 PDF／出差報告','Add photos / notice PDF / trip report','បន្ថែមរូបថត / PDF')}</button>`}
+const fld=(f,l,v,type,opts)=>type==='area'?`<label style="grid-column:1/-1">${l}<textarea data-f="${f}" rows="2">${esc(v||'')}</textarea></label>`:type==='sel'?`<label>${l}<select data-f="${f}">${opts.map(o=>`<option value="${esc(o[0])}" ${o[0]===v?'selected':''}>${esc(o[1])}</option>`).join('')}</select></label>`:`<label>${l}<input data-f="${f}" type="${type||'text'}" value="${esc(v==null?'':v)}" ${opts?`list="${opts}"`:''}></label>`;
+function form(r,isNew){ED=JSON.parse(JSON.stringify(r));ED.photos=ED.photos||[];ED.files=ED.files||[];
+ $('dlg').innerHTML=`<h3 style="margin:0 0 8px">${isNew?'＋':'✏'} ${T('外部培訓／政府查驗紀錄','External training / inspection record','កំណត់ត្រា')}</h3><div class="g">
+ ${fld('type',T('類型','Type','ប្រភេទ'),ED.type,'sel',TYPES.map(t=>[t[0],t[1]+' '+T(...t[2])]))}${fld('dept',T('部門','Department','ផ្នែក'),ED.dept,'sel',[['','—']].concat(DEPTS.map(d=>[d[0],dN(d[0])])))}
+ ${fld('date',T('日期','Date','កាលបរិច្ឆេទ'),ED.date,'date')}${fld('end',T('結束日（多天才填）','End date (if several days)','ថ្ងៃបញ្ចប់'),ED.end,'date')}
+ ${fld('time',T('時間（例 08:30–11:00）','Time (e.g. 08:30–11:00)','ម៉ោង'),ED.time)}${fld('people',T('人數','People','ចំនួននាក់'),ED.people,'number')}
+ ${fld('org',T('主辦／來訪單位','Organiser / agency','ស្ថាប័ន'),ED.org,'text','orgs')}${fld('place',T('地點','Place','ទីកន្លែង'),ED.place)}
+ ${fld('topic',T('主題／事由','Topic / purpose','ប្រធានបទ'),ED.topic,'area')}
+ ${fld('names',T('參加人員（政府查驗填來訪與陪同的人）','Attendees (for inspections: visitors and escorts)','អ្នកចូលរួម'),ED.names,'area')}
+ ${fld('result',T('結果／重點','Result / key points','លទ្ធផល'),ED.result,'area')}
+ ${fld('cost',T('費用 USD（沒有就空白）','Cost USD (blank if none)','ចំណាយ USD'),ED.cost,'number')}${fld('costNote',T('費用說明（報名費、車資…）','Cost note (fee, transport…)','ពន្យល់ចំណាយ'),ED.costNote)}
+ ${fld('note',T('備註（出差報告重點、後續要做的事）','Notes (trip report, follow-up)','កំណត់ចំណាំ'),ED.note,'area')}</div>
+ <datalist id="orgs">${[...new Set(ORGS.concat(live().map(x=>x.org).filter(Boolean)))].map(o=>`<option value="${esc(o)}">`).join('')}</datalist>
+ <div class="mut" style="margin:4px 0">${T('照片、通知、出差報告','Photos, notice, trip report','រូបថត និងឯកសារ')}</div><div id="att"></div>
+ <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">${isNew?'':`<button class="btn d" onclick="EX.del('${ED.id}')">🗑 ${T('刪除','Delete','លុប')}</button><span style="flex:1"></span>`}<button class="btn" onclick="EX.close()">${T('取消','Cancel','បោះបង់')}</button><button class="btn p" onclick="EX.save()">💾 ${T('儲存','Save','រក្សាទុក')}</button></div>`;
+ drawAtt();$('mask').classList.add('on');$('mask').scrollTo(0,0)}
+const newRec=()=>({id:'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),type:F.type==='gov'?'gov':'out',date:NOW().slice(0,10),createdAt:NOW()});
+window.EX={
+ f(k,v){F[k]=v;render()},
+ unit(u){F.unit=u;F.per=u==='y'?String(new Date().getFullYear()):u==='m'?NOW().slice(0,7):u==='d'?NOW().slice(0,10):'';render()},
+ open(id){card(id)},close(){$('mask').classList.remove('on');ED=null},
+ zoom(src){const z=$('zoom');z.querySelector('img').src=src;z.style.display='grid'},
+ edit(id){form(id?DB.recs[id]:newRec(),!id)},
+ quick(){ED=null;const p=$('pk');p.accept='image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx';p.onchange=async e=>{const fs=[...e.target.files];e.target.value='';if(!fs.length)return;const r=newRec(),n=fs[0].name.replace(/\.[^.]+$/,''),m=n.match(/(20\d{2})[-_. ]?(\d{2})[-_. ]?(\d{2})/);r.topic=n.replace(/[_]+/g,' ');if(m)r.date=m[1]+'-'+m[2]+'-'+m[3];if(/taftac|gmac/i.test(n))r.org='TAFTAC';else if(/nssf/i.test(n)){r.org='NSSF';r.type='gov'}else if(/mlvt|labou?r|inspect|ministry|查驗|檢查/i.test(n))r.type='gov';form(r,true);await addFiles(fs)};p.click()},
+ pick(){const p=$('pk');p.accept='image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx';p.onchange=e=>{const fs=[...e.target.files];e.target.value='';if(fs.length&&ED)addFiles(fs)};p.click()},
+ rmP(i){ED.photos.splice(i,1);drawAtt()},rmF(i){ED.files.splice(i,1);drawAtt()},
+ save(){if(!ED)return;document.querySelectorAll('#dlg [data-f]').forEach(i=>ED[i.dataset.f]=i.value.trim());if(!ED.date){toast(T('請填日期','Date is required'));return}if(!ED.org&&!ED.topic){toast(T('單位或主題至少填一個','Enter an organiser or a topic'));return}
+  ED.people=ED.people===''?'':+ED.people;ED.cost=ED.cost===''?'':+ED.cost;ED.updatedAt=NOW();const id=ED.id;DB.recs[id]=ED;ED=null;persist();render();card(id);toast('✅ '+T('已儲存，會自動上傳雲端','Saved — syncs to the cloud automatically'))},
+ del(id){if(!confirm(T('刪除這筆紀錄？（其他裝置也會刪除）','Delete this record? (removed on other devices too)')))return;DB.recs[id]={id,deleted:true,updatedAt:NOW()};persist();this.close();render()},
+ xls(){if(!window.XLSX){toast('XLSX ✗');return}const rows=list().map(r=>({Date:r.date||'',End:r.end||'',Time:r.time||'',Type:r.type,Organiser:r.org||'',Topic:r.topic||'',Department:r.dept||'',People:r.people||'',Names:r.names||'',Place:r.place||'',Result:r.result||'',CostUSD:r.cost||'',CostNote:r.costNote||'',Note:r.note||'',Files:(r.files||[]).map(f=>f.url).join(' ; '),Photos:(r.photos||[]).length}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'External');XLSX.writeFile(wb,'VRT_external_training_inspections_'+NOW().slice(0,10)+'.xlsx')},
+ imp(){const p=$('pk');p.accept='.xlsx,.xls,.csv';p.onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array',cellDates:true});let add=0,skip=0;const have=new Set(live().map(r=>[r.date,r.org,r.topic].join('|')));wb.SheetNames.forEach(sn=>XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:''}).forEach(o=>{const g=(...ks)=>{for(const k of Object.keys(o))if(ks.some(x=>k.toLowerCase().replace(/\s/g,'').includes(x)))return o[k];return ''};let d=g('date','日期');if(d instanceof Date)d=new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);d=String(d).slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return;const ty=String(g('type','類型')).toLowerCase(),r=Object.assign(newRec(),{date:d,type:/gov|政府|查驗|inspect/.test(ty)?'gov':/in|到廠|on.?site/.test(ty)?'in':'out',org:String(g('organis','organiz','agency','單位','主辦')),topic:String(g('topic','主題','事由','course','課程')),people:+g('people','人數','pax')||'',names:String(g('names','人員','attendee')),place:String(g('place','地點','venue')),result:String(g('result','結果')),cost:+g('costusd','費用','cost')||'',note:String(g('note','備註','remark'))});const key=[r.date,r.org,r.topic].join('|');if(have.has(key)){skip++;return}have.add(key);DB.recs[r.id]=r;add++}));persist();render();toast(T(`匯入 ${add} 筆，重複略過 ${skip} 筆`,`Imported ${add}, skipped ${skip} duplicates`))}catch(err){toast('⚠ '+(err.message||err))}};p.click()}
+};
+$('zoom').onclick=()=>$('zoom').style.display='none';$('mask').onclick=e=>{if(e.target===$('mask'))EX.close()};
+document.querySelectorAll('.lang button').forEach(b=>b.onclick=()=>{LANG=b.dataset.l;try{localStorage.setItem('vrt_lang',LANG)}catch(e){}render()});
+const from=(location.search.match(/[?&]from=(\w+)/)||[])[1];if(from==='hr'){$('back').href='vrt_training_v1.html';$('back').textContent='← '+T('人資培訓','HR training')}else if(from==='prod'){$('back').href='vrt_prod_training_v1.html';$('back').textContent='← '+T('生產培訓','Production training')}
+if(/[?&]type=gov/.test(location.search))F.type='gov';else if(/[?&]type=train/.test(location.search))F.type='train';
+async function load(){try{const d=window.ACAuto?await ACAuto.get(KEY):null;if(d&&typeof d==='object'&&d.recs)DB=d}catch(e){}if(!ED)render()}
+render();
+if(window.ACAuto&&window.ACTS){try{ACAuto.init({keys:[KEY],by:'external_events',store:'idb',badge:false,editing:()=>!!ED,onPull:()=>{load();$('sync').textContent='☁ ✓ '+new Date().toTimeString().slice(0,5)}})}catch(e){console.warn('[ext] autosync',e)}}
+load();
+})();
+</script>
+<script src="https://saintdou-weng.github.io/ac-admin/shared/swipe-tabs.js" defer></script>
+</body></html>
