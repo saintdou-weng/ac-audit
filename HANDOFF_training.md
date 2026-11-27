@@ -36,3 +36,8 @@ Plan: import 2025 Aug–Dec production rows from full-year xlsx; attach PDFs as 
 - 修正：vrt_training_v1.html 加 IndexedDB 墊片（vrt3_store，vrt3_cfg／vrt3_year 留 localStorage）、save/load/TRAuto 都等 VRT3_READY（commit 9ab4d85）。
 - 找回：/home/claude/ptr2/up_hr_hist.json（2022-05..2025-03，132 筆）＋ up_hr.json（2026-03..10，84 筆）重新匯入並 syncToGAS；雲端現 30 個月。生產培訓頁沒受影響（2025-01..2026-02 都在）。
 - 仍缺（PC 與 Gmail 都沒有排程表 xlsx，只有月報 PDF）：HR 2024-07..12、2025-04..12、2023-07..12、2022-10/12。要補得從 PDF（簽到表）人工整理。
+
+## 2026-11-27 10:5x：培訓記錄附照片
+- assets/training_photos.js（兩頁共用）：月份記錄每列顯示照片縮圖＋📷n，點開全螢幕可左右滑（commit a7fbe05）。
+- 生產培訓：從上課紀錄 PDF（第 2 頁活動照、第 3 頁簽到表）抽圖，配到 17 筆記錄共 99 張（2025-01×3、02×4、04 布料檢驗、06×3、12×6），經 GAS uploadAttachment 存 Drive，evidence 已同步。工具：/home/claude/work/trph（out/ 檔名 日期__主題__序號.jpg；瀏覽器 phMatch 關鍵字配對）。
+- 還沒附：生產 2025-03、05、07～11、2026-01～02（PDF 在 Gmail 月報 rar、Downloads/08_EMAIL…/training audit 的 rar）；人資所有月份（C:\all\close drop\HR\Others\<年>\ 的月報 PDF、Gmail HR Training Report）。
