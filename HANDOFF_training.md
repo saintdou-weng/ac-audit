@@ -48,3 +48,8 @@ Plan: import 2025 Aug–Dec production rows from full-year xlsx; attach PDFs as 
 - 生產：Gmail 2025-07 Packing rar、09、11 rar；Downloads 2026-01、02 rar → 176 張配 25 筆（module prod_training）。工具 /home/claude/work/prph；rar 用 node-unrar-js（/tmp/unr/x.js）。
 - 還缺：生產 2025-03、05（zip 19MB）、07 QC rar（14.8MB）、10（12.9MB）超過 Gmail 下載工具 12MB 上限，要用瀏覽器從 Gmail 下載到筆電 Downloads 再 stage；2025-08 沒有月報郵件。人資 2024-07..12、2025-04..12、2026-03..09 找不到照片檔（2026-03 只有 TAFTAC 研習報告）。
 - 注意：TRAuto 在頁面有 input 焦點時可能不推；必要時 TRAuto.run('manual')。
+
+## 2026-11-27 15:4x：智慧匯入 v4 ＋ 生產 3/5/7/10 月照片
+- v4：PPT 一張投影片一堂（讀日期／課程、投影片照片附上）；JPG 讀 EXIF 拍攝日期；一份 PDF 多堂課→一頁一筆（無字掃描頁跟前一堂）；同日只有一筆時用日期直接對；同義詞（Material Training＝廠規、TB＝傳染病…）。headless 測人資 2026-01 月報 13 堂＋1 張 EXIF 照片全部對中。
+- Gmail 大檔改用筆電 Chrome 直接開附件網址下載（/mail/u/0/?ui=2&ik=0d762e5a33&attid=0.N&permmsgid=msg-f:<id>&view=att&disp=safe&zw），存到 Downloads/00_下載收件匣，再 device_stage（大檔一個一個 stage，不然逾時）。
+- 生產 2025-03/05/07(QC)/10：254 張；2025-03 有 9 堂 QC 課頁面原本沒有→新增記錄（日期、人數待補，remarks 標明）。
