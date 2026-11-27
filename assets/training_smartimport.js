@@ -91,6 +91,7 @@ async function commit(){var el=document.getElementById('trSI');el.dataset.busy='
   var idx=0;async function worker(){while(idx<tasks.length){var t=tasks[idx++];try{var r=await upload(t.f,t.rec);if(r==='ok')ok++}catch(e){fail.push(t.f.name+'：'+e.message)}msg.textContent='上傳中 '+(ok+fail.length)+' / '+tasks.length+'…'}}
   await Promise.all([worker(),worker(),worker()]);
   try{save()}catch(e){}try{renderRecords();renderPills()}catch(e){}
+  setTimeout(function(){try{if(window.TRAuto&&TRAuto.run)TRAuto.run('manual');else if(window.ACAuto){if(ACAuto.touch)ACAuto.touch();if(ACAuto.run)ACAuto.run()}}catch(e){}},800);
   delete el.dataset.busy;msg.innerHTML='<span style="color:#16a34a">✅ 完成：上傳 '+ok+' 個檔，新增 '+made+' 筆記錄</span>'+(fail.length?'<br><span style="color:#dc2626">失敗 '+fail.length+'：'+E(fail.slice(0,3).join('；'))+'</span>':'')+(made?'<br><span style="color:#b45309">新增的記錄人數是 0，請匯入 Excel 月報或手動補。</span>':'');
   go.textContent='關閉';go.disabled=false;go.onclick=function(){el.remove()}}
 window.trSmartImport=function(){var el=modal('<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px">🧠 智慧匯入</b><button id="siX" style="border:0;background:none;font-size:20px;cursor:pointer">✕</button></div>'+
