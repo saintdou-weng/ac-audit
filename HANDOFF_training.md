@@ -29,3 +29,10 @@ Plan: import 2025 Aug–Dec production rows from full-year xlsx; attach PDFs as 
 - Cambodia law page: version/update history (lawVersionBox), Khmer mode (ខ្មែរ button; textKH/summaryKH/nameKH fields), IndexedDB store 'law_store', API lawUpsert/lawAddUpdate/lawMarkChecked. Seeded: labor updates (2026 MW $210 Prakas 214/25; Apr-2026 +$2.50 allowance; 2027 MW $212 Prakas 226/26), Investment Law 1994 as superseded history.
 - Scheduled task trig_01AXoWtri1waZRNjxvowWJie "柬埔寨法律月度自動更新（每月 3 日）" 13:17 Phnom Penh, bound to laptop, auto approval, push notify.
 - Still TODO: per-law/per-item incremental sync (ACAuto uploads whole key when changed); sign-in sheet → 受訓員工; PSJHR 培訓 tab; keynote continuous scroll; attach PDFs as evidence; HR page IDB shim (vrt3_*).
+
+## 2026-11-27 09:xx：人資培訓資料遺失→已找回
+- 現象：Paul 看到只剩 2026 1–2 月。雲端（GAS getAll）也只剩 2026-01:13、02:8；ACAuto kv 的 backup:training（11/21）也只有這兩月。
+- 原因：網域 localStorage 滿（5,242,455 字元）→ vrt3_* 存不進去，重新整理後回到舊資料，TRAuto 自動同步把短的那份推回雲端。
+- 修正：vrt_training_v1.html 加 IndexedDB 墊片（vrt3_store，vrt3_cfg／vrt3_year 留 localStorage）、save/load/TRAuto 都等 VRT3_READY（commit 9ab4d85）。
+- 找回：/home/claude/ptr2/up_hr_hist.json（2022-05..2025-03，132 筆）＋ up_hr.json（2026-03..10，84 筆）重新匯入並 syncToGAS；雲端現 30 個月。生產培訓頁沒受影響（2025-01..2026-02 都在）。
+- 仍缺（PC 與 Gmail 都沒有排程表 xlsx，只有月報 PDF）：HR 2024-07..12、2025-04..12、2023-07..12、2022-10/12。要補得從 PDF（簽到表）人工整理。
