@@ -126,5 +126,6 @@ function boot(){backBtn();st.sig=sig();st.o=J(S.opts||{});
   /* 同一台裝置別的分頁（例如另一個平台的同一頁）改了資料 → 這一頁也換成新的 */
   window.addEventListener('storage',function(ev){if(KEYS.indexOf(ev.key)<0||ev.newValue===ev.oldValue)return;clearTimeout(boot.s);boot.s=setTimeout(function re(){if(editing()){boot.s=setTimeout(re,5000);return}try{load();if(typeof rebuildDataLists==='function')rebuildDataLists();renderActive();st.sig=sig()}catch(e){}},600)})}
 window.TRAuto={run:run,mergeAll:mergeAll,backup:function(){return kv()?kv().get('backup:training').then(function(v){try{return v===undefined?null:JSON.parse(v)}catch(e){return null}}):Promise.resolve(null)},state:function(){return {last:st.last,busy:st.busy}}};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+function go(){(window.VRT3_READY||Promise.resolve()).then(function(){setTimeout(boot,50)})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
 })();

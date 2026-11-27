@@ -781,6 +781,18 @@ hr.sep{border:none;border-top:1px dashed var(--border-light);margin:8px 0}
 <div id="load"><div class="spin"></div></div>
 
 <script>
+/* 2026-11-27：這個網域的 localStorage（5MB，所有平台共用）已滿 → 人資培訓 vrt3_* 存不進去，重新整理後只剩舊資料，自動同步又把雲端蓋回去（11 月只剩 1–2 月）。
+   跟生產培訓頁一樣改存 IndexedDB（頁面照常用 localStorage 讀寫，這裡攔截轉存），順便把舊的 vrt3_* 搬出 localStorage 騰空間。vrt3_cfg、vrt3_year 留在 localStorage。 */
+(function(){var RX=/^(vrt3_(tr|rc|lb|opts|extra|base|archive_.*)|ac_sync_base_vrt3_.*)$/,M=new Map(),P=Storage.prototype,gi=P.getItem,si=P.setItem,ri=P.removeItem;
+ var dbp=new Promise(function(res){try{var q=indexedDB.open('vrt3_store',1);q.onupgradeneeded=function(){q.result.createObjectStore('kv')};q.onsuccess=function(){res(q.result)};q.onerror=function(){res(null)}}catch(e){res(null)}});
+ function put(k,v){dbp.then(function(d){if(!d)return;try{var os=d.transaction('kv','readwrite').objectStore('kv');v===null?os.delete(k):os.put(v,k)}catch(e){}})}
+ P.getItem=function(k){if(this===localStorage&&RX.test(k)){if(M.has(k))return M.get(k);var v=gi.call(this,k);if(v!==null){M.set(k,v);put(k,v);try{ri.call(this,k)}catch(e){}}return v}return gi.call(this,k)};
+ P.setItem=function(k,v){if(this===localStorage&&RX.test(k)){v=String(v);M.set(k,v);put(k,v);try{ri.call(this,k)}catch(e){}return}return si.call(this,k,v)};
+ P.removeItem=function(k){if(this===localStorage&&RX.test(k)){M.delete(k);put(k,null)}return ri.call(this,k)};
+ window.VRT3_READY=dbp.then(function(d){return new Promise(function(res){if(!d)return res();try{var rq=d.transaction('kv').objectStore('kv').openCursor();rq.onsuccess=function(){var c=rq.result;if(c){if(!M.has(c.key))M.set(c.key,c.value);c.continue()}else res()};rq.onerror=function(){res()}}catch(e){res()}})}).then(function(){window.__VRT3_OK=true});
+})();
+</script>
+<script>
 // =====================================================
 //  LANGUAGE + i18n
 // =====================================================
@@ -1157,6 +1169,7 @@ const S={
 //  STORAGE
 // =====================================================
 function save(){
+  if(window.VRT3_READY&&!window.__VRT3_OK)return; /* IndexedDB 還沒讀完前不存，免得用舊資料蓋掉 */
   try{
     localStorage.setItem('vrt3_tr',JSON.stringify(S.trainings));
     localStorage.setItem('vrt3_rc',JSON.stringify(S.records));
@@ -2912,6 +2925,7 @@ function autoMarkPastPending(){
 let CURRENT_YEAR=2026;
 try{const sy=localStorage.getItem('vrt3_year');if(sy) CURRENT_YEAR=parseInt(sy)||2026;}catch(e){}
 
+(window.VRT3_READY||Promise.resolve()).then(function(){
 load();
 autoMarkPastPending();
 applyAuditBridge();
@@ -2926,10 +2940,12 @@ renderPills();
 // Update year input to suggest next year
 const _nyInp=document.getElementById('new-year-inp');
 if(_nyInp) _nyInp.value=CURRENT_YEAR+1;
+
+});
 </script>
 <script src="assets/ac_tool_sync.js?v=5"></script>
 <script src="assets/ac_autosync.js?v=4"></script>
-<script src="assets/training_autosync.js?v=4"></script>
+<script src="assets/training_autosync.js?v=5"></script>
 <a class="ac-audit-back-btn" href="ac_audit_platform_v1.html">← AC Audit</a><!-- VRT swipe-tabs：左右滑動（手指／滑鼠拖曳）切換分頁，只聽手勢、不改資料 -->
 <script src="https://saintdou-weng.github.io/ac-admin/shared/swipe-tabs.js" defer></script>
 <!-- 2026-11-22 介面動效（外掛；拿掉這一行就恢復原樣）：主要按鈕懸停回饋／數字卡 3D 傾斜／頂列毛玻璃／回到頂部。淺色頁面沒有聚光燈；分頁、表格、清單裡的按鈕不套 -->
