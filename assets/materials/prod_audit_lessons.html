@@ -1,0 +1,146 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>生產部門驗廠培訓教材 · VRT</title>
+<style>
+:root{--bg:#f3f6f4;--card:#fff;--ink:#1f2a24;--sub:#5d6b63;--acc:#2f7d5b;--line:#dfe7e2;--warn:#b45309}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC","Noto Sans Khmer","Khmer OS",sans-serif;line-height:1.6}
+header{position:sticky;top:0;z-index:3;background:#fff;border-bottom:1px solid var(--line);padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+header h1{margin:0;font-size:17px;flex:1}.lang{display:flex;border:1px solid var(--line);border-radius:99px;overflow:hidden}.lang button{border:0;background:#fff;padding:6px 11px;font:inherit;font-size:13px;cursor:pointer}.lang button.on{background:var(--acc);color:#fff}
+main{max-width:920px;margin:0 auto;padding:14px}
+.intro{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:14px}
+.toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:14px}
+.toc a{display:block;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:14px}.toc a small{display:block;color:var(--sub);font-weight:400;font-size:12px}
+.m{background:#fff;border:1px solid var(--line);border-left:6px solid var(--acc);border-radius:14px;padding:12px 14px;margin:12px 0;scroll-margin-top:70px}
+.m h2{margin:0 0 4px;font-size:18px}.why{color:var(--sub);font-size:14px;margin:0 0 8px}
+.m h3{font-size:14px;margin:12px 0 4px;color:var(--acc)}
+ol,ul{margin:0;padding-left:20px}li{margin:3px 0}
+.ev{background:#f0fdf4;border:1px dashed #86efac;border-radius:10px;padding:8px 10px;font-size:13px}
+.ng{background:#fffbeb;border:1px dashed #fcd34d;border-radius:10px;padding:8px 10px;font-size:13px}
+.q{margin-top:10px;font-size:14px}.q details{border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin:4px 0}.q summary{cursor:pointer;font-weight:600}
+.src{font-size:11px;color:var(--sub);margin-top:8px}
+@media print{header{position:static}.lang{display:none}.m{break-inside:avoid}}
+</style></head><body>
+<header><h1 id="ttl"></h1><div class="lang" id="lang"><button data-l="0">中</button><button data-l="1">EN</button><button data-l="2">ខ្មែរ</button></div></header>
+<main id="app"></main>
+<script>
+/* 生產部門驗廠培訓教材（2026-11-27）
+   依據：BIG W ASIA WSE 指南（VRT 2026 雙語整理表：22 章、68 項）、GRS 標準生產端要求、VRT 現行生產程序（斷針、金屬探測、裁剪、進料檢驗、包裝）。
+   這裡只放通用要求與做法，不放客戶驗廠報告或 CAP 細節。 */
+const T=(zh,en,km)=>[zh,en,km];
+const UI={ttl:T('🏭 生產部門驗廠培訓教材','🏭 Production audit training','🏭 ឯកសារបណ្តុះបណ្តាលសវនកម្មផលិតកម្ម'),
+ intro:T('給車縫、裁剪、QC、倉庫、機修、包裝的班組長和員工上課用。每一課：為什麼要做 → 每天要做的事 → 驗廠會看什麼 → 常被開缺失的地方 → 三題小考。可以投影，也可以列印。',
+  'For line leaders and workers in sewing, cutting, QC, warehouse, maintenance and packing. Each lesson: why → what to do every day → what the auditor checks → common findings → 3 quick questions. Project it or print it.',
+  'សម្រាប់ប្រធានក្រុម និងកម្មករ ផ្នែកដេរ កាត់ QC ឃ្លាំង ជួសជុល និងវេចខ្ចប់។ មេរៀននីមួយៗ៖ ហេតុអ្វី → ការងារប្រចាំថ្ងៃ → អ្វីដែលសវនករពិនិត្យ → កំហុសញឹកញាប់ → សំណួរ ៣។'),
+ why:T('為什麼','Why','ហេតុអ្វី'),todo:T('每天要做','Do every day','ត្រូវធ្វើរៀងរាល់ថ្ងៃ'),ev:T('驗廠會看的證據','Evidence the auditor checks','ភស្តុតាងដែលសវនករពិនិត្យ'),ng:T('常被開缺失','Common findings','កំហុសញឹកញាប់'),q:T('小考（點開看答案）','Quick check (tap for answer)','សំណួរ (ចុចមើលចម្លើយ)'),src:T('依據','Source','ប្រភព')};
+const M=[
+{id:'wse',ic:'📋',t:T('WSE 技術驗廠是什麼、生產要準備什麼','What the WSE technical audit is and what production must prepare','សវនកម្មបច្ចេកទេស WSE ជាអ្វី'),
+ why:T('WSE 是 BIG W（Woolworths）的技術品質與生產系統驗廠，不是社會責任驗廠，也不是 GRS 證書。查 22 個章節、68 項文件與現場；生產部門負責其中一大半。','WSE is BIG W (Woolworths) technical quality and production-system audit – not a social audit and not GRS. It covers 22 sections and 68 document/site items; production owns a large share.','WSE គឺជាសវនកម្មគុណភាព និងប្រព័ន្ធផលិតកម្មរបស់ BIG W មិនមែនសវនកម្មសង្គម ឬ GRS ទេ។ មាន ២២ ផ្នែក និង ៦៨ ចំណុច។'),
+ todo:[T('現場照 SOP 做，SOP、表單放在工位看得到的地方，版本要最新','Work to the SOP; keep the latest SOP and forms visible at the workstation','ធ្វើតាម SOP ហើយដាក់ SOP និងទម្រង់ថ្មីបំផុតនៅកន្លែងធ្វើការ'),
+  T('每張紀錄當下填、簽名、寫日期，不事後補','Fill, sign and date every record at the time – never back-fill','បំពេញ ចុះហត្ថលេខា និងកាលបរិច្ឆេទ ភ្លាមៗ មិនបំពេញក្រោយ'),
+  T('產前會議（PPM）、試產、尺寸組報告每款都要有','Every style needs a PPM, pilot run and size-set report','គ្រប់ម៉ូដត្រូវមាន PPM ផលិតសាកល្បង និងរបាយការណ៍ទំហំ'),
+  T('核准樣（簽樣）掛在線上，別拿錯版本','Keep the approved sample on the line and never use an old version','ដាក់គំរូដែលបានអនុម័តនៅលើខ្សែ'),
+  T('過去 3–6 個月的品質 KPI 和改善行動要能拿出來','Have the last 3–6 months of quality KPIs and improvement actions ready','ត្រៀម KPI គុណភាព ៣-៦ ខែចុងក្រោយ')],
+ ev:T('SOP 與表單（最新版）、PPM／試產／尺寸報告、IPQC／終檢報告、KPI 趨勢、培訓簽到與考核','Latest SOPs and forms, PPM / pilot / size-set reports, IPQC and final reports, KPI trends, training sign-in and tests','SOP ទម្រង់ របាយការណ៍ PPM/QC KPI និងកំណត់ត្រាបណ្តុះបណ្តាល'),
+ ng:T('紀錄空白或同一筆跡一次補完；SOP 和現場做法不一樣；員工說不出自己工序的品質重點','Blank records or many records filled at once in one handwriting; SOP differs from practice; operators cannot explain their quality points','កំណត់ត្រាទទេ ឬបំពេញម្តងច្រើន SOP ខុសពីការអនុវត្ត'),
+ q:[[T('WSE 是社會責任驗廠嗎？','Is WSE a social audit?','WSE ជាសវនកម្មសង្គមឬ?'),T('不是，是技術品質與生產系統驗廠。','No – it is a technical quality and production-system audit.','មិនមែនទេ ជាសវនកម្មបច្ចេកទេស។')],[T('紀錄什麼時候填？','When do you fill a record?','ពេលណាត្រូវបំពេញកំណត់ត្រា?'),T('做完當下就填、簽名、寫日期。','Right after the job, signed and dated.','ភ្លាមៗ ក្រោយធ្វើរួច។')],[T('每款開產前要有哪三樣？','Which three things does every style need before bulk?','មុនផលិតត្រូវមានអ្វីខ្លះ?'),T('產前會議、試產、尺寸組報告。','PPM, pilot run and size-set report.','PPM ផលិតសាកល្បង របាយការណ៍ទំហំ។')]],
+ src:'BIG W WSE Guideline（VRT 雙語整理表 2026：Sections 1–22、Checklist 6、13、16、58、59、63、65）'},
+{id:'needle',ic:'🪡',t:T('斷針、利器與金屬探測','Broken needles, sharp tools and metal detection','ម្ជុលបាក់ ឧបករណ៍មុត និងម៉ាស៊ីនរកដែក'),
+ why:T('一根斷針留在衣服裡就可能傷到消費者，客戶會退貨、索賠甚至停止下單。這是驗廠最嚴格、最常被抽查的一項。','One needle fragment left in a garment can injure a customer; buyers reject, claim or stop orders. It is the strictest, most-checked item.','បំណែកម្ជុលមួយអាចធ្វើឱ្យអតិថិជនរបួស។ នេះជាចំណុចតឹងរ៉ឹងបំផុត។'),
+ todo:[T('換針一定「以舊換新」：斷針所有碎片找齊，貼在斷針紀錄表上才發新針','Always swap old for new: collect every fragment of a broken needle and tape it on the record before a new needle is issued','ប្តូរម្ជុលចាស់យកថ្មី៖ ប្រមូលបំណែកទាំងអស់ បិទលើកំណត់ត្រា ទើបបើកម្ជុលថ្មី'),
+  T('碎片找不齊：那批衣服先隔離，用手持探測器和過機找到為止，主管簽名','Fragments missing: quarantine the bundle, search with the hand detector and the machine until found; supervisor signs','រកបំណែកមិនឃើញ៖ ញែកបាច់ចេញ ស្វែងរករហូតឃើញ ប្រធានចុះហត្ថលេខា'),
+  T('剪刀、鑷子、拆線器綁繩固定、編號登記；下班點數歸還','Scissors, tweezers and unpickers are tied, numbered and logged; counted back at end of shift','កន្ត្រៃ ដង្កៀប ចងខ្សែ ដាក់លេខ ហើយរាប់ប្រគល់វិញពេលចេញ'),
+  T('生產區禁止可折斷式美工刀片','Snap-off blades are forbidden on the production floor','ហាមប្រើកាំបិតកាត់អាចបំបែកបាន'),
+  T('金屬探測器每天開工、每 2 小時用測試卡測一次並記錄；嗶聲的衣服放紅箱、查原因','Test the metal detector with the test card at start-up and every 2 hours and record it; any alarm piece goes to the red box and is investigated','សាកល្បងម៉ាស៊ីនរកដែកពេលចាប់ផ្តើម និងរៀងរាល់ ២ ម៉ោង។ សម្លៀកបំពាក់ដែលរោទ៍ ដាក់ប្រអប់ក្រហម'),
+  T('針具紀錄保存 2 年','Keep needle records for 2 years','រក្សាកំណត់ត្រាម្ជុល ២ ឆ្នាំ')],
+ ev:T('斷針紀錄（貼碎片）、針具發放表、利器登記表、金屬探測測試紀錄（9 點測試）、紅箱調查紀錄、第三方校正證書、操作授權名單','Broken-needle log with fragments, needle issue log, sharp-tool register, detector test log (9-point test), red-box investigations, third-party calibration certificate, authorised operators','កំណត់ត្រាម្ជុលបាក់ ការបើកម្ជុល ឧបករណ៍មុត ការសាកល្បងម៉ាស៊ីនរកដែក'),
+ ng:T('碎片沒貼齊卻已發新針；工位上有沒綁的剪刀；探測器測試紀錄有空格；探測區用柵欄隔、任何人都能進','New needle issued without all fragments; untied scissors at a station; gaps in detector tests; detector area fenced with mesh and open to anyone','បើកម្ជុលថ្មីដោយគ្មានបំណែកគ្រប់ កន្ត្រៃមិនចង'),
+ q:[[T('斷針碎片少一段怎麼辦？','What if a fragment is missing?','បើបាត់បំណែកមួយ ធ្វើយ៉ាងម៉េច?'),T('那批衣服隔離，用探測器找到為止，主管簽名才放行。','Quarantine the bundle, search until found, release only after the supervisor signs.','ញែកចេញ ស្វែងរក ប្រធានចុះហត្ថលេខា។')],[T('金屬探測器多久測一次？','How often is the detector tested?','សាកម៉ាស៊ីនរកដែកញឹកប៉ុណ្ណា?'),T('開工時，之後每 2 小時。','At start-up, then every 2 hours.','ពេលចាប់ផ្តើម និងរៀងរាល់ ២ ម៉ោង។')],[T('可以用折斷式美工刀嗎？','Can you use a snap-off blade?','អាចប្រើកាំបិតបំបែកបានទេ?'),T('不行，生產區禁止。','No, it is forbidden in production.','មិនបានទេ។')]],
+ src:'WSE Checklist 48–51、56、68D；VRT Broken Needle／Sharp Tool／Metal Detector 培訓（2025-02、05）'},
+{id:'snap',ic:'🔘',t:T('金屬附件（四合扣、鈕扣）拉力與 SPC','Metal trims (snaps, buttons): pull test and SPC','ឡេវដែក និងប៊ូតុង៖ ការសាកល្បងទាញ'),
+ why:T('扣子掉了小孩可能吞下，是產品安全問題。WSE 第 68 項把金屬附件列為強制控制。','A loose snap can be swallowed by a child – a product-safety issue. WSE item 68 makes metal-trim control mandatory.','ឡេវរបូតអាចឱ្យកុមារលេបបាន។ WSE ចំណុច ៦៨ ជាការត្រួតពិនិត្យចាំបាច់។'),
+ todo:[T('開機前調好模具，打第一顆先做拉力測試，合格才量產','Set the die and pull-test the first piece before bulk','កំណត់ម៉ាស៊ីន ហើយសាកល្បងទាញគ្រាប់ទីមួយ'),
+  T('每小時做內部拉力測試並記錄數值（不能只寫 OK）','Pull-test every hour and record the actual value – not just "OK"','សាកល្បងទាញរៀងរាល់ម៉ោង ហើយកត់តម្លៃពិត'),
+  T('每 1–2 小時手寫 SPC 數據、畫趨勢；數值往下掉就停機查','Hand-write SPC data every 1–2 hours and plot the trend; stop and check if values drift down','សរសេរ SPC រៀងរាល់ ១-២ ម៉ោង បើតម្លៃធ្លាក់ ឈប់ពិនិត្យ'),
+  T('每張訂單保留一條做過拉力測試的附件樣條','Keep one pull-tested trim strip for every order','រក្សាបន្ទះសាកល្បងមួយសម្រាប់បញ្ជាទិញនីមួយៗ'),
+  T('附件機要有有效校正；附件作業在獨立專區','The attaching machine needs valid calibration; attach in a separate area','ម៉ាស៊ីនត្រូវមានការក្រិត ហើយធ្វើនៅតំបន់ដាច់ដោយឡែក')],
+ ev:T('每小時拉力測試報告、SPC 趨勢圖、樣條、附件機校正、附件專區、租賃機的服務協議','Hourly pull-test reports, SPC charts, test strips, machine calibration, dedicated area, service agreement for rented machines','របាយការណ៍ទាញរៀងរាល់ម៉ោង SPC បន្ទះសាកល្បង'),
+ ng:T('拉力只寫 OK 沒數值；SPC 是事後補畫；樣條沒有；機台校正過期','Pull test says OK with no value; SPC drawn afterwards; no strip kept; calibration expired','សរសេរតែ OK គ្មានតម្លៃ ការក្រិតផុតកំណត់'),
+ q:[[T('拉力測試多久一次？','How often is the pull test?','សាកល្បងទាញញឹកប៉ុណ្ណា?'),T('每小時，記錄實際數值。','Every hour, with the actual value.','រៀងរាល់ម៉ោង កត់តម្លៃពិត។')],[T('SPC 數值一直往下掉怎麼辦？','SPC values keep dropping – what now?','តម្លៃ SPC ធ្លាក់ចុះ ធ្វើយ៉ាងម៉េច?'),T('停機，請機修和 QC 檢查模具和壓力。','Stop and have maintenance and QC check the die and pressure.','ឈប់ ហើយឱ្យជាងជួសជុល និង QC ពិនិត្យ។')],[T('每張訂單要留什麼？','What is kept for every order?','បញ្ជាទិញនីមួយៗត្រូវរក្សាអ្វី?'),T('一條做過拉力測試的附件樣條。','One pull-tested trim strip.','បន្ទះសាកល្បងមួយ។')]],
+ src:'WSE Checklist 68A–68G；VRT Button Snap Attachment 培訓（2025-07）'},
+{id:'trace',ic:'🔎',t:T('追溯（2 小時）與不合格品隔離','Traceability (2 hours) and nonconforming product','ការតាមដាន (២ ម៉ោង) និងផលិតផលមិនស្តង់ដារ'),
+ why:T('出問題時要在 2 小時內從一件成品追回布料批號、裁床、哪條線、哪天、誰檢驗。追不到就無法縮小召回範圍。','When there is a problem we must trace one garment back to fabric lot, cutting lay, line, date and inspector within 2 hours. Without it a recall cannot be limited.','ពេលមានបញ្ហា ត្រូវតាមដានពីសម្លៀកបំពាក់មួយ ទៅកាន់ឡូតក្រណាត់ ការកាត់ ខ្សែ ថ្ងៃ ក្នុង ២ ម៉ោង។'),
+ todo:[T('每捆裁片都有標籤：款號、PO、色、尺寸、缸號、捆號、數量','Every bundle has a ticket: style, PO, colour, size, dye lot, bundle no., quantity','បាច់នីមួយៗមានស្លាក៖ ម៉ូដ PO ពណ៌ ទំហំ ឡូត លេខបាច់ ចំនួន'),
+  T('同一件衣服的裁片不可混缸（色差）','Never mix dye lots within one garment (shading)','មិនលាយឡូតពណ៌ក្នុងសម្លៀកបំពាក់តែមួយ'),
+  T('生產日報寫清楚哪條線做哪個 PO、幾件','Daily reports show which line made which PO and how many','របាយការណ៍ប្រចាំថ្ងៃបង្ហាញខ្សែណាធ្វើ PO ណា'),
+  T('不合格品掛紅牌、放紅區，不能混回良品；處理方式要有人簽名','Nonconforming goods get a red tag and go to the red area; never mixed back; disposal is signed off','ផលិតផលខុសស្តង់ដារ ដាក់ស្លាកក្រហម នៅតំបន់ក្រហម'),
+  T('客訴或異常要開異常報告、找原因、做改善，下次同款開工前先看','Complaints and problems get an anomaly report, root cause and action – checked before the same style runs again','បញ្ហាត្រូវមានរបាយការណ៍ ហើយមើលមុនផលិតម៉ូដដដែល')],
+ ev:T('隨機抽 1–2 款現場做追溯演練（計時 2 小時）、裁片標籤、日報、不合格品紀錄與紅區、CAPA','Live trace of 1–2 styles (timed 2 h), bundle tickets, daily reports, nonconformity log and red area, CAPA','ការសាកល្បងតាមដាន ១-២ ម៉ូដ ស្លាកបាច់ របាយការណ៍'),
+ ng:T('缸號沒寫在標籤上；不合格品和良品放在一起；追溯超過 2 小時','Dye lot missing on tickets; rejects mixed with good goods; trace takes more than 2 hours','គ្មានលេខឡូត ផលិតផលខុសលាយជាមួយល្អ'),
+ q:[[T('追溯要在多久內完成？','How fast must a trace be done?','ត្រូវតាមដានក្នុងរយៈពេលប៉ុន្មាន?'),T('2 小時內。','Within 2 hours.','ក្នុង ២ ម៉ោង។')],[T('一件衣服可以用兩個缸號的裁片嗎？','Can one garment use two dye lots?','សម្លៀកបំពាក់មួយប្រើឡូតពីរបានទេ?'),T('不行，會色差。','No – it causes shading.','មិនបានទេ ព្រោះខុសពណ៌។')],[T('不合格品放哪裡？','Where do rejects go?','ផលិតផលខុសដាក់ណា?'),T('掛紅牌放紅區，等處理簽核。','Red tag, red area, until disposal is signed.','ស្លាកក្រហម នៅតំបន់ក្រហម។')]],
+ src:'WSE Sections 6、7；Checklist 22、24、25、29、60、62；VRT 異常報告（色差、移色案例）'},
+{id:'iqc',ic:'🧵',t:T('布料、輔料進料檢驗與倉儲','Fabric and trim inspection and storage','ការត្រួតពិនិត្យក្រណាត់ និងគ្រឿងបន្លាស់'),
+ why:T('布料一開始有問題，裁了、車了才發現就全部浪費。進料把關是最便宜的品質控制。','A fabric problem found after cutting and sewing wastes everything. Incoming inspection is the cheapest quality control.','បញ្ហាក្រណាត់ដែលរកឃើញក្រោយកាត់ និងដេរ ខាតទាំងអស់។'),
+ todo:[T('布料用 4 分制抽驗（10% 卷數），記錄瑕疵分數','Inspect fabric with the 4-point system (10% of rolls) and record points','ពិនិត្យក្រណាត់តាមប្រព័ន្ធ ៤ ពិន្ទុ (១០% នៃមុខ)'),
+  T('每缸剪色卡對色，色差標示清楚再發裁剪','Cut a shade band for each dye lot; mark shading before issuing to cutting','កាត់គំរូពណ៌សម្រាប់ឡូតនីមួយៗ'),
+  T('輔料（扣子、拉鍊、標籤）核對核准樣、數量和顏色','Check trims (buttons, zips, labels) against approved samples, quantity and colour','ពិនិត្យគ្រឿងបន្លាស់ជាមួយគំរូ ចំនួន និងពណ៌'),
+  T('先進先出（FIFO）；離地放、分 PO 放、貼標示','FIFO; store off the floor, by PO, labelled','ចូលមុនចេញមុន ដាក់លើធ្នើ តាម PO'),
+  T('倉庫每天記濕度；鐵製附件防鏽','Record warehouse humidity daily; protect metal trims from rust','កត់សំណើមរៀងរាល់ថ្ងៃ'),
+  T('進料不合格隔離、通知採購，不能先拿去用','Rejected materials are quarantined and purchasing informed – never used first','វត្ថុធាតុខុសស្តង់ដារ ញែកចេញ មិនប្រើ')],
+ ev:T('IQC 報告（4 分制）、色卡、輔料檢驗紀錄、FIFO／庫存輪轉紀錄、濕度紀錄、倉庫現場','IQC reports (4-point), shade bands, trim inspection, FIFO / rotation records, humidity log, warehouse condition','របាយការណ៍ IQC គំរូពណ៌ កំណត់ត្រាសំណើម'),
+ ng:T('布料直接放地上；沒色卡；檢驗員沒受過訓練或沒資格紀錄；濕度紀錄有空白','Fabric on the floor; no shade band; inspectors without training records; gaps in humidity log','ក្រណាត់ដាក់លើដី គ្មានគំរូពណ៌'),
+ q:[[T('布料抽驗用什麼方法？','Which fabric inspection system?','ប្រើប្រព័ន្ធអ្វីពិនិត្យក្រណាត់?'),T('4 分制，抽 10% 卷數。','4-point system, 10% of rolls.','ប្រព័ន្ធ ៤ ពិន្ទុ ១០%។')],[T('為什麼每缸要剪色卡？','Why a shade band per dye lot?','ហេតុអ្វីត្រូវកាត់គំរូពណ៌?'),T('避免不同缸混用造成色差。','So different lots are not mixed and cause shading.','ដើម្បីកុំឱ្យខុសពណ៌។')],[T('不合格的布可以先用嗎？','Can rejected fabric be used first?','ក្រណាត់ខុសអាចប្រើមុនបានទេ?'),T('不行，先隔離、通知採購。','No – quarantine and tell purchasing.','មិនបានទេ។')]],
+ src:'WSE Section 5、16；Checklist 21、23、32、66、67；VRT Fabric／Trim Inspection、Warehouse Procedure 培訓（2025）'},
+{id:'cut',ic:'✂️',t:T('裁剪管控','Cutting control','ការត្រួតពិនិត្យការកាត់'),
+ why:T('裁錯、裁歪、混缸，到車縫和包裝才發現，返工最貴。裁剪是品質和用布量的關鍵。','Mis-cut, off-grain or mixed-lot panels found at sewing or packing are the costliest rework. Cutting drives both quality and fabric use.','ការកាត់ខុស ឬលាយឡូត ការកែឡើងវិញថ្លៃបំផុត។'),
+ todo:[T('鋪布前核對馬克（排版圖）版本、布幅、缸號','Check marker version, fabric width and dye lot before spreading','ពិនិត្យម៉ាកឃើរ ទទឹងក្រណាត់ ឡូត មុនក្រាល'),
+  T('鋪布張力均勻、對齊布邊，層數照裁剪單','Spread with even tension, align edges, lay count per the cut ticket','ក្រាលស្មើ តម្រង់គែម ចំនួនស្រទាប់តាមប័ណ្ណ'),
+  T('第一刀裁片要量尺寸，和紙樣比對','Measure the first cut panels against the pattern','វាស់បន្ទះកាត់ដំបូង ប្រៀបធៀបជាមួយគំរូ'),
+  T('裁片編號、分捆、貼標籤（缸號一定要寫）','Number, bundle and ticket panels – always with dye lot','ដាក់លេខ បាច់ និងស្លាក (ត្រូវមានឡូត)'),
+  T('裁刀和電剪用完歸位；裁剪區的利器一樣要登記','Return cutting knives and tools; cutting-room sharp tools are logged too','ទុកកាំបិតកាត់វិញ ហើយចុះបញ្ជី')],
+ ev:T('裁剪單、馬克版本、鋪布紀錄、裁片檢驗紀錄、裁片標籤、用布量對帳','Cut tickets, marker version, spreading records, panel inspection, bundle tickets, fabric-usage reconciliation','ប័ណ្ណកាត់ ម៉ាកឃើរ កំណត់ត្រាក្រាល'),
+ ng:T('裁片標籤缺缸號；沒有第一刀量測紀錄；用布量對不起來','No dye lot on tickets; no first-cut measurement; fabric usage does not reconcile','គ្មានឡូត គ្មានការវាស់បន្ទះដំបូង'),
+ q:[[T('鋪布前要核對哪三樣？','Which three things before spreading?','មុនក្រាលត្រូវពិនិត្យអ្វីខ្លះ?'),T('馬克版本、布幅、缸號。','Marker version, width, dye lot.','ម៉ាកឃើរ ទទឹង ឡូត។')],[T('第一刀裁片要做什麼？','What is done with the first cut panels?','បន្ទះកាត់ដំបូងត្រូវធ្វើអ្វី?'),T('量尺寸，和紙樣比對。','Measure them against the pattern.','វាស់ ប្រៀបធៀបជាមួយគំរូ។')],[T('裁片標籤一定要寫什麼？','What must every ticket show?','ស្លាកត្រូវមានអ្វី?'),T('款號、PO、色、尺寸、缸號、捆號、數量。','Style, PO, colour, size, dye lot, bundle no., quantity.','ម៉ូដ PO ពណ៌ ទំហំ ឡូត លេខបាច់ ចំនួន។')]],
+ src:'VRT Cutting Control Procedure 培訓（2025-02）；WSE Section 2、7'},
+{id:'grs',ic:'♻️',t:T('GRS 回收認證訂單：生產線怎麼做','GRS recycled orders: what the line must do','ការបញ្ជាទិញ GRS៖ អ្វីដែលខ្សែផលិតត្រូវធ្វើ'),
+ why:T('GRS 單的衣服要能證明用了回收料、一路沒被換掉。只要混料或紀錄斷掉，這批就不能用 GRS 標示出貨，認證也可能被暫停。','GRS garments must prove recycled content and that nothing was swapped. Any mixing or broken record means the lot cannot ship as GRS and the certificate may be suspended.','សម្លៀកបំពាក់ GRS ត្រូវបញ្ជាក់ថាប្រើវត្ថុធាតុកែច្នៃ ហើយមិនត្រូវបានប្តូរ។'),
+ todo:[T('進料要有供應商的 TC（交易證書）號碼，和布卷標籤對得上','Incoming GRS fabric must match the supplier transaction certificate (TC) number on the roll labels','ក្រណាត់ GRS ត្រូវមានលេខ TC ត្រូវនឹងស្លាកមុខក្រណាត់'),
+  T('GRS 布和一般布分開放、綠色標示，不可混用','Store GRS fabric separately with green labels; never mix with conventional fabric','ទុកក្រណាត់ GRS ដាច់ដោយឡែក ស្លាកពណ៌បៃតង'),
+  T('裁剪、車縫、包裝都要寫 GRS 批號；剩布、裁片廢料要秤重記錄','Write the GRS lot at cutting, sewing and packing; weigh and record leftover fabric and cutting waste','សរសេរលេខឡូត GRS គ្រប់ដំណាក់កាល ថ្លឹងកាកសំណល់'),
+  T('投入與產出（用布量、成品數、廢料）要能對平（質量平衡）','Input and output must balance (fabric used, garments made, waste) – mass balance','ការបញ្ចូល និងទិន្នផលត្រូវស្មើគ្នា'),
+  T('只有經核准的 GRS 單才能掛 GRS 吊牌；化學品照核准清單用','Only approved GRS orders carry GRS labels; use chemicals from the approved list only','មានតែការបញ្ជាទិញ GRS ទើបដាក់ស្លាក GRS'),
+  T('參與 GRS 的人每年要受訓並簽到','Everyone working on GRS is trained yearly with sign-in records','អ្នកធ្វើការ GRS ត្រូវបណ្តុះបណ្តាលរៀងរាល់ឆ្នាំ')],
+ ev:T('進料 TC、分區與標示、各站 GRS 批號紀錄、廢料秤重、質量平衡表、出貨 TC 申請資料、化學品清單、培訓紀錄','Incoming TCs, segregation and labels, GRS lot records at each step, waste weights, mass-balance sheet, outgoing TC data, chemical list, training records','TC ការញែក ស្លាក កំណត់ត្រាឡូត តារាងតុល្យភាព'),
+ ng:T('GRS 布和一般布放一起；裁剪單沒寫 GRS 批號；廢料沒秤；用布量和 TC 數量對不起來','GRS fabric stored with conventional; no GRS lot on cut tickets; waste not weighed; usage does not match TC quantities','ក្រណាត់ GRS លាយ គ្មានលេខឡូត កាកសំណល់មិនថ្លឹង'),
+ q:[[T('GRS 布可以和一般布放一起嗎？','Can GRS fabric be stored with conventional?','ក្រណាត់ GRS ទុកជាមួយធម្មតាបានទេ?'),T('不行，要分區並用綠色標示。','No – separate area with green labels.','មិនបានទេ ត្រូវញែក។')],[T('什麼是質量平衡？','What is mass balance?','តុល្យភាពម៉ាស់ជាអ្វី?'),T('投入的料和產出的成品、廢料要對得平。','Input material must equal output garments plus waste.','វត្ថុធាតុចូល = ផលិតផល + កាកសំណល់។')],[T('剩布和裁片廢料要做什麼？','What happens to leftovers and waste?','កាកសំណល់ត្រូវធ្វើអ្វី?'),T('秤重並記錄 GRS 批號。','Weigh and record with the GRS lot.','ថ្លឹង ហើយកត់លេខឡូត។')]],
+ src:'Global Recycled Standard（生產端：識別、分隔、質量平衡、標示、化學品）；VRT GRS 培訓（2024-12）'},
+{id:'pack',ic:'📦',t:T('包裝、數量與出貨前檢查','Packing, quantity and pre-shipment checks','ការវេចខ្ចប់ ចំនួន និងការពិនិត្យមុនដឹក'),
+ why:T('短裝、多裝、裝錯尺寸或顏色，客戶直接扣款。包裝是最後一道關。','Short, over or wrong size/colour packing leads straight to deductions. Packing is the last gate.','វេចខ្ចប់ខ្វះ លើស ឬខុសទំហំ អតិថិជនកាត់ប្រាក់។'),
+ todo:[T('照裝箱單（尺碼配比）裝，每箱點數並記錄','Pack to the packing list (size ratio) and count every carton','វេចខ្ចប់តាមបញ្ជី ហើយរាប់គ្រប់ប្រអប់'),
+  T('過金屬探測後才封箱','Seal cartons only after metal detection','បិទប្រអប់ក្រោយឆ្លងម៉ាស៊ីនរកដែក'),
+  T('吊牌、條碼、箱嘜和訂單對照，掃描抽查','Check hangtags, barcodes and carton marks against the order; scan samples','ពិនិត្យស្លាក បាកូដ សញ្ញាប្រអប់'),
+  T('出貨前終檢（AQL）合格、主管放行簽名才出貨','Ship only after final AQL inspection passes and release is signed','ដឹកចេញតែក្រោយ AQL ជាប់ និងចុះហត្ថលេខា'),
+  T('貨櫃裝櫃前檢查（乾淨、無破洞、無異味），拍照','Inspect containers before loading (clean, no holes, no odour) and photograph','ពិនិត្យកុងតឺន័រមុនផ្ទុក ហើយថតរូប')],
+ ev:T('裝箱單與點數紀錄、包裝稽核、終檢／PSI 報告、成品放行單、貨櫃檢查報告','Packing lists and count records, packing audits, final / PSI reports, release forms, container inspections','បញ្ជីវេចខ្ចប់ របាយការណ៍ AQL ការពិនិត្យកុងតឺន័រ'),
+ ng:T('數量只看總數沒逐箱點；封箱後才過探測；放行沒有人簽名','Only totals counted, not per carton; detection after sealing; no signed release','រាប់តែសរុប ឆ្លងម៉ាស៊ីនក្រោយបិទ'),
+ q:[[T('什麼時候封箱？','When is a carton sealed?','ពេលណាបិទប្រអប់?'),T('過完金屬探測、點數正確之後。','After metal detection and a correct count.','ក្រោយឆ្លងម៉ាស៊ីន និងរាប់ត្រូវ។')],[T('誰可以放行出貨？','Who can release a shipment?','អ្នកណាអាចអនុញ្ញាតដឹក?'),T('終檢合格後，由指定主管簽名放行。','The appointed supervisor, after final inspection passes.','ប្រធានដែលបានកំណត់ ក្រោយ AQL ជាប់។')],[T('裝櫃前要查什麼？','What is checked before loading?','មុនផ្ទុកពិនិត្យអ្វី?'),T('乾淨、沒破洞、沒異味，拍照留存。','Clean, no holes, no odour – photograph it.','ស្អាត គ្មានរន្ធ គ្មានក្លិន ថតរូប។')]],
+ src:'WSE Section 16、20；Checklist 13、14、39、44；VRT Packing 培訓（2025-02、05）'},
+{id:'ohs',ic:'🦺',t:T('職安與異物、化學品控制','Safety, foreign-matter and chemical control','សុវត្ថិភាព និងការត្រួតពិនិត្យសារធាតុគីមី'),
+ why:T('員工受傷、衣服沾到油污或化學味，都是驗廠和客訴的重點（曾有客戶開箱聞到化學味的客訴）。','Worker injuries, oil stains or chemical odour on garments are audit and complaint hot spots (we have had a chemical-odour complaint).','ការរបួស ស្នាមប្រេង ឬក្លិនគីមី ជាចំណុចសំខាន់។'),
+ todo:[T('機台護罩（皮帶、針、刀）不可拆；戴手套、口罩、耳塞照規定','Keep machine guards (belt, needle, knife) on; wear gloves, masks, ear plugs as required','មិនដោះគម្របការពារម៉ាស៊ីន ពាក់ស្រោមដៃ ម៉ាស់'),
+  T('工位不吃東西、不放私人物品；白色衣服區要特別乾淨','No food or personal items at stations; keep white-garment areas extra clean','មិនញ៉ាំ មិនដាក់របស់ផ្ទាល់ខ្លួននៅកន្លែងធ្វើការ'),
+  T('機油用專用油壺、滴油後擦乾淨；油污衣服另外隔離','Use the proper oil can and wipe after oiling; quarantine stained garments','ប្រើកំប៉ុងប្រេង ជូតឱ្យស្អាត'),
+  T('只用核准清單上的化學品（去污劑等），容器要有標籤和 MSDS','Use only approved chemicals (stain removers etc.), labelled with MSDS','ប្រើតែសារធាតុគីមីដែលបានអនុម័ត មានស្លាក និង MSDS'),
+  T('包裝前衣服要通風，避免悶出氣味','Air garments before packing to avoid odour','ឱ្យសម្លៀកបំពាក់ទទួលខ្យល់មុនវេចខ្ចប់')],
+ ev:T('風險評估、PPE 發放與培訓紀錄、護罩現場、化學品清單與 MSDS、異物控制程序','Risk assessments, PPE issue and training records, guards on site, chemical list and MSDS, foreign-matter procedure','ការវាយតម្លៃហានិភ័យ PPE MSDS'),
+ ng:T('護罩被拆掉；化學品沒有標籤或不在清單上；工位有食物','Guards removed; unlabelled or unlisted chemicals; food at stations','គម្របត្រូវបានដោះ សារធាតុគីមីគ្មានស្លាក'),
+ q:[[T('可以拆掉護罩比較好車嗎？','Can guards be removed to sew faster?','អាចដោះគម្របដើម្បីដេរលឿនបានទេ?'),T('不行，護罩一定要裝著。','No – guards must stay on.','មិនបានទេ។')],[T('去污劑可以自己買來用嗎？','Can you bring your own stain remover?','អាចយកថ្នាំលុបស្នាមផ្ទាល់ខ្លួនបានទេ?'),T('不行，只能用核准清單上的。','No – only approved chemicals.','មិនបានទេ។')],[T('油污的衣服怎麼辦？','What about oil-stained garments?','សម្លៀកបំពាក់មានប្រេងធ្វើម៉េច?'),T('隔離，交 QC 處理。','Quarantine and hand to QC.','ញែកចេញ ប្រគល់ QC។')]],
+ src:'WSE Section 22；Checklist 46、47、52；VRT 異常報告（化學味、污漬案例）'}
+];
+let LI=0;try{LI=+localStorage.getItem('vrt_mat_lang')||0}catch(e){}
+const L=a=>Array.isArray(a)?(a[LI]||a[1]||a[0]):a,E=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function draw(){document.querySelectorAll('#lang button').forEach(b=>b.classList.toggle('on',+b.dataset.l===LI));document.getElementById('ttl').textContent=L(UI.ttl);document.title=L(UI.ttl);
+ let h='<div class="intro">'+E(L(UI.intro))+'</div><div class="toc">'+M.map((m,i)=>'<a href="#'+m.id+'">'+m.ic+' '+(i+1)+'. '+E(L(m.t))+'</a>').join('')+'</div>';
+ h+=M.map((m,i)=>'<section class="m" id="'+m.id+'"><h2>'+m.ic+' '+(i+1)+'. '+E(L(m.t))+'</h2><p class="why"><b>'+E(L(UI.why))+'：</b>'+E(L(m.why))+'</p><h3>✅ '+E(L(UI.todo))+'</h3><ol>'+m.todo.map(x=>'<li>'+E(L(x))+'</li>').join('')+'</ol><h3>📂 '+E(L(UI.ev))+'</h3><div class="ev">'+E(L(m.ev))+'</div><h3>⚠️ '+E(L(UI.ng))+'</h3><div class="ng">'+E(L(m.ng))+'</div><div class="q"><h3>📝 '+E(L(UI.q))+'</h3>'+m.q.map(x=>'<details><summary>'+E(L(x[0]))+'</summary>'+E(L(x[1]))+'</details>').join('')+'</div><div class="src">'+E(L(UI.src))+'：'+E(m.src)+'</div></section>').join('');
+ document.getElementById('app').innerHTML=h;const hs=decodeURIComponent((location.hash||'').slice(1));if(hs){const el=document.getElementById(hs);if(el)el.scrollIntoView()}}
+document.querySelectorAll('#lang button').forEach(b=>b.onclick=()=>{LI=+b.dataset.l;try{localStorage.setItem('vrt_mat_lang',LI)}catch(e){}draw()});
+draw();
+</script></body></html>
