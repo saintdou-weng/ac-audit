@@ -41,3 +41,10 @@ Plan: import 2025 Aug–Dec production rows from full-year xlsx; attach PDFs as 
 - assets/training_photos.js（兩頁共用）：月份記錄每列顯示照片縮圖＋📷n，點開全螢幕可左右滑（commit a7fbe05）。
 - 生產培訓：從上課紀錄 PDF（第 2 頁活動照、第 3 頁簽到表）抽圖，配到 17 筆記錄共 99 張（2025-01×3、02×4、04 布料檢驗、06×3、12×6），經 GAS uploadAttachment 存 Drive，evidence 已同步。工具：/home/claude/work/trph（out/ 檔名 日期__主題__序號.jpg；瀏覽器 phMatch 關鍵字配對）。
 - 還沒附：生產 2025-03、05、07～11、2026-01～02（PDF 在 Gmail 月報 rar、Downloads/08_EMAIL…/training audit 的 rar）；人資所有月份（C:\all\close drop\HR\Others\<年>\ 的月報 PDF、Gmail HR Training Report）。
+
+## 2026-11-27 14:xx：照片補齊（第二批）
+- 智慧匯入 assets/training_smartimport.js v3（PDF 文字正規化、日期容錯、沒日期照片跟同批課程、匯入後立即推雲端）。
+- 人資：從 C:\all\close drop\HR\Others（2023 Training、2024-02、2024-06、2025-01/02/03 PDF）、C:\all\VRT26\2603\HR03（2026-02 PDF）、Downloads training audit（2026-01 PDF）、Downloads/02_ADMIN…/10. VRT HR Training October-2026.pptx 抽圖，217 張配到 85 筆，雲端 getAll 已確認 217。工具 /home/claude/work/hrph（ext.py、idx_all.json）。「Material Training」＝頁面上的 Factory internal regulations。TAFTAC 2026-02-17 Member Refresher（20 人）頁面沒這筆，未附。
+- 生產：Gmail 2025-07 Packing rar、09、11 rar；Downloads 2026-01、02 rar → 176 張配 25 筆（module prod_training）。工具 /home/claude/work/prph；rar 用 node-unrar-js（/tmp/unr/x.js）。
+- 還缺：生產 2025-03、05（zip 19MB）、07 QC rar（14.8MB）、10（12.9MB）超過 Gmail 下載工具 12MB 上限，要用瀏覽器從 Gmail 下載到筆電 Downloads 再 stage；2025-08 沒有月報郵件。人資 2024-07..12、2025-04..12、2026-03..09 找不到照片檔（2026-03 只有 TAFTAC 研習報告）。
+- 注意：TRAuto 在頁面有 input 焦點時可能不推；必要時 TRAuto.run('manual')。
